@@ -12,11 +12,30 @@ export default {
     format: 'es',
     dir: 'dist',
   },
+  external: [
+    '@material/mwc-fab',
+    /^lit/,
+    '@openscd/oscd-api',
+    '@openscd/oscd-api/utils.js',
+    '@openscd/scl-lib',
+    '@omicronenergy/oscd-editor-sld/dist/sld-editor.js'
+  ],
 
   plugins: [
     typescript(),
     nodeResolve(),
-    terser(),
+    terser({
+      output: {
+        comments: false
+      },
+      compress: {
+        keep_fnames: true,
+      },
+      mangle: {
+        keep_classnames: true,
+        keep_fnames: true,
+      }
+    }),
     importMetaAssets(),
     babel({
       babelHelpers: 'bundled',

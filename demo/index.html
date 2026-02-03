@@ -14,19 +14,69 @@
 <link
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
   rel="stylesheet"
-/><oscd-shell></oscd-shell>
+/><open-scd></open-scd>
 
+<script polyfill="" scoped-custom-element-registry="">
+  if (!('createElement' in ShadowRoot.prototype)) {
+    (function(){
+  /*
+
+   Copyright (c) 2020 The Polymer Project Authors. All rights reserved.
+   This code may only be used under the BSD style license found at
+   http://polymer.github.io/LICENSE.txt
+   The complete set of authors may be found at
+   http://polymer.github.io/AUTHORS.txt
+   The complete set of contributors may be found at
+   http://polymer.github.io/CONTRIBUTORS.txt
+   Code distributed by Google as part of the polymer project is also
+   subject to an additional IP rights grant found at
+   http://polymer.github.io/PATENTS.txt
+  */
+  function h(b){let c=0;return function(){return c<b.length?{done:!1,value:b[c++]}:{done:!0}}}function l(b){const c=typeof Symbol!=="undefined"&&Symbol.iterator&&b[Symbol.iterator];return c?c.call(b):{next:h(b)}}function m(b){if(!(b instanceof Array)){b=l(b);for(var c,a=[];!(c=b.next()).done;)a.push(c.value);b=a}return b}const n=typeof Object.create==="function"?Object.create:function(b){function c(){}c.prototype=b;return new c};
+  function p(b){b=[typeof globalThis==="object"&&globalThis,b,typeof window==="object"&&window,typeof self==="object"&&self,typeof global==="object"&&global];for(let c=0;c<b.length;++c){const a=b[c];if(a&&a.Math==Math)return a}throw Error("Cannot find global object");}
+  const q=p(this); const r=function(){function b(){function a(){}new a;Reflect.construct(a,[],() =>{});return new a instanceof a}if(typeof Reflect!=="undefined"&&Reflect.construct){if(b())return Reflect.construct;const c=Reflect.construct;return function(a,d,e){a=c(a,d);e&&Reflect.setPrototypeOf(a,e.prototype);return a}}return function(a,d,e){void 0===e&&(e=a);e=n(e.prototype||Object.prototype);return Function.prototype.apply.call(a,e,d)||e}}(); let t;
+  if(typeof Object.setPrototypeOf==="function")t=Object.setPrototypeOf;else{let u;a:{const v={a:!0}; const w={};try{w.__proto__=v;u=w.a;break a}catch(b){}u=!1}t=u?function(b,c){b.__proto__=c;if(b.__proto__!==c)throw new TypeError(`${b} is not extensible`);return b}:null}const x=t;
+  if(!ShadowRoot.prototype.createElement){const y=window.HTMLElement; const A=window.customElements.define; const B=window.customElements.get; const C=window.customElements; const D=new WeakMap; const E=new WeakMap; const F=new WeakMap; const G=new WeakMap;window.CustomElementRegistry=function(){this.l=new Map;this.o=new Map;this.i=new Map;this.h=new Map};window.CustomElementRegistry.prototype.define=function(b,c){b=b.toLowerCase();if(void 0!==this.j(b))throw new DOMException(`Failed to execute 'define' on 'CustomElementRegistry': the name "${b}" has already been used with this registry`);
+  if(void 0!==this.o.get(c))throw new DOMException("Failed to execute 'define' on 'CustomElementRegistry': this constructor has already been used with this registry");let a=c.prototype.attributeChangedCallback; let d=new Set(c.observedAttributes||[]);H(c,d,a);a={g:c,connectedCallback:c.prototype.connectedCallback,disconnectedCallback:c.prototype.disconnectedCallback,adoptedCallback:c.prototype.adoptedCallback,attributeChangedCallback:a,formAssociated:c.formAssociated,formAssociatedCallback:c.prototype.formAssociatedCallback,
+  formDisabledCallback:c.prototype.formDisabledCallback,formResetCallback:c.prototype.formResetCallback,formStateRestoreCallback:c.prototype.formStateRestoreCallback,observedAttributes:d};this.l.set(b,a);this.o.set(c,a);d=B.call(C,b);d||(d=I(b),A.call(C,b,d));this===window.customElements&&(F.set(c,a),a.s=d);if(d=this.h.get(b)){this.h.delete(b);d=l(d);for(let e=d.next();!e.done;e=d.next())e=e.value,E.delete(e),J(e,a,!0)}a=this.i.get(b);void 0!==a&&(a.resolve(c),this.i.delete(b));return c};window.CustomElementRegistry.prototype.upgrade=
+  function(){K.push(this);C.upgrade.apply(C,arguments);K.pop()};window.CustomElementRegistry.prototype.get=function(b){let c;return (c=this.l.get(b))==null?void 0:c.g};window.CustomElementRegistry.prototype.j=function(b){return this.l.get(b)};window.CustomElementRegistry.prototype.whenDefined=function(b){const c=this.j(b);if(void 0!==c)return Promise.resolve(c.g);let a=this.i.get(b);void 0===a&&(a={},a.promise=new Promise((d) =>a.resolve=d),this.i.set(b,a));return a.promise};window.CustomElementRegistry.prototype.m=
+  function(b,c,a){let d=this.h.get(c);d||this.h.set(c,d=new Set);a?d.add(b):d.delete(b)};let L;window.HTMLElement=function(){let b=L;if(b)return L=void 0,b;const c=F.get(this.constructor);if(!c)throw new TypeError("Illegal constructor (custom element class must be registered with global customElements registry to be newable)");b=Reflect.construct(y,[],c.s);Object.setPrototypeOf(b,this.constructor.prototype);D.set(b,c);return b};window.HTMLElement.prototype=y.prototype;var I=function(b){function c(){const a=
+Reflect.construct(y,[],this.constructor);Object.setPrototypeOf(a,HTMLElement.prototype);a:{var d=a.getRootNode();if(!(d===document||d instanceof ShadowRoot)){d=K[K.length-1];if(d instanceof CustomElementRegistry){var e=d;break a}d=d.getRootNode();d===document||d instanceof ShadowRoot||(d=((e=G.get(d))==null?void 0:e.getRootNode())||document)}e=d.customElements}e=e||window.customElements;(d=e.j(b))?J(a,d):E.set(a,e);return a}q.Object.defineProperty(c,"formAssociated",{configurable:!0,enumerable:!0,
+  get(){return!0}});c.prototype.connectedCallback=function(){const a=D.get(this);a?a.connectedCallback&&a.connectedCallback.apply(this,arguments):E.get(this).m(this,b,!0)};c.prototype.disconnectedCallback=function(){const a=D.get(this);a?a.disconnectedCallback&&a.disconnectedCallback.apply(this,arguments):E.get(this).m(this,b,!1)};c.prototype.adoptedCallback=function(){let a; let d;(a=D.get(this))==null||(d=a.adoptedCallback)==null||d.apply(this,arguments)};c.prototype.formAssociatedCallback=function(){const a=
+D.get(this);if(a&&a.formAssociated){let d;a==null||(d=a.formAssociatedCallback)==null||d.apply(this,arguments)}};c.prototype.formDisabledCallback=function(){const a=D.get(this);if(a==null?0:a.formAssociated){let d;a==null||(d=a.formDisabledCallback)==null||d.apply(this,arguments)}};c.prototype.formResetCallback=function(){const a=D.get(this);if(a==null?0:a.formAssociated){let d;a==null||(d=a.formResetCallback)==null||d.apply(this,arguments)}};c.prototype.formStateRestoreCallback=function(){const a=D.get(this);
+  if(a==null?0:a.formAssociated){let d;a==null||(d=a.formStateRestoreCallback)==null||d.apply(this,arguments)}};return c}; var H=function(b,c,a){if(c.size!==0&&void 0!==a){const d=b.prototype.setAttribute;d&&(b.prototype.setAttribute=function(f,k){f=f.toLowerCase();if(c.has(f)){const z=this.getAttribute(f);d.call(this,f,k);a.call(this,f,z,k)}else d.call(this,f,k)});const e=b.prototype.removeAttribute;e&&(b.prototype.removeAttribute=function(f){f=f.toLowerCase();if(c.has(f)){const k=this.getAttribute(f);e.call(this,
+f);a.call(this,f,k,null)}else e.call(this,f)});const g=b.prototype.toggleAttribute;g&&(b.prototype.toggleAttribute=function(f,k){f=f.toLowerCase();if(c.has(f)){const z=this.getAttribute(f);g.call(this,f,k);k=this.getAttribute(f);a.call(this,f,z,k)}else g.call(this,f,k)})}}; const M=function(b){const c=Object.getPrototypeOf(b);if(c!==window.HTMLElement)return c===y?Object.setPrototypeOf(b,window.HTMLElement):M(c)}; var J=function(b,c,a){a=void 0===a?!1:a;Object.setPrototypeOf(b,c.g.prototype);D.set(b,c);L=b;try{new c.g}catch(d){M(c.g),
+new c.g}c.attributeChangedCallback&&c.observedAttributes.forEach((d) =>{b.hasAttribute(d)&&c.attributeChangedCallback.call(b,d,null,b.getAttribute(d))});a&&c.connectedCallback&&b.isConnected&&c.connectedCallback.call(b)}; const N=Element.prototype.attachShadow;Element.prototype.attachShadow=function(b){const c=N.apply(this,arguments);b.customElements&&(c.customElements=b.customElements);return c};var K=[document]; const O=function(b,c,a){const d=(a?Object.getPrototypeOf(a):b.prototype)[c];b.prototype[c]=function(){K.push(this);
+const e=d.apply(a||this,arguments);void 0!==e&&G.set(e,this);K.pop();return e}};O(ShadowRoot,"createElement",document);O(ShadowRoot,"importNode",document);O(Element,"insertAdjacentHTML");const P=function(b){const c=Object.getOwnPropertyDescriptor(b.prototype,"innerHTML");Object.defineProperty(b.prototype,"innerHTML",{...c,set(a){K.push(this);c.set.call(this,a);K.pop()}})};P(Element);P(ShadowRoot);Object.defineProperty(window,"customElements",{value:new CustomElementRegistry,configurable:!0,
+  writable:!0});if(window.ElementInternals&&window.ElementInternals.prototype.setFormValue){const Q=new WeakMap; const R=HTMLElement.prototype.attachInternals; const methods=["setFormValue","setValidity","checkValidity","reportValidity"];HTMLElement.prototype.attachInternals=function(b){for(var c=[],a=0;a<arguments.length;++a)c[a]=arguments[a];c=R.call.apply(R,[this].concat(m(c)));Q.set(c,this);return c};methods.forEach((b) =>{const c=window.ElementInternals.prototype; const a=c[b];c[b]=function(d){for(var e=[],g=0;g<
+  arguments.length;++g)e[g]=arguments[g];g=Q.get(this);if(!0===D.get(g).formAssociated)return a==null?void 0:a.call.apply(a,[this].concat(m(e)));throw new DOMException(`Failed to execute ${a} on 'ElementInternals': The target element is not a form-associated custom element.`);}});const RadioNodeList=function(b){const c=r(Array,[].concat(m(b)),this.constructor);c.h=b;return c}; const S=RadioNodeList; const T=Array;S.prototype=n(T.prototype);S.prototype.constructor=S;if(x)x(S,T);else for(const U in T)if(U!="prototype")if(Object.defineProperties){const V=
+Object.getOwnPropertyDescriptor(T,U);V&&Object.defineProperty(S,U,V)}else S[U]=T[U];S.u=T.prototype;q.Object.defineProperty(RadioNodeList.prototype,"value",{configurable:!0,enumerable:!0,get(){let b;return((b=this.h.find((c) =>!0===c.checked))==null?void 0:b.value)||""}});const HTMLFormControlsCollection=function(b){const c=this; const a=new Map;b.forEach((d,e) =>{const g=d.getAttribute("name"); const f=a.get(g)||[];c[+e]=d;f.push(d);a.set(g,f)});this.length=b.length;a.forEach((d,e) =>{d&&
+(c[e]=d.length===1?d[0]:new RadioNodeList(d))})};HTMLFormControlsCollection.prototype.namedItem=function(b){return this[b]};const W=Object.getOwnPropertyDescriptor(HTMLFormElement.prototype,"elements");Object.defineProperty(HTMLFormElement.prototype,"elements",{get(){let b=W.get.call(this,[]); const c=[];b=l(b);for(let a=b.next();!a.done;a=b.next()){a=a.value;const d=D.get(a);d&&!0!==d.formAssociated||c.push(a)}return new HTMLFormControlsCollection(c)}})}};
+  }).call(typeof globalThis === 'object' ? globalThis : window);
+
+
+
+  }
+  </script>
+
+<script>
+  const _customElementsDefine = window.customElements.define;
+  window.customElements.define = (name, cl, conf) => {
+    if (!customElements.get(name)) {
+      try {
+        _customElementsDefine.call(window.customElements, name, cl, conf);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  };
+</script>
 <script type="module">
-  import '@omicronenergy/oscd-shell/oscd-shell.js';
+  import '@openenergytools/open-scd-core/open-scd.js';
   import { plugins } from './plugins.js';
 
-  const editor = document.querySelector('oscd-shell');
+  const editor = document.querySelector('open-scd');
   editor.plugins = plugins;
-
-  const params = new URL(document.location).searchParams;
-  for (const [name, value] of params) {
-    editor.setAttribute(name, value);
-  }
 
   const sample = await fetch('sample.scd').then(r => r.text());
   editor.docs = {
