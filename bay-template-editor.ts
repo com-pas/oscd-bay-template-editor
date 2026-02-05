@@ -15,6 +15,7 @@ import {
   makeBusBar,
   setSLDAttributes,
   sldNs,
+  uniqueName,
   xmlnsNs,
 } from './util.js';
 
@@ -70,10 +71,14 @@ export default class BayTemplatePlugin extends LitElement {
       ? editEvent.detail
       : [editEvent.detail];
 
-    // Unwrap if edits are in { edit: [...] } structure
     edits = edits.flatMap((e: any) => (e.edit ? e.edit : e));
 
     edits.forEach((edit: any, index: number) => {
+      if (edit.node && edit.parent && !edit.node.getAttribute('name')) {
+        const name = uniqueName(edit.node, edit.parent);
+        edit.node.setAttribute('name', name);
+      }
+
       if (edit.element && edit.attributesNS?.[sldNs]) {
         const attrs = edit.attributesNS[sldNs];
         const cleanAttrs: Record<string, string> = {};
@@ -82,13 +87,11 @@ export default class BayTemplatePlugin extends LitElement {
           if (value !== null) cleanAttrs[localName] = value as string;
         });
 
-        // If the element is already an SLDAttributes element, set attributes directly on it
         if (edit.element.localName === 'SLDAttributes') {
           Object.entries(cleanAttrs).forEach(([key, value]) => {
             edit.element.setAttributeNS(sldNs, `${this.nsp}:${key}`, value);
           });
         } else {
-          // Otherwise use setSLDAttributes to create the structure
           setSLDAttributes(edit.element, this.nsp, cleanAttrs);
         }
         // eslint-disable-next-line no-param-reassign
