@@ -5,10 +5,19 @@ import { property, state, query } from 'lit/decorators.js';
 import { getReference } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import '@material/mwc-fab';
+import '@material/mwc-icon-button';
+import '@material/mwc-icon-button-toggle';
 
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { IconButtonToggle } from '@material/mwc-icon-button-toggle';
-import { bayIcon, equipmentIcon, ptrIcon, voltageLevelIcon } from './icons.js';
+import {
+  bayIcon,
+  equipmentIcon,
+  ptrIcon,
+  voltageLevelIcon,
+  functionsIcon,
+  functionsOffIcon,
+} from './icons.js';
 import {
   eqTypes,
   isBusBar,
@@ -20,6 +29,7 @@ import {
 } from './util.js';
 
 import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
+import './components/functions-layer.js';
 
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends LitElement {
@@ -46,16 +56,32 @@ export default class BayTemplatePlugin extends LitElement {
   inAction: boolean = false;
 
   @state()
+  sldEditorInAction: boolean = false;
+
+  @state()
+  functionsInAction: boolean = false;
+
+  @state()
+  showFunctions: boolean = false;
+
+  @state()
   templateElements: Record<string, Element> = {};
 
   @state()
   nsp = 'eosld';
+
+  @state()
+  placingFunction?: Element;
+
+  @state()
+  placingFunctionOffset: [number, number] = [0, 0];
 
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
+    window.addEventListener('keydown', this.handleKeydown);
   }
 
   disconnectedCallback() {
@@ -63,6 +89,30 @@ export default class BayTemplatePlugin extends LitElement {
     this.removeEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
+    window.removeEventListener('keydown', this.handleKeydown);
+  }
+
+  private handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      if (this.sldEditorInAction || this.functionsInAction) {
+        event.preventDefault();
+        this.reset();
+      }
+    }
+  };
+
+  private handleStartPlaceFunction = (
+    element: Element,
+    offset: [number, number]
+  ) => {
+    this.placingFunction = element;
+    this.placingFunctionOffset = offset;
+    this.functionsInAction = true;
+    this.updateInAction();
+  };
+
+  private updateInAction() {
+    this.inAction = this.sldEditorInAction || this.functionsInAction;
   }
 
   private preprocessEdits = (event: Event) => {
@@ -98,6 +148,13 @@ export default class BayTemplatePlugin extends LitElement {
         delete edit.attributesNS;
       }
     });
+
+    if (this.placingFunction) {
+      this.placingFunction = undefined;
+      this.placingFunctionOffset = [0, 0];
+      this.functionsInAction = false;
+      this.updateInAction();
+    }
   };
 
   updated(changedProperties: Map<string, any>) {
@@ -142,7 +199,11 @@ export default class BayTemplatePlugin extends LitElement {
   }
 
   reset() {
-    this.inAction = false;
+    this.sldEditorInAction = false;
+    this.functionsInAction = false;
+    this.placingFunction = undefined;
+    this.placingFunctionOffset = [0, 0];
+    this.updateInAction();
     this.sldEditor?.resetWithOffset();
   }
 
@@ -371,6 +432,19 @@ export default class BayTemplatePlugin extends LitElement {
                 >`
             : nothing
         }${
+      this.doc?.querySelector('Function')
+        ? html`<mwc-fab
+            mini
+            id="functions"
+            title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
+            @click=${() => {
+              this.showFunctions = !this.showFunctions;
+            }}
+          >
+            ${this.showFunctions ? functionsIcon : functionsOffIcon}
+          </mwc-fab>`
+        : nothing
+    }${
       this.doc?.querySelector('VoltageLevel, PowerTransformer')
         ? html`<mwc-icon-button-toggle
             id="labels"
@@ -416,15 +490,30 @@ export default class BayTemplatePlugin extends LitElement {
       </nav>
       ${
         this.doc
-          ? html`<sld-editor
-              .doc=${this.doc}
-              .docVersion=${this.editCount}
-              .gridSize=${this.gridSize}
-              .showLabels=${this.showLabels}
-              @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
-                this.inAction = e.detail;
-              }}
-            ></sld-editor>`
+          ? html`<div class="editor-container">
+              <sld-editor
+                .doc=${this.doc}
+                .docVersion=${this.editCount}
+                .gridSize=${this.gridSize}
+                .showLabels=${this.showLabels}
+                .disabled=${this.showFunctions}
+                @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
+                  this.sldEditorInAction = e.detail;
+                  this.updateInAction();
+                }}
+              ></sld-editor>
+              ${this.showFunctions
+                ? html`<functions-layer
+                    .doc=${this.doc}
+                    .editCount=${this.editCount}
+                    .gridSize=${this.gridSize}
+                    .nsp=${this.nsp}
+                    .placing=${this.placingFunction}
+                    .placingOffset=${this.placingFunctionOffset}
+                    .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                  ></functions-layer>`
+                : nothing}
+            </div>`
           : html`<p>Please open an SCL document</p>`
       }
     `;
@@ -457,13 +546,19 @@ export default class BayTemplatePlugin extends LitElement {
         --mdc-theme-secondary: #fff;
         --mdc-theme-on-secondary: rgb(0, 0, 0 / 0.83);
       }
-      sld-editor {
+      .editor-container {
         position: relative;
         display: block;
         width: 100%;
         height: 600px;
         border: 1px solid #ccc;
         margin-top: 24px;
+      }
+      sld-editor {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
       }
     `,
   ];

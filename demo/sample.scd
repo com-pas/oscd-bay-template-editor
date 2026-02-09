@@ -19,6 +19,37 @@
         <Private type="OpenSCD-SLD-Layout">
           <eosld:SLDAttributes eosld:x="2" eosld:y="2" eosld:lx="2" eosld:ly="2" eosld:w="11" eosld:h="20"/>
         </Private>
+        <Function name="P51">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="7" eosld:y="10"/>
+          </Private>
+          <SubFunction name="Stage1">
+            <LNode iedName="None" lnClass="PTOC" lnInst="1"/>
+          </SubFunction>
+          <SubFunction name="Stage2">
+            <LNode iedName="None" lnClass="PTOC" lnInst="2"/>
+          </SubFunction>
+        </Function>
+        <Function name="P51N">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="8" eosld:y="14"/>
+          </Private>
+          <SubFunction name="General">
+            <LNode iedName="None" lnClass="PTRC" lnInst="1"/>
+          </SubFunction>
+          <SubFunction name="Stage1">
+            <LNode iedName="None" lnClass="PTOC" lnInst="1"/>
+          </SubFunction>
+        </Function>
+        <Function name="CTRL">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="4" eosld:y="15"/>
+          </Private>
+          <SubFunction name="Control">
+            <LNode iedName="None" lnClass="CSWI" lnInst="1"/>
+            <LNode iedName="None" lnClass="CILO" lnInst="1"/>
+          </SubFunction>
+        </Function>
       </Bay>
     </VoltageLevel>
   </Substation>

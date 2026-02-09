@@ -1,4 +1,5 @@
 import { getReference } from '@openscd/scl-lib';
+import { EditV2 } from '@openscd/oscd-api';
 
 export const privType = 'OpenSCD-SLD-Layout';
 export const sldNs = 'https://openscd.org/SCL/SSD/SLD/v0';
@@ -95,6 +96,27 @@ export function getSLDAttributes(element: Element, key: string): string | null {
   if (isSecOrVert) return element.getAttributeNS(sldNs, key);
 
   return sldAttributes(element)?.getAttributeNS(sldNs, key) ?? null;
+}
+
+export function updateSLDAttributes(
+  element: Element,
+  nsPrefix: string,
+  values: Partial<Record<string, string | null>>
+): EditV2 {
+  const isSecOrVert = ['Section', 'Vertex'].includes(element.localName);
+  const toBeUpdated = isSecOrVert ? element : sldAttributes(element, nsPrefix)!;
+
+  return {
+    element: toBeUpdated,
+    attributesNS: {
+      [sldNs]: Object.fromEntries(
+        Object.entries(values).map(([key, value]) => [
+          `${nsPrefix}:${key}`,
+          value,
+        ])
+      ),
+    },
+  };
 }
 
 export function busSections(element: Element): Element[] {
