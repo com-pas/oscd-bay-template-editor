@@ -4,7 +4,6 @@ import typescript from '@rollup/plugin-typescript';
 import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
 import { terser } from 'rollup-plugin-terser';
 
-
 export default {
   input: './bay-template-editor.ts',
   output: {
@@ -12,7 +11,6 @@ export default {
     format: 'es',
     dir: 'dist',
   },
-
   plugins: [
     typescript(),
     nodeResolve(),
@@ -29,7 +27,7 @@ export default {
               'last 3 Firefox major versions',
               'last 3 Edge major versions',
               'last 3 Safari major versions',
-            ]
+            ],
           },
         ],
       ],

@@ -6,9 +6,39 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Test files to run */
   files: 'dist/**/*.spec.js',
 
+  /** Setup to handle duplicate custom element registrations */
+  testRunnerHtml: testFramework =>
+    `<!DOCTYPE html>
+    <html>
+      <head>
+        <script type="module">
+          // Handle duplicate custom element registrations from multiple packages
+          const originalDefine = customElements.define.bind(customElements);
+          customElements.define = function (name, constructor, options) {
+            const existing = customElements.get(name);
+            if (existing) {
+              if (existing === constructor) return;
+              console.warn(\`Custom element "\${name}" already defined. Skipping redefinition.\`);
+              return;
+            }
+            originalDefine(name, constructor, options);
+          };
+        </script>
+      </head>
+      <body>
+        <script type="module" src="${testFramework}"></script>
+      </body>
+    </html>`,
+
   /** Resolve bare module imports */
   nodeResolve: {
     exportConditions: ['browser', 'development'],
+  },
+
+  /** Coverage configuration */
+  coverage: true,
+  coverageConfig: {
+    exclude: ['**/node_modules/**', '**/__wds-outside-root__/**'],
   },
 
   /** Filter out lit dev mode logs */

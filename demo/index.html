@@ -14,19 +14,26 @@
 <link
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
   rel="stylesheet"
-/><oscd-shell></oscd-shell>
+/><open-scd></open-scd>
 
+<script>
+  const _customElementsDefine = window.customElements.define;
+  window.customElements.define = (name, cl, conf) => {
+    if (!customElements.get(name)) {
+      try {
+        _customElementsDefine.call(window.customElements, name, cl, conf);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+  };
+</script>
 <script type="module">
-  import '@omicronenergy/oscd-shell/oscd-shell.js';
+  import '@openenergytools/open-scd-core/open-scd.js';
   import { plugins } from './plugins.js';
 
-  const editor = document.querySelector('oscd-shell');
+  const editor = document.querySelector('open-scd');
   editor.plugins = plugins;
-
-  const params = new URL(document.location).searchParams;
-  for (const [name, value] of params) {
-    editor.setAttribute(name, value);
-  }
 
   const sample = await fetch('sample.scd').then(r => r.text());
   editor.docs = {
