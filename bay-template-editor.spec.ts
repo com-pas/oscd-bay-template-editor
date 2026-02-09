@@ -598,4 +598,172 @@ describe('Bay Template Editor Plugin', () => {
       expect(sldAttrs).to.exist;
     });
   });
+
+  describe('function placement', () => {
+    it('starts placing function when handleStartPlaceFunction is called', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBay,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const functionElement = doc.createElement('Function');
+      functionElement.setAttribute('name', 'TestFunction');
+
+      element.handleStartPlaceFunction(functionElement, [1, 2]);
+      await element.updateComplete;
+
+      expect(element.placingFunction).to.equal(functionElement);
+      expect(element.placingFunctionOffset).to.deep.equal([1, 2]);
+      expect(element.functionsInAction).to.be.true;
+      expect(element.inAction).to.be.true;
+    });
+
+    it('resets function placement on Escape key', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBay,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const functionElement = doc.createElement('Function');
+      element.handleStartPlaceFunction(functionElement, [0, 0]);
+      await element.updateComplete;
+
+      expect(element.placingFunction).to.exist;
+
+      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+      window.dispatchEvent(escapeEvent);
+      await element.updateComplete;
+
+      expect(element.placingFunction).to.be.undefined;
+      expect(element.functionsInAction).to.be.false;
+    });
+
+    it('resets placing function after edit event', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBay,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const functionElement = doc.createElement('Function');
+      element.placingFunction = functionElement;
+      await element.updateComplete;
+
+      const editEvent = new CustomEvent('oscd-edit-v2', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          parent: doc.querySelector('Bay'),
+          node: functionElement,
+        },
+      });
+
+      element.dispatchEvent(editEvent);
+      await element.updateComplete;
+
+      expect(element.placingFunction).to.be.undefined;
+    });
+  });
+
+  describe('function layer state management', () => {
+    it('updates inAction when functionsInAction changes', async () => {
+      element.functionsInAction = true;
+      element.updateInAction();
+      expect(element.inAction).to.be.true;
+
+      element.functionsInAction = false;
+      element.updateInAction();
+      expect(element.inAction).to.be.false;
+    });
+
+    it('sets inAction when either sldEditor or functions are in action', async () => {
+      element.sldEditorInAction = true;
+      element.functionsInAction = false;
+      element.updateInAction();
+      expect(element.inAction).to.be.true;
+
+      element.sldEditorInAction = false;
+      element.functionsInAction = true;
+      element.updateInAction();
+      expect(element.inAction).to.be.true;
+
+      element.sldEditorInAction = true;
+      element.functionsInAction = true;
+      element.updateInAction();
+      expect(element.inAction).to.be.true;
+    });
+
+    it('clears inAction when both states are false', async () => {
+      element.sldEditorInAction = false;
+      element.functionsInAction = false;
+      element.updateInAction();
+      expect(element.inAction).to.be.false;
+    });
+  });
+
+  describe('reset method with functions', () => {
+    it('resets function placement state', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBay,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const functionElement = doc.createElement('Function');
+      element.placingFunction = functionElement;
+      element.placingFunctionOffset = [5, 10];
+      element.functionsInAction = true;
+
+      element.reset();
+
+      expect(element.placingFunction).to.be.undefined;
+      expect(element.placingFunctionOffset).to.deep.equal([0, 0]);
+      expect(element.functionsInAction).to.be.false;
+      expect(element.inAction).to.be.false;
+    });
+
+    it('resets both sldEditor and function states', async () => {
+      element.sldEditorInAction = true;
+      element.functionsInAction = true;
+
+      element.reset();
+
+      expect(element.sldEditorInAction).to.be.false;
+      expect(element.functionsInAction).to.be.false;
+      expect(element.inAction).to.be.false;
+    });
+  });
+
+  describe('disconnectedCallback with functions', () => {
+    it('removes keydown listener on disconnect', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBay,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const functionElement = doc.createElement('Function');
+      element.handleStartPlaceFunction(functionElement, [0, 0]);
+      await element.updateComplete;
+
+      expect(element.placingFunction).to.exist;
+
+      // Disconnect the element
+      element.disconnectedCallback();
+
+      // Keydown event should not affect the element after disconnection
+      const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
+      window.dispatchEvent(escapeEvent);
+
+      // The placing function should still exist since handler was removed
+      expect(element.placingFunction).to.exist;
+    });
+  });
 });

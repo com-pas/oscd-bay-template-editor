@@ -303,9 +303,9 @@ export class FunctionsLayer extends LitElement {
     }
   }
 
-  private renderFunction(fn: FunctionData, preview = false): TemplateResult {
+  private renderFunction(fn: FunctionData, preview = false) {
     if (this.placing === fn.element && !preview) {
-      return svg``;
+      return nothing;
     }
 
     const isPlacing = this.placing === fn.element;
@@ -325,14 +325,11 @@ export class FunctionsLayer extends LitElement {
     const rectX = x - boxWidth / 2;
     const rectY = y - HEIGHT / 2;
 
-    const classes = classMap({
-      function: true,
-      preview,
-      placing: isPlacing,
-    });
+    let classAttr = 'function';
+    if (preview) classAttr += ' preview';
+    if (isPlacing) classAttr += ' placing';
 
-    return svg`
-      <g class="${classes}"
+    return svg`<g class="${classAttr}"
          @click=${(e: MouseEvent) => this.handleFunctionClick(fn, e)}
          tabindex="0">
         <rect
@@ -362,8 +359,7 @@ export class FunctionsLayer extends LitElement {
           fill="currentColor"
         >${fn.name}</text>
         <title>${fn.name}</title>
-      </g>
-    `;
+      </g>`;
   }
 
   render() {
