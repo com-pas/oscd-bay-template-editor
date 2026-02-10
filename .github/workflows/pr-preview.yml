@@ -1,0 +1,48 @@
+name: Deploy PR Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare preview directory
+        run: |
+          mkdir -p preview/dist
+          cp -r dist/* preview/dist/
+          cp -r demo/ preview/
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=demo/"></head></html>' > preview/index.html
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: preview/
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview

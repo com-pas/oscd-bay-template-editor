@@ -42,16 +42,23 @@ describe('Bay Template Editor Plugin', () => {
     });
 
     it('shows only substation button', async () => {
-      const buttons = element.shadowRoot?.querySelectorAll('mwc-fab');
-      expect(buttons?.length).to.equal(1);
-      expect(buttons?.[0].getAttribute('label')).to.equal('Add Substation');
+      const outlinedButtons =
+        element.shadowRoot?.querySelectorAll('oscd-icon-button');
+      const filledButtons = element.shadowRoot?.querySelectorAll(
+        'oscd-filled-icon-button'
+      );
+      expect(outlinedButtons?.length).to.equal(0);
+      expect(filledButtons?.length).to.equal(1);
+      expect(filledButtons?.[0].getAttribute('label')).to.equal(
+        'Add Substation'
+      );
     });
   });
 
   describe('substation button', () => {
     it('is always visible', async () => {
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Substation"]'
+        'oscd-filled-icon-button[label="Add Substation"]'
       );
       expect(button).to.exist;
     });
@@ -64,12 +71,22 @@ describe('Bay Template Editor Plugin', () => {
       const insertSpy = spy(element, 'insertSubstation');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Substation"]'
+        'oscd-filled-icon-button[label="Add Substation"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
 
       expect(insertSpy.calledOnce).to.be.true;
+    });
+
+    it('is disabled when functions layer is active', async () => {
+      element.showFunctions = true;
+      await element.updateComplete;
+
+      const button = element.shadowRoot?.querySelector(
+        'oscd-filled-icon-button[label="Add Substation"]'
+      ) as HTMLButtonElement;
+      expect(button.disabled).to.be.true;
     });
   });
 
@@ -80,7 +97,7 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add VoltageLevel"]'
+        'oscd-filled-icon-button[label="Add VoltageLevel"]'
       );
       expect(button).to.not.exist;
     });
@@ -94,7 +111,7 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add VoltageLevel"]'
+        'oscd-filled-icon-button[label="Add VoltageLevel"]'
       );
       expect(button).to.exist;
     });
@@ -110,7 +127,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add VoltageLevel"]'
+        'oscd-filled-icon-button[label="Add VoltageLevel"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -118,6 +135,22 @@ describe('Bay Template Editor Plugin', () => {
       expect(placingSpy.calledOnce).to.be.true;
       const placedElement = placingSpy.firstCall.args[0] as Element;
       expect(placedElement.tagName).to.equal('VoltageLevel');
+    });
+
+    it('is disabled when functions layer is active', async () => {
+      element.showFunctions = true;
+      const doc = new DOMParser().parseFromString(
+        docWithSubstation,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+      await element.updateComplete;
+
+      const button = element.shadowRoot?.querySelector(
+        'oscd-filled-icon-button[label="Add VoltageLevel"]'
+      ) as HTMLButtonElement;
+      expect(button.disabled).to.be.true;
     });
   });
 
@@ -131,10 +164,10 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const bayButton = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bay"]'
+        'oscd-filled-icon-button[label="Add Bay"]'
       );
       const busbarButton = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bus Bar"]'
+        'oscd-icon-button[label="Add Bus Bar"]'
       );
       expect(bayButton).to.not.exist;
       expect(busbarButton).to.not.exist;
@@ -149,10 +182,10 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const bayButton = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bay"]'
+        'oscd-filled-icon-button[label="Add Bay"]'
       );
       const busbarButton = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bus Bar"]'
+        'oscd-icon-button[label="Add Bus Bar"]'
       );
       expect(bayButton).to.exist;
       expect(busbarButton).to.exist;
@@ -169,7 +202,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bay"]'
+        'oscd-filled-icon-button[label="Add Bay"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -190,7 +223,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Bus Bar"]'
+        'oscd-icon-button[label="Add Bus Bar"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -212,7 +245,7 @@ describe('Bay Template Editor Plugin', () => {
 
       for (const type of eqTypes) {
         const button = element.shadowRoot?.querySelector(
-          `mwc-fab[label="Add ${type}"]`
+          `oscd-icon-button[label="Add ${type}"]`
         );
         expect(button).to.not.exist;
       }
@@ -228,7 +261,7 @@ describe('Bay Template Editor Plugin', () => {
 
       for (const type of eqTypes) {
         const button = element.shadowRoot?.querySelector(
-          `mwc-fab[label="Add ${type}"]`
+          `oscd-icon-button[label="Add ${type}"]`
         );
         expect(button).to.exist;
       }
@@ -244,7 +277,7 @@ describe('Bay Template Editor Plugin', () => {
 
       for (const type of eqTypes) {
         const button = element.shadowRoot?.querySelector(
-          `mwc-fab[label="Add ${type}"]`
+          `oscd-icon-button[label="Add ${type}"]`
         );
         expect(button).to.not.exist;
       }
@@ -261,7 +294,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const cabButton = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add CAB"]'
+        'oscd-icon-button[label="Add CAB"]'
       ) as HTMLElement;
       cabButton.click();
       await element.updateComplete;
@@ -280,7 +313,7 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const transformerButtons = element.shadowRoot?.querySelectorAll(
-        'mwc-fab[label*="Transformer"]'
+        'oscd-icon-button[label*="Transformer"]'
       );
       expect(transformerButtons?.length).to.equal(0);
     });
@@ -294,7 +327,7 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const transformerButtons = element.shadowRoot?.querySelectorAll(
-        'mwc-fab[label*="Transformer"]'
+        'oscd-icon-button[label*="Transformer"]'
       );
       expect(transformerButtons!.length).to.be.greaterThan(0);
     });
@@ -310,7 +343,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Single Winding Auto Transformer"]'
+        'oscd-icon-button[label="Add Single Winding Auto Transformer"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -336,7 +369,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Two Winding Transformer"]'
+        'oscd-icon-button[label="Add Two Winding Transformer"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -358,7 +391,7 @@ describe('Bay Template Editor Plugin', () => {
       const placingSpy = spy(element, 'startPlacing');
 
       const button = element.shadowRoot?.querySelector(
-        'mwc-fab[label="Add Three Winding Transformer"]'
+        'oscd-icon-button[label="Add Three Winding Transformer"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -377,10 +410,10 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const zoomIn = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_in"]'
+        'oscd-icon-button[label="Zoom In"]'
       );
       const zoomOut = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_out"]'
+        'oscd-icon-button[label="Zoom Out"]'
       );
       expect(zoomIn).to.not.exist;
       expect(zoomOut).to.not.exist;
@@ -395,10 +428,10 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
 
       const zoomIn = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_in"]'
+        'oscd-icon-button[label="Zoom In"]'
       );
       const zoomOut = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_out"]'
+        'oscd-icon-button[label="Zoom Out"]'
       );
       expect(zoomIn).to.exist;
       expect(zoomOut).to.exist;
@@ -414,7 +447,7 @@ describe('Bay Template Editor Plugin', () => {
 
       const initialSize = element.gridSize;
       const button = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_in"]'
+        'oscd-icon-button[label="Zoom In"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
@@ -432,7 +465,7 @@ describe('Bay Template Editor Plugin', () => {
 
       const initialSize = element.gridSize;
       const button = element.shadowRoot?.querySelector(
-        'mwc-icon-button[icon="zoom_out"]'
+        'oscd-icon-button[label="Zoom Out"]'
       ) as HTMLElement;
       button.click();
       await element.updateComplete;
