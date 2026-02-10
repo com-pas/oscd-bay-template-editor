@@ -24,10 +24,9 @@ export const plugins = {
   editor: [
     {
       name: 'Bay Template Editor',
-      translations: { de: 'Bay Template Editor' },
-      icon: 'add_box',
+      icon: 'edit',
       active: true,
-      src: '/dist/bay-template-editor.js',
+      src: '../dist/bay-template-editor.js',
     },
   ],
 };
