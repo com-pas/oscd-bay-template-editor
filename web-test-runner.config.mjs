@@ -1,4 +1,5 @@
 // import { playwrightLauncher } from '@web/test-runner-playwright';
+import { polyfill } from '@web/dev-server-polyfill';
 
 const filteredLogs = ['in dev mode', 'scheduled an update'];
 
@@ -68,4 +69,9 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   // ],
 
   // See documentation for all available options
+  plugins: [
+    polyfill({
+      scopedCustomElementRegistry: true,
+    }),
+  ],
 });

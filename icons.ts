@@ -141,7 +141,7 @@ export const zigZag2WTransform =
 export function ptrIcon(
   windings: 1 | 2 | 3,
   {
-    slot = 'icon',
+    slot = '',
     kind = 'default',
   }: { slot?: string; kind?: 'default' | 'auto' | 'earthing' } = {}
 ) {
@@ -167,7 +167,7 @@ export function ptrIcon(
     stroke="currentColor"
     stroke-width="${windings > 1 ? 0.14 : 0.11}"
     stroke-linecap="round"
-    slot="${slot}"
+    ${slot ? html`slot="${slot}"` : nothing}
   >
     ${path} ${zigZag}
   </svg>`;
@@ -177,7 +177,6 @@ export const voltageLevelIcon = html`<svg
   viewBox="0 0 25 25"
   width="24"
   height="24"
-  slot="icon"
 >
   ${voltageLevelPath}
 </svg>`;
@@ -191,12 +190,7 @@ export const voltageLevelGraphic = html`<svg
   ${voltageLevelPath}
 </svg>`;
 
-export const bayIcon = html`<svg
-  viewBox="0 0 25 25"
-  width="24"
-  height="24"
-  slot="icon"
->
+export const bayIcon = html`<svg viewBox="0 0 25 25" width="24" height="24">
   ${bayPath}
 </svg>`;
 
@@ -213,7 +207,6 @@ export const functionsIcon = html`<svg
   viewBox="0 -960 960 960"
   width="24"
   height="24"
-  slot="icon"
 >
   ${functionsPath}
 </svg>`;
@@ -222,7 +215,6 @@ export const functionsOffIcon = html`<svg
   viewBox="0 -960 960 960"
   width="24"
   height="24"
-  slot="icon"
 >
   ${functionsOffPath}
 </svg>`;
@@ -604,7 +596,7 @@ export function equipmentGraphic(
 }
 
 export function equipmentIcon(equipmentType: string): TemplateResult<1> {
-  return html`<svg viewBox="0 0 25 25" width="24" height="24" slot="icon">
+  return html`<svg viewBox="0 0 25 25" width="24" height="24">
     <line
       x1="12.5"
       y1="0"

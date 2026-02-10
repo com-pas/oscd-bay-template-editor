@@ -20,7 +20,8 @@
     "deploy": "npm run build && gh-pages --dist 'dist'"
   },
   "dependencies": {
-    "@material/mwc-icon-button-toggle": "^0.27.0",
+    "@omicronenergy/oscd-ui": "^0.0.11",
+    "@open-wc/scoped-elements": "^3.0.6",
     "@openscd/oscd-api": "^0.1.5",
     "@openscd/scl-lib": "^2.0.0",
     "lit": "^3.0.0"
@@ -28,7 +29,6 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
     "@custom-elements-manifest/analyzer": "^0.4.17",
-    "@material/mwc-fab": "^0.27.0",
     "@omicronenergy/oscd-editor-sld": "OMICRONEnergyOSS/oscd-editor-sld",
     "@open-wc/building-rollup": "^2.0.2",
     "@open-wc/eslint-config": "^8.0.2",
@@ -40,6 +40,7 @@
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "@web/dev-server": "^0.1.34",
+    "@web/dev-server-polyfill": "^1.0.6",
     "@web/rollup-plugin-copy": "^0.4.0",
     "@web/rollup-plugin-import-meta-assets": "^1.0.7",
     "@web/test-runner": "^0.14.0",

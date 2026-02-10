@@ -1,12 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LitElement, html, css, svg, TemplateResult, nothing } from 'lit';
-import { customElement, property, state, query } from 'lit/decorators.js';
+import { LitElement, html, css, svg, nothing } from 'lit';
+import { property, state, query } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import { getSLDAttributes, updateSLDAttributes } from '../util.js';
-import '@material/mwc-icon';
 
 type Point = [number, number];
 
@@ -25,14 +25,13 @@ type BayBoundaries = {
   h: number;
 };
 
-@customElement('functions-layer')
-export class FunctionsLayer extends LitElement {
+export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   private readonly FUNCTION_BOX = {
     HEIGHT: 1,
     ICON_SIZE: 0.8,
     ICON_WIDTH: 0.8,
     FONT_SIZE: 0.5,
-    CHAR_WIDTH: 0.28,
+    CHAR_WIDTH: 0.24,
     PADDING: 0.4,
     SPACING: 0.2,
     MIN_WIDTH: 2,
@@ -75,10 +74,10 @@ export class FunctionsLayer extends LitElement {
   private functions: FunctionData[] = [];
 
   @state()
-  private mouseX = 0;
+  mouseX = 0;
 
   @state()
-  private mouseY = 0;
+  mouseY = 0;
 
   @state()
   private sldOffsetTop = 0;
@@ -341,6 +340,7 @@ export class FunctionsLayer extends LitElement {
           stroke="${preview ? PREVIEW_STROKE : STROKE}"
           stroke-width="${STROKE_WIDTH}"
           rx="${BORDER_RADIUS}"
+          id="${fn.name}"
         />
         <text
           x="${rectX + 0.2}"
