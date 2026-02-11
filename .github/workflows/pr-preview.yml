@@ -30,14 +30,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
+      - name: Build (PR Preview)
+        run: npm run build:preview
 
       - name: Prepare preview directory
         run: |
           mkdir -p preview/dist
           cp -r dist/* preview/dist/
           cp -r demo/ preview/
+          sed -i "s|import { plugins } from './plugins.js'|import { plugins } from '../dist/plugins.js'|g" preview/demo/index.html
           echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=demo/"></head></html>' > preview/index.html
 
       - name: Deploy preview
