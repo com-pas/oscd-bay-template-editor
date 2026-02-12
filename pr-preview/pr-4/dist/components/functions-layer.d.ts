@@ -1,6 +1,13 @@
 import { LitElement } from 'lit';
 import { Ref } from 'lit/directives/ref.js';
 type Point = [number, number];
+type FunctionData = {
+    element: Element;
+    name: string;
+    x: number;
+    y: number;
+    parent?: Element | null;
+};
 declare const FunctionsLayer_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 export declare class FunctionsLayer extends FunctionsLayer_base {
     private readonly FUNCTION_BOX;
@@ -13,21 +20,18 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     placing?: Element;
     placingOffset: Point;
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
-    private functions;
+    functions: FunctionData[];
     mouseX: number;
     mouseY: number;
-    private sldOffsetTop;
-    private sldOffsetLeft;
+    sldOffsetTop: number;
+    sldOffsetLeft: number;
     svg: SVGSVGElement;
     coordinatesRef: Ref<HTMLElement>;
-    private calculateSldOffset;
     firstUpdated(): void;
     updated(changedProperties: Map<string, any>): void;
+    private calculateSldOffset;
     private svgCoordinates;
     positionCoordinates(e: MouseEvent): void;
-    private getBayBoundaries;
-    private clampFunctionPosition;
-    private canPlaceFunction;
     private extractFunctions;
     private getSvgDimensions;
     private calculateFunctionBoxWidth;

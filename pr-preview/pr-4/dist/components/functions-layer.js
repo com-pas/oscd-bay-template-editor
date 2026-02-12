@@ -41,6 +41,21 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         this.sldOffsetLeft = 0;
         this.coordinatesRef = createRef();
     }
+    firstUpdated() {
+        this.calculateSldOffset();
+        window.addEventListener('resize', () => this.calculateSldOffset());
+    }
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        if (changedProperties.has('doc') ||
+            changedProperties.has('gridSize') ||
+            changedProperties.has('editCount')) {
+            this.functions = this.extractFunctions();
+        }
+        if (changedProperties.has('doc') || changedProperties.has('gridSize')) {
+            requestAnimationFrame(() => this.calculateSldOffset());
+        }
+    }
     calculateSldOffset() {
         const parent = this.parentElement;
         if (!parent)
@@ -59,23 +74,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             this.sldOffsetLeft = sldRect.left - hostRect.left;
         }
     }
-    firstUpdated() {
-        this.calculateSldOffset();
-        window.addEventListener('resize', () => this.calculateSldOffset());
-    }
-    updated(changedProperties) {
-        super.updated(changedProperties);
-        if (changedProperties.has('doc') ||
-            changedProperties.has('gridSize') ||
-            changedProperties.has('editCount')) {
-            this.functions = this.extractFunctions();
-        }
-        if (changedProperties.has('placing') ||
-            changedProperties.has('doc') ||
-            changedProperties.has('gridSize')) {
-            requestAnimationFrame(() => this.calculateSldOffset());
-        }
-    }
     svgCoordinates(clientX, clientY) {
         if (!this.svg)
             return [0, 0];
@@ -91,40 +89,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             coordinatesDiv.style.top = `${e.clientY}px`;
             coordinatesDiv.style.left = `${e.clientX + 16}px`;
         }
-    }
-    // eslint-disable-next-line class-methods-use-this
-    getBayBoundaries(bay) {
-        if (!bay || bay.tagName !== 'Bay')
-            return null;
-        const xAttr = getSLDAttributes(bay, 'x');
-        const yAttr = getSLDAttributes(bay, 'y');
-        const wAttr = getSLDAttributes(bay, 'w');
-        const hAttr = getSLDAttributes(bay, 'h');
-        if (!xAttr || !yAttr || !wAttr || !hAttr)
-            return null;
-        return {
-            x: parseFloat(xAttr),
-            y: parseFloat(yAttr),
-            w: parseFloat(wAttr),
-            h: parseFloat(hAttr),
-        };
-    }
-    clampFunctionPosition(fn, x, y) {
-        const boundaries = this.getBayBoundaries(fn.parent);
-        if (!boundaries)
-            return [x, y];
-        const clampedX = Math.max(boundaries.x, Math.min(x, boundaries.x + boundaries.w));
-        const clampedY = Math.max(boundaries.y, Math.min(y, boundaries.y + boundaries.h));
-        return [clampedX, clampedY];
-    }
-    canPlaceFunction(fn, x, y) {
-        const boundaries = this.getBayBoundaries(fn.parent);
-        if (!boundaries)
-            return false;
-        return (x >= boundaries.x &&
-            y >= boundaries.y &&
-            x <= boundaries.x + boundaries.w &&
-            y <= boundaries.y + boundaries.h);
     }
     extractFunctions() {
         if (!this.doc)
@@ -169,12 +133,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         return Math.max(MIN_WIDTH, ICON_WIDTH + SPACING + textWidth + PADDING);
     }
     finalizeFunctionPlacement(fn) {
-        const rawX = this.mouseX - this.placingOffset[0];
-        const rawY = this.mouseY - this.placingOffset[1];
-        const [newX, newY] = this.clampFunctionPosition(fn, rawX, rawY);
+        const x = this.mouseX - this.placingOffset[0];
+        const y = this.mouseY - this.placingOffset[1];
         const edit = updateSLDAttributes(fn.element, this.nsp, {
-            x: newX.toString(),
-            y: newY.toString(),
+            x: x.toString(),
+            y: y.toString(),
         });
         this.dispatchEvent(newEditEventV2(edit));
     }
@@ -261,33 +224,17 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     render() {
         const placingFn = this.functions.find(fn => fn.element === this.placing);
         const { width, height } = this.getSvgDimensions();
-        let bayX = 0;
-        let bayY = 0;
-        let bayW = width;
-        let bayH = height;
-        if (this.placing && placingFn) {
-            const boundaries = this.getBayBoundaries(placingFn.parent);
-            if (boundaries) {
-                bayX = boundaries.x;
-                bayY = boundaries.y;
-                bayW = boundaries.w;
-                bayH = boundaries.h;
-            }
-        }
         let coordinates = html ``;
-        let invalid = false;
         let hidden = true;
         if (this.placing && placingFn) {
             hidden = false;
-            const rawX = this.mouseX - this.placingOffset[0];
-            const rawY = this.mouseY - this.placingOffset[1];
-            invalid = !this.canPlaceFunction(placingFn, rawX, rawY);
-            const [clampedX, clampedY] = this.clampFunctionPosition(placingFn, rawX, rawY);
-            coordinates = html `${clampedX},${clampedY}`;
+            const x = this.mouseX - this.placingOffset[0];
+            const y = this.mouseY - this.placingOffset[1];
+            coordinates = html `${x},${y}`;
         }
         const coordinateTooltip = html `<div
       ${ref(this.coordinatesRef)}
-      class="${classMap({ coordinates: true, invalid, hidden })}"
+      class="${classMap({ coordinates: true, hidden })}"
     >
       (${coordinates})
     </div>`;
@@ -298,11 +245,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               <rect width="1" height="1" fill="none" stroke="#888" stroke-opacity="0.3" stroke-width="0.06" />
             </pattern>
           </defs>
-          <rect x="${bayX}" y="${bayY}" width="${bayW}" height="${bayH}" fill="url(#functions-grid)" />
+          <rect x="0" y="0" width="${width}" height="${height}" fill="url(#functions-grid)" />
         `
             : nothing;
         const placingTarget = this.placing
-            ? svg `<rect x="${bayX}" y="${bayY}" width="${bayW}" height="${bayH}" fill="transparent"
+            ? svg `<rect x="0" y="0" width="${width}" height="${height}" fill="transparent"
                @click=${this.handleContainerClick} />`
             : nothing;
         return html `
@@ -348,7 +295,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           }
         </style>
         <rect width="100%" height="100%" fill="white" fill-opacity="0" />
-        ${gridPattern} ${placingTarget}
+        ${gridPattern} ${placingTarget} // //
         ${this.functions.map(fn => this.renderFunction(fn))}
         ${placingFn ? this.renderFunction(placingFn, true) : nothing}
       </svg>
@@ -388,10 +335,6 @@ FunctionsLayer.styles = css `
       background: #fffd;
       color: rgb(0, 0, 0, 0.83);
       z-index: 1000;
-    }
-
-    .coordinates.invalid {
-      color: #bb1326;
     }
 
     .coordinates.hidden {
