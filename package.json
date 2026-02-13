@@ -14,6 +14,7 @@
     "test:unit": "npm run compile && wtr --group unit --coverage",
     "test:visual": "npm run compile && wtr --group visual --coverage",
     "test:watch": "npm run compile && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch --coverage\"",
+    "test:update": "npm run compile && wtr --group visual --update-visual-baseline",
     "compile": "rimraf dist && tsc",
     "build": "npm run compile && rollup -c rollup.config.js",
     "build:preview": "npm run compile && rollup -c rollup.preview.config.js",

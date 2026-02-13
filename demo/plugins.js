@@ -30,5 +30,11 @@ export const plugins = {
       active: true,
       src: '../dist/bay-template-editor.js',
     },
+    {
+      name: 'Source Editor',
+      icon: 'code',
+      active: true,
+      src: 'https://omicronenergyoss.github.io/oscd-editor-source/oscd-editor-source.js',
+    },
   ],
 };
