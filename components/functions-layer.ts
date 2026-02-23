@@ -105,26 +105,43 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   private calculateSldOffset() {
+    // TEMPORARY WORKAROUND: This method relies on the internal structure and shadow DOM of sld-editor and sld-substation-editor.
+    // This is necessary until sld-editor exposes a public API to access the SLD SVG position.
     const parent = this.parentElement;
     if (!parent) return;
 
     const sldEditor = parent.querySelector('sld-editor');
-    if (!sldEditor) return;
+    if (!sldEditor) {
+      console.warn(
+        '[FunctionsLayer] Could not find <sld-editor> in parent. SLD offset calculation skipped.'
+      );
+      return;
+    }
 
     const substationEditor = sldEditor.shadowRoot?.querySelector(
       'sld-substation-editor'
     );
-    if (!substationEditor) return;
+    if (!substationEditor) {
+      console.warn(
+        '[FunctionsLayer] Could not find <sld-substation-editor> in <sld-editor> shadowRoot. SLD offset calculation skipped.'
+      );
+      return;
+    }
 
     const sldSvg = substationEditor.shadowRoot?.querySelector(
       'svg#sld'
     ) as SVGSVGElement;
-    if (sldSvg) {
-      const sldRect = sldSvg.getBoundingClientRect();
-      const hostRect = this.getBoundingClientRect();
-      this.sldOffsetTop = sldRect.top - hostRect.top;
-      this.sldOffsetLeft = sldRect.left - hostRect.left;
+    if (!sldSvg) {
+      console.warn(
+        '[FunctionsLayer] Could not find <svg id="sld"> in <sld-substation-editor> shadowRoot. SLD offset calculation skipped.'
+      );
+      return;
     }
+
+    const sldRect = sldSvg.getBoundingClientRect();
+    const hostRect = this.getBoundingClientRect();
+    this.sldOffsetTop = sldRect.top - hostRect.top;
+    this.sldOffsetLeft = sldRect.left - hostRect.left;
   }
 
   private svgCoordinates(clientX: number, clientY: number): [number, number] {
@@ -262,6 +279,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
 
+    const centerY = rectY + HEIGHT / 2;
     return svg`<g class="${classAttr}"
          @click=${(e: MouseEvent) => this.handleFunctionClick(fn, e)}
          tabindex="0">
@@ -278,17 +296,19 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         />
         <text
           x="${rectX + 0.2}"
-          y="${y}"
+          y="${centerY}"
           font-size="${ICON_SIZE}px"
           font-family="Material Symbols Outlined"
+          dominant-baseline="central"
           alignment-baseline="central"
           fill="currentColor"
         >function</text>
         <text
           x="${rectX + 1}"
-          y="${y}"
+          y="${centerY}"
           font-size="${FONT_SIZE}px"
           font-family="Roboto, sans-serif"
+          dominant-baseline="central"
           alignment-baseline="central"
           fill="currentColor"
         >${fn.name}</text>
@@ -301,10 +321,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     const { width, height } = this.getSvgDimensions();
 
     let coordinates = html``;
-    let hidden = true;
+    let hideCoordinateTooltip = true;
 
     if (this.placing && placingFn) {
-      hidden = false;
+      hideCoordinateTooltip = false;
       const x = this.mouseX - this.placingOffset[0];
       const y = this.mouseY - this.placingOffset[1];
 
@@ -313,7 +333,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     const coordinateTooltip = html`<div
       ${ref(this.coordinatesRef)}
-      class="${classMap({ coordinates: true, hidden })}"
+      class="${classMap({ coordinates: true, hidden: hideCoordinateTooltip })}"
     >
       (${coordinates})
     </div>`;

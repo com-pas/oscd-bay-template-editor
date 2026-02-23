@@ -121,6 +121,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.inAction = this.sldEditorInAction || this.functionsInAction;
   }
 
+  // TODO: Remove this workaround once the official oscd-editor is integrated in open-scd (https://github.com/com-pas/open-scd/issues/25).
+  // Currently, edits with only attributesNS are not processed by the open-scd edit handler.
+  // This preprocessing mutates the edit object to apply the attributes directly and removes attributesNS.
   private preprocessEdits = (event: Event) => {
     const editEvent = event as CustomEvent;
     let edits = Array.isArray(editEvent.detail)

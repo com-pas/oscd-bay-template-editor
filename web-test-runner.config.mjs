@@ -5,7 +5,10 @@ import { playwrightLauncher } from '@web/test-runner-playwright';
 
 const filteredLogs = ['in dev mode', 'scheduled an update'];
 
-const browsers = [playwrightLauncher({ product: 'chromium' })];
+const browsers = [
+  playwrightLauncher({ product: 'chromium' }),
+  playwrightLauncher({ product: 'firefox' }),
+];
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Test files to run */
