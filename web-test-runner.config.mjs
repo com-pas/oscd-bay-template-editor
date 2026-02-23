@@ -1,6 +1,14 @@
 // import { playwrightLauncher } from '@web/test-runner-playwright';
+import { polyfill } from '@web/dev-server-polyfill';
+import { visualRegressionPlugin } from '@web/test-runner-visual-regression/plugin';
+import { playwrightLauncher } from '@web/test-runner-playwright';
 
 const filteredLogs = ['in dev mode', 'scheduled an update'];
+
+const browsers = [
+  playwrightLauncher({ product: 'chromium' }),
+  playwrightLauncher({ product: 'firefox' }),
+];
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Test files to run */
@@ -11,6 +19,8 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
     `<!DOCTYPE html>
     <html>
       <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&family=Roboto:wght@300;400;500&display=swap">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <script type="module">
           // Handle duplicate custom element registrations from multiple packages
           const originalDefine = customElements.define.bind(customElements);
@@ -61,11 +71,20 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   concurrency: 1,
 
   /** Browsers to run tests on */
-  // browsers: [
-  //   playwrightLauncher({ product: 'chromium' }),
-  //   playwrightLauncher({ product: 'firefox' }),
-  //   playwrightLauncher({ product: 'webkit' }),
-  // ],
+  browsers,
 
   // See documentation for all available options
+  plugins: [
+    polyfill({
+      scopedCustomElementRegistry: true,
+    }),
+    visualRegressionPlugin({
+      update: process.argv.includes('--update-visual-baseline'),
+    }),
+  ],
+
+  groups: [
+    { name: 'visual', files: 'dist/**/*.test.js' },
+    { name: 'unit', files: 'dist/**/*.spec.js' },
+  ],
 });

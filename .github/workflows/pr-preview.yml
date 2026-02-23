@@ -1,0 +1,47 @@
+name: Deploy PR Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (PR Preview)
+        run: npm run build:preview
+
+      - name: Prepare preview directory
+        run: |
+          cp -r dist preview/
+          rsync -av --exclude='plugins.js' demo/ preview/
+          sed -i "s|../dist/bay-template-editor.js|./bay-template-editor.js|g" preview/plugins.js
+
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: preview/
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview

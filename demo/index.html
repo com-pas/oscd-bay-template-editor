@@ -14,7 +14,10 @@
 <link
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
   rel="stylesheet"
-/><open-scd></open-scd>
+/>
+<open-scd></open-scd>
+
+<script src="./scoped-custom-elements-polyfill.js"></script>
 
 <script>
   const _customElementsDefine = window.customElements.define;
@@ -28,8 +31,8 @@
     }
   };
 </script>
+
 <script type="module">
-  import '@openenergytools/open-scd-core/open-scd.js';
   import { plugins } from './plugins.js';
 
   const editor = document.querySelector('open-scd');

@@ -2,13 +2,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LitElement, html, css, nothing } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import '@material/mwc-fab';
+import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
+import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
+import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 
+import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
-import type { IconButtonToggle } from '@material/mwc-icon-button-toggle';
-import { bayIcon, equipmentIcon, ptrIcon, voltageLevelIcon } from './icons.js';
+import {
+  bayIcon,
+  equipmentIcon,
+  ptrIcon,
+  voltageLevelIcon,
+  functionsIcon,
+  functionsOffIcon,
+} from './icons.js';
 import {
   eqTypes,
   isBusBar,
@@ -18,11 +28,20 @@ import {
   uniqueName,
   xmlnsNs,
 } from './util.js';
-
-import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
+import { FunctionsLayer } from './components/functions-layer.js';
 
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
-export default class BayTemplatePlugin extends LitElement {
+export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
+  static get scopedElements() {
+    return {
+      'oscd-icon-button': OscdOutlinedIconButton,
+      'oscd-filled-icon-button': OscdFilledIconButton,
+      'oscd-icon': OscdIcon,
+      'functions-layer': FunctionsLayer,
+      'sld-editor': customElements.get('sld-editor')!,
+    };
+  }
+
   @property({ attribute: false })
   doc?: XMLDocument;
 
@@ -34,16 +53,25 @@ export default class BayTemplatePlugin extends LitElement {
 
   @query('sld-editor') sldEditor?: SldEditor;
 
+  @query('#labels') labelToggle?: OscdOutlinedIconButton;
+
   @state()
   get showLabels(): boolean {
-    if (this.labelToggle) return this.labelToggle.on;
+    if (this.labelToggle) return !this.labelToggle.selected;
     return true;
   }
 
-  @query('#labels') labelToggle?: IconButtonToggle;
-
   @state()
   inAction: boolean = false;
+
+  @state()
+  sldEditorInAction: boolean = false;
+
+  @state()
+  functionsInAction: boolean = false;
+
+  @state()
+  showFunctions: boolean = false;
 
   @state()
   templateElements: Record<string, Element> = {};
@@ -51,11 +79,18 @@ export default class BayTemplatePlugin extends LitElement {
   @state()
   nsp = 'eosld';
 
+  @state()
+  placingFunction?: Element;
+
+  @state()
+  placingFunctionOffset: [number, number] = [0, 0];
+
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
+    window.addEventListener('keydown', this.handleKeydown);
   }
 
   disconnectedCallback() {
@@ -63,8 +98,32 @@ export default class BayTemplatePlugin extends LitElement {
     this.removeEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
+    window.removeEventListener('keydown', this.handleKeydown);
   }
 
+  private handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      if (this.sldEditorInAction || this.functionsInAction) {
+        event.preventDefault();
+        this.reset();
+      }
+    }
+  };
+
+  handleStartPlaceFunction = (element: Element, offset: [number, number]) => {
+    this.placingFunction = element;
+    this.placingFunctionOffset = offset;
+    this.functionsInAction = true;
+    this.updateInAction();
+  };
+
+  updateInAction() {
+    this.inAction = this.sldEditorInAction || this.functionsInAction;
+  }
+
+  // TODO: Remove this workaround once the official oscd-editor is integrated in open-scd (https://github.com/com-pas/open-scd/issues/25).
+  // Currently, edits with only attributesNS are not processed by the open-scd edit handler.
+  // This preprocessing mutates the edit object to apply the attributes directly and removes attributesNS.
   private preprocessEdits = (event: Event) => {
     const editEvent = event as CustomEvent;
     let edits = Array.isArray(editEvent.detail)
@@ -98,6 +157,13 @@ export default class BayTemplatePlugin extends LitElement {
         delete edit.attributesNS;
       }
     });
+
+    if (this.placingFunction) {
+      this.placingFunction = undefined;
+      this.placingFunctionOffset = [0, 0];
+      this.functionsInAction = false;
+      this.updateInAction();
+    }
   };
 
   updated(changedProperties: Map<string, any>) {
@@ -142,7 +208,11 @@ export default class BayTemplatePlugin extends LitElement {
   }
 
   reset() {
-    this.inAction = false;
+    this.sldEditorInAction = false;
+    this.functionsInAction = false;
+    this.placingFunction = undefined;
+    this.placingFunctionOffset = [0, 0];
+    this.updateInAction();
     this.sldEditor?.resetWithOffset();
   }
 
@@ -172,8 +242,8 @@ export default class BayTemplatePlugin extends LitElement {
           ).find(bay => !isBusBar(bay))
             ? eqTypes
                 .map(
-                  eqType => html`<mwc-fab
-                    mini
+                  eqType => html`<oscd-icon-button
+                    ?disabled=${this.showFunctions}
                     label="Add ${eqType}"
                     title="Add ${eqType}"
                     @click=${() => {
@@ -182,16 +252,15 @@ export default class BayTemplatePlugin extends LitElement {
                       element.setAttribute('type', eqType);
                       this.startPlacing(element);
                     }}
-                    >${equipmentIcon(eqType)}</mwc-fab
+                    >${equipmentIcon(eqType)}</oscd-icon-button
                   >`
                 )
                 .concat()
             : nothing
         }${
       this.doc && this.doc.querySelector(':root > Substation > VoltageLevel')
-        ? html`<mwc-fab
-              mini
-              icon="horizontal_rule"
+        ? html`<oscd-icon-button
+              ?disabled=${this.showFunctions}
               @click=${() => {
                 const element = this.templateElements.BusBar!.cloneNode(
                   true
@@ -201,9 +270,10 @@ export default class BayTemplatePlugin extends LitElement {
               label="Add Bus Bar"
               title="Add Bus Bar"
             >
-            </mwc-fab
-            ><mwc-fab
-              mini
+              <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
+            ><oscd-filled-icon-button
+              ?disabled=${this.showFunctions}
+              id="bay-button"
               label="Add Bay"
               title="Add Bay"
               @click=${() => {
@@ -211,18 +281,18 @@ export default class BayTemplatePlugin extends LitElement {
                   this.templateElements.Bay!.cloneNode() as Element;
                 this.startPlacing(element);
               }}
-              style="--mdc-theme-secondary: #12579B; --mdc-theme-on-secondary: white;"
             >
               ${bayIcon}
-            </mwc-fab>`
+            </oscd-filled-icon-button>`
         : nothing
     }${
       this.doc &&
       Array.from(this.doc.documentElement.children).find(
         c => c.tagName === 'Substation'
       )
-        ? html`<mwc-fab
-            mini
+        ? html`<oscd-filled-icon-button
+            ?disabled=${this.showFunctions}
+            id="voltage-button"
             label="Add VoltageLevel"
             title="Add VoltageLevel"
             @click=${() => {
@@ -230,27 +300,26 @@ export default class BayTemplatePlugin extends LitElement {
                 this.templateElements.VoltageLevel!.cloneNode() as Element;
               this.startPlacing(element);
             }}
-            style="--mdc-theme-secondary: #F5E214;"
           >
             ${voltageLevelIcon}
-          </mwc-fab>`
+          </oscd-filled-icon-button>`
         : nothing
-    }<mwc-fab
-          mini
-          icon="margin"
+    }<oscd-filled-icon-button
+          ?disabled=${this.showFunctions}
+          id="substation-button"
           @click=${() => this.insertSubstation()}
           label="Add Substation"
-          style="--mdc-theme-secondary: #BB1326; --mdc-theme-on-secondary: white;"
           title="Add Substation"
         >
-        </mwc-fab
+          <oscd-icon>margin</oscd-icon>
+        </oscd-filled-icon-button
         >${
           this.doc &&
           Array.from(this.doc.documentElement.children).find(
             c => c.tagName === 'Substation'
           )
-            ? html`<mwc-fab
-                  mini
+            ? html`<oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Single Winding Auto Transformer"
                   title="Add Single Winding Auto Transformer"
                   @click=${() => {
@@ -268,9 +337,9 @@ export default class BayTemplatePlugin extends LitElement {
                     element.appendChild(winding);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(1, { kind: 'auto' })}</mwc-fab
-                ><mwc-fab
-                  mini
+                  >${ptrIcon(1, { kind: 'auto' })}</oscd-icon-button
+                ><oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Two Winding Auto Transformer"
                   title="Add Two Winding Auto Transformer"
                   @click=${() => {
@@ -289,9 +358,9 @@ export default class BayTemplatePlugin extends LitElement {
                     element.append(...windings);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(2, { kind: 'auto' })}</mwc-fab
-                ><mwc-fab
-                  mini
+                  >${ptrIcon(2, { kind: 'auto' })}</oscd-icon-button
+                ><oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Two Winding Transformer"
                   title="Add Two Winding Transformer"
                   @click=${() => {
@@ -309,9 +378,9 @@ export default class BayTemplatePlugin extends LitElement {
                     element.append(...windings);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(2)}</mwc-fab
-                ><mwc-fab
-                  mini
+                  >${ptrIcon(2)}</oscd-icon-button
+                ><oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Three Winding Transformer"
                   title="Add Three Winding Transformer"
                   @click=${() => {
@@ -329,9 +398,9 @@ export default class BayTemplatePlugin extends LitElement {
                     element.append(...windings);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(3)}</mwc-fab
-                ><mwc-fab
-                  mini
+                  >${ptrIcon(3)}</oscd-icon-button
+                ><oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Single Winding Earthing Transformer"
                   title="Add Single Winding Earthing Transformer"
                   @click=${() => {
@@ -346,9 +415,9 @@ export default class BayTemplatePlugin extends LitElement {
                     element.appendChild(winding);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(1, { kind: 'earthing' })}</mwc-fab
-                ><mwc-fab
-                  mini
+                  >${ptrIcon(1, { kind: 'earthing' })}</oscd-icon-button
+                ><oscd-icon-button
+                  ?disabled=${this.showFunctions}
                   label="Add Two Winding Earthing Transformer"
                   title="Add Two Winding Earthing Transformer"
                   @click=${() => {
@@ -367,64 +436,95 @@ export default class BayTemplatePlugin extends LitElement {
                     element.append(...windings);
                     this.startPlacing(element);
                   }}
-                  >${ptrIcon(2, { kind: 'earthing' })}</mwc-fab
+                  >${ptrIcon(2, { kind: 'earthing' })}</oscd-icon-button
                 >`
             : nothing
         }${
       this.doc?.querySelector('VoltageLevel, PowerTransformer')
-        ? html`<mwc-icon-button-toggle
+        ? html`<oscd-icon-button
             id="labels"
             label="Toggle Labels"
             title="Toggle Labels"
-            on
-            onIcon="font_download"
-            offIcon="font_download_off"
+            toggle="true"
             @click=${() => this.requestUpdate()}
-          ></mwc-icon-button-toggle>`
+          >
+            <oscd-icon>font_download</oscd-icon>
+            <oscd-icon slot="selected">font_download_off</oscd-icon>
+          </oscd-icon-button>`
+        : nothing
+    }${
+      this.doc?.querySelector('Function')
+        ? html`<oscd-icon-button
+            id="functions"
+            ?selected=${this.showFunctions}
+            toggle="true"
+            title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
+            @click=${() => {
+              this.showFunctions = !this.showFunctions;
+            }}
+          >
+            ${functionsOffIcon} <span slot="selected">${functionsIcon}</span>
+          </oscd-icon-button>`
         : nothing
     }${
       this.doc?.querySelector('Substation')
-        ? html`<mwc-icon-button
-              icon="zoom_in"
+        ? html`<oscd-icon-button
               label="Zoom In"
               title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
               @click=${() => this.zoomIn()}
             >
-            </mwc-icon-button
-            ><mwc-icon-button
-              icon="zoom_out"
+              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+            ><oscd-icon-button
               label="Zoom Out"
               ?disabled=${this.gridSize < 4}
               title="Zoom Out (${Math.round(
                 (100 * (this.gridSize - 3)) / 32
               )}%)"
               @click=${() => this.zoomOut()}
-            ></mwc-icon-button>`
+            >
+              <oscd-icon>zoom_out</oscd-icon>
+            </oscd-icon-button>`
         : nothing
     }
-        </mwc-icon-button
+        </oscd-icon-button
         >${
           this.inAction
-            ? html`<mwc-icon-button
-                icon="close"
+            ? html`<oscd-icon-button
                 label="Cancel"
                 title="Cancel"
                 @click=${() => this.reset()}
-              ></mwc-icon-button>`
+              >
+                <oscd-icon>close</oscd-icon>
+              </oscd-icon-button>`
             : nothing
         }
       </nav>
       ${
         this.doc
-          ? html`<sld-editor
-              .doc=${this.doc}
-              .docVersion=${this.editCount}
-              .gridSize=${this.gridSize}
-              .showLabels=${this.showLabels}
-              @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
-                this.inAction = e.detail;
-              }}
-            ></sld-editor>`
+          ? html`<div class="editor-container">
+              <sld-editor
+                .doc=${this.doc}
+                .docVersion=${this.editCount}
+                .gridSize=${this.gridSize}
+                .showLabels=${this.showLabels}
+                .disabled=${this.showFunctions}
+                @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
+                  this.sldEditorInAction = e.detail;
+                  this.updateInAction();
+                }}
+              ></sld-editor>
+              ${this.showFunctions
+                ? html`<functions-layer
+                    .doc=${this.doc}
+                    .editCount=${this.editCount}
+                    .gridSize=${this.gridSize}
+                    .nsp=${this.nsp}
+                    .placing=${this.placingFunction}
+                    .placingOffset=${this.placingFunctionOffset}
+                    .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                  ></functions-layer>`
+                : nothing}
+            </div>`
           : html`<p>Please open an SCL document</p>`
       }
     `;
@@ -436,6 +536,14 @@ export default class BayTemplatePlugin extends LitElement {
         display: block;
         padding: 20px;
         font-family: var(--oscd-theme-text-font, 'Roboto'), sans-serif;
+        --md-filled-icon-button-container-color: var(
+          --oscd-theme-base1,
+          #e0e0e0
+        );
+        --md-filled-icon-button-icon-color: var(
+          --oscd-theme-on-surface,
+          #000000
+        );
       }
       nav {
         user-select: none;
@@ -450,20 +558,37 @@ export default class BayTemplatePlugin extends LitElement {
         margin-bottom: 16px;
         padding: 4px;
         display: flex;
+        gap: 4px;
         flex-wrap: wrap;
       }
-
-      mwc-fab {
-        --mdc-theme-secondary: #fff;
-        --mdc-theme-on-secondary: rgb(0, 0, 0 / 0.83);
+      #bay-button {
+        --md-filled-icon-button-container-color: #12579b;
+        --md-filled-icon-button-icon-color: white;
       }
-      sld-editor {
+      #substation-button {
+        --md-filled-icon-button-container-color: #bb1326;
+        --md-filled-icon-button-icon-color: white;
+      }
+      #voltage-button {
+        --md-filled-icon-button-container-color: #f5e214;
+        --md-filled-icon-button-icon-color: black;
+        --md-filled-icon-button-hover-icon-color: black;
+        --md-filled-icon-button-pressed-icon-color: black;
+        --md-filled-icon-button-focus-icon-color: black;
+      }
+      .editor-container {
         position: relative;
         display: block;
         width: 100%;
         height: 600px;
         border: 1px solid #ccc;
         margin-top: 24px;
+      }
+      sld-editor {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
       }
     `,
   ];

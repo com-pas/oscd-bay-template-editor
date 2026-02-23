@@ -7,31 +7,6 @@ import {
   singleTerminal,
 } from './util.js';
 
-export const resizePath = svg`<path
-  d="M120 616v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm160 0v-80h80v80h-80Zm160 640v-80h80v80h-80Zm0-640v-80h80v80h-80Zm160 640v-80h80v80h-80Zm160 0v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160v-80h80v80h-80Zm0-160V296H600v-80h240v240h-80ZM120 936V696h80v160h160v80H120Z"
-/>`;
-
-export const resizeTLPath = svg`<path
-  d="m 120,616 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 320,0 H 600 V 216 H 840 Z M 120,936 V 696 h 80 v 160 z" /> `;
-
-export const resizeBRPath = svg`<path
-  d="m 440,936 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 V 296 l 80,-80 v 240 z m -640,480 80,-80 h 160 v 80 z" />`;
-
-// TODO: remove alt icons if unneeded
-export const resizeTLPathAlt = svg`<path
-  d="m 120,616 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z M 760,936 V 296 H 600 v -80 h 240 v 720 z m -640,0 V 696 h 80 v 160 h 560 v 80 z" /> `;
-
-export const resizeBRPathAlt = svg`<path
-  d="m 440,936 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 V 296 H 200 V 216 H 840 V 456 Z M 120,936 V 216 h 80 v 640 h 160 v 80 z" />`;
-
-export const resizeTLPathAlt2 = svg`<path
-  d="m 120,616 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z M 760,456 V 296 H 600 V 216 H 840 V 456 Z M 120,936 V 696 h 80 v 160 h 160 v 80 z" /> `;
-
-export const resizeBRPathAlt2 = svg`<path
-  d="m 440,936 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 160,0 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 v -80 h 80 v 80 z m 0,-160 V 296 H 600 V 216 H 840 V 456 Z M 120,936 V 696 h 80 v 160 h 160 v 80 z" />`;
-
-export const movePath = svg`<path d="M480 976 310 806l57-57 73 73V616l-205-1 73 73-58 58L80 576l169-169 57 57-72 72h206V330l-73 73-57-57 170-170 170 170-57 57-73-73v206l205 1-73-73 58-58 170 170-170 170-57-57 73-73H520l-1 205 73-73 58 58-170 170Z"/>`;
-
 const voltageLevelPath = svg`<path
     d="M 4 4 L 12.5 21 L 21 4"
     fill="none"
@@ -106,6 +81,23 @@ const bayPath = svg`<path
     stroke-linecap="round"
   />`;
 
+const functionsPath = svg`<path
+    d="M240-160v-80l260-240-260-240v-80h480v120H431l215 200-215 200h289v120H240Z"
+    fill="currentColor"
+  />`;
+
+const functionsOffPath = svg`<path
+    d="M240-160v-80l260-240-260-240v-80h480v120H431l215 200-215 200h289v120H240Z"
+    fill="currentColor"
+  />
+  <path
+    d="M160-800L800-160"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="80"
+    stroke-linecap="round"
+  />`;
+
 const ptr1WAPath = svg`
   <circle fill="none" cx="1.5" cy="1.5" r="0.7"/>
   <path fill="none" d="M 1.5 0.8 C 0.5 0.8, 0.4 1.3, 0.3 1.5"/>
@@ -149,7 +141,7 @@ export const zigZag2WTransform =
 export function ptrIcon(
   windings: 1 | 2 | 3,
   {
-    slot = 'icon',
+    slot = '',
     kind = 'default',
   }: { slot?: string; kind?: 'default' | 'auto' | 'earthing' } = {}
 ) {
@@ -175,7 +167,7 @@ export function ptrIcon(
     stroke="currentColor"
     stroke-width="${windings > 1 ? 0.14 : 0.11}"
     stroke-linecap="round"
-    slot="${slot}"
+    ${slot ? html`slot="${slot}"` : nothing}
   >
     ${path} ${zigZag}
   </svg>`;
@@ -185,7 +177,6 @@ export const voltageLevelIcon = html`<svg
   viewBox="0 0 25 25"
   width="24"
   height="24"
-  slot="icon"
 >
   ${voltageLevelPath}
 </svg>`;
@@ -199,12 +190,7 @@ export const voltageLevelGraphic = html`<svg
   ${voltageLevelPath}
 </svg>`;
 
-export const bayIcon = html`<svg
-  viewBox="0 0 25 25"
-  width="24"
-  height="24"
-  slot="icon"
->
+export const bayIcon = html`<svg viewBox="0 0 25 25" width="24" height="24">
   ${bayPath}
 </svg>`;
 
@@ -215,6 +201,22 @@ export const bayGraphic = html`<svg
   slot="graphic"
 >
   ${bayPath}
+</svg>`;
+
+export const functionsIcon = html`<svg
+  viewBox="0 -960 960 960"
+  width="24"
+  height="24"
+>
+  ${functionsPath}
+</svg>`;
+
+export const functionsOffIcon = html`<svg
+  viewBox="0 -960 960 960"
+  width="24"
+  height="24"
+>
+  ${functionsOffPath}
 </svg>`;
 
 const equipmentPaths: Record<EqType, TemplateResult<2>> = {
@@ -594,7 +596,7 @@ export function equipmentGraphic(
 }
 
 export function equipmentIcon(equipmentType: string): TemplateResult<1> {
-  return html`<svg viewBox="0 0 25 25" width="24" height="24" slot="icon">
+  return html`<svg viewBox="0 0 25 25" width="24" height="24">
     <line
       x1="12.5"
       y1="0"
