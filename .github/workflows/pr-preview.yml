@@ -36,9 +36,7 @@ jobs:
       - name: Prepare preview directory
         run: |
           cp -r dist preview/
-          cp -r demo/ preview/
-          sed -i "s|import { plugins } from './plugins.js'|import { plugins } from '../dist/plugins.js'|g" preview/demo/index.html
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=demo/"></head></html>' > preview/index.html
+          rsync -av --exclude='plugins.js' demo/ preview/
 
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@v1
