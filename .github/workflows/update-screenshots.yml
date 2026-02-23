@@ -1,10 +1,6 @@
 name: Update Screenshots
 
-on:
-  push:
-    branches:
-      - feat/add-function-layer
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   test:
