@@ -1,3 +1,4 @@
+import { EditV2 } from '@openscd/oscd-api';
 export declare const privType = "OpenSCD-SLD-Layout";
 export declare const sldNs = "https://openscd.org/SCL/SSD/SLD/v0";
 export declare const xmlnsNs = "http://www.w3.org/2000/xmlns/";
@@ -10,6 +11,7 @@ export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
 export declare function setSLDAttributes(element: Element, nsPrefix: string, values: Record<string, string>): void;
 export declare function getSLDAttributes(element: Element, key: string): string | null;
+export declare function updateSLDAttributes(element: Element, nsPrefix: string, values: Partial<Record<string, string | null>>): EditV2;
 export declare function busSections(element: Element): Element[];
 export declare function isBusBar(element: Element): boolean;
 export declare function makeBusBar(doc: XMLDocument, nsp: string): Element;
