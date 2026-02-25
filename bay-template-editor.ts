@@ -146,6 +146,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         edit.node.setAttribute('name', name);
       }
 
+      // Ensure attributesNS exists as an object if element has attributes
+      if (edit.attributes && !edit.attributesNS) {
+        // eslint-disable-next-line no-param-reassign
+        edit.attributesNS = {};
+      }
+
       if (edit.element && edit.attributesNS?.[sldNs]) {
         const attrs = edit.attributesNS[sldNs];
         const cleanAttrs: Record<string, string> = {};
@@ -161,8 +167,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         } else {
           setSLDAttributes(edit.element, this.nsp, cleanAttrs);
         }
-        // eslint-disable-next-line no-param-reassign
-        delete edit.attributesNS;
       }
     });
 
