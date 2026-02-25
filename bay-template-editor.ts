@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
-import { getReference } from '@openscd/scl-lib';
+import { getReference, identity } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -27,6 +27,7 @@ import {
   sldNs,
   uniqueName,
   xmlnsNs,
+  getSLDAttributes,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer.js';
 
@@ -71,6 +72,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   functionsInAction: boolean = false;
 
   @state()
+  addingFunction: boolean = false;
+
+  @state()
   showFunctions: boolean = false;
 
   @state()
@@ -84,6 +88,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @state()
   placingFunctionOffset: [number, number] = [0, 0];
+
+  @state()
+  highlight: { id: string; style: any }[] = [];
 
   connectedCallback() {
     super.connectedCallback();
@@ -118,7 +125,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   };
 
   updateInAction() {
-    this.inAction = this.sldEditorInAction || this.functionsInAction;
+    this.inAction =
+      this.sldEditorInAction || this.functionsInAction || this.addingFunction;
   }
 
   // TODO: Remove this workaround once the official oscd-editor is integrated in open-scd (https://github.com/com-pas/open-scd/issues/25).
@@ -166,6 +174,38 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     }
   };
 
+  handleSldSelected = (event: CustomEvent<{ element: Element }>) => {
+    const selectedElement = event.detail.element;
+    const x = parseFloat(getSLDAttributes(selectedElement, 'x') ?? '1');
+    const y = parseFloat(getSLDAttributes(selectedElement, 'y') ?? '1');
+    const style = {
+      stroke: '#7821c9',
+      strokeWidth: 0.1,
+      fill: '#d3b9ec',
+      opacity: 0.5,
+    };
+    this.highlight = [
+      {
+        id: identity(event.detail.element).toString(),
+        style,
+      },
+    ];
+    // Create a new Function element and set it as placingFunction
+    if (this.doc) {
+      const func = this.doc.createElementNS(
+        this.doc.documentElement.namespaceURI,
+        'Function'
+      );
+      func.setAttribute('name', uniqueName(func, this.doc.documentElement));
+      this.placingFunction = func;
+      this.placingFunctionOffset = [0, 0];
+      this.functionsInAction = true;
+      this.showFunctions = true;
+      this.updateInAction();
+      this.sldEditor?.requestUpdate();
+    }
+  };
+
   updated(changedProperties: Map<string, any>) {
     if (!changedProperties.has('doc') || !this.doc) return;
     const sldNsPrefix = this.doc.documentElement.lookupPrefix(sldNs);
@@ -210,8 +250,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   reset() {
     this.sldEditorInAction = false;
     this.functionsInAction = false;
+    this.addingFunction = false;
     this.placingFunction = undefined;
     this.placingFunctionOffset = [0, 0];
+    this.highlight = [];
+
     this.updateInAction();
     this.sldEditor?.resetWithOffset();
   }
@@ -452,7 +495,46 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             <oscd-icon slot="selected">font_download_off</oscd-icon>
           </oscd-icon-button>`
         : nothing
-    }${
+    }
+        ${
+          this.doc &&
+          Array.from(this.doc.documentElement.children).find(
+            c => c.tagName === 'Substation'
+          )
+            ? html`<oscd-icon-button
+                ?disabled=${this.showFunctions}
+                id="function"
+                label="Add Function"
+                title="Add Function"
+                @click=${() => {
+                  if (!this.doc) return;
+                  const equipmentTags = [
+                    'ConductingEquipment',
+                    'PowerTransformer',
+                    'TransformerWinding',
+                    'Bay',
+                    'VoltageLevel',
+                  ];
+                  const elements = equipmentTags.flatMap(tag =>
+                    Array.from(this.doc!.querySelectorAll(tag))
+                  );
+
+                  const style = {
+                    stroke: '#7821c9',
+                    strokeWidth: 0.1,
+                  };
+                  this.highlight = elements.map(el => ({
+                    id: identity(el).toString(),
+                    style,
+                  }));
+                  this.addingFunction = true;
+                  this.updateInAction();
+                }}
+              >
+                + <oscd-icon>function</oscd-icon>
+              </oscd-icon-button>`
+            : nothing
+        }${
       this.doc?.querySelector('Function')
         ? html`<oscd-icon-button
             id="functions"
@@ -507,11 +589,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                 .docVersion=${this.editCount}
                 .gridSize=${this.gridSize}
                 .showLabels=${this.showLabels}
-                .disabled=${this.showFunctions}
+                .disabled=${this.addingFunction || this.showFunctions}
+                .highlight=${this.highlight}
+                .selectable=${this.addingFunction
+                  ? this.highlight.map(h => h.id)
+                  : []}
                 @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
                   this.sldEditorInAction = e.detail;
                   this.updateInAction();
                 }}
+                @oscd-sld-selected=${this.handleSldSelected}
               ></sld-editor>
               ${this.showFunctions
                 ? html`<functions-layer
@@ -554,7 +641,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         max-width: calc(100vw - 32px);
         background: #fffd;
         border-radius: 24px;
-        z-index: 1;
         margin-bottom: 16px;
         padding: 4px;
         display: flex;
