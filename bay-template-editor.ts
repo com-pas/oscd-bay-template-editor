@@ -180,8 +180,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   handleSldSelected = (event: CustomEvent<{ element: Element }>) => {
     const selectedElement = event.detail.element;
-    const x = parseFloat(getSLDAttributes(selectedElement, 'x') ?? '1');
-    const y = parseFloat(getSLDAttributes(selectedElement, 'y') ?? '1');
     const style = {
       stroke: '#7821c9',
       strokeWidth: 0.1,
@@ -194,13 +192,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         style,
       },
     ];
-    // Create a new Function element and set it as placingFunction
     if (this.doc) {
       const func = this.doc.createElementNS(
         this.doc.documentElement.namespaceURI,
         'Function'
       );
-      func.setAttribute('name', uniqueName(func, this.doc.documentElement));
+      func.setAttribute('name', uniqueName(func, selectedElement));
       this.placingFunction = func;
       this.placingFunctionOffset = [0, 0];
       this.functionsInAction = true;
@@ -613,6 +610,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .placing=${this.placingFunction}
                     .placingOffset=${this.placingFunctionOffset}
                     .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                    @function-placement-active=${(e: CustomEvent<boolean>) => {
+                      if (!e.detail) {
+                        this.reset();
+                      }
+                    }}
                   ></functions-layer>`
                 : nothing}
             </div>`

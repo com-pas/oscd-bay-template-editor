@@ -258,6 +258,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     if (this.placing === fn.element) {
       this.finalizeFunctionPlacement(fn);
+      this.dispatchEvent(
+        new CustomEvent('function-placement-active', { detail: false })
+      );
       return;
     }
 
@@ -432,7 +435,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           }
         </style>
         <rect width="100%" height="100%" fill="white" fill-opacity="0" />
-        ${gridPattern} ${placingTarget} // //
+        ${gridPattern} ${placingTarget}
         ${this.functions.map(fn => this.renderFunction(fn))}
         ${placingFn ? this.renderFunction(placingFn, true) : nothing}
       </svg>
