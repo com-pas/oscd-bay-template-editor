@@ -40,23 +40,13 @@ describe('Bay Template Editor Plugin', () => {
     it('does not render sld-editor', async () => {
       expect(element.shadowRoot?.querySelector('sld-editor')).to.not.exist;
     });
-
-    it('shows only substation button', async () => {
-      const outlinedButtons =
-        element.shadowRoot?.querySelectorAll('oscd-icon-button');
-      const filledButtons = element.shadowRoot?.querySelectorAll(
-        'oscd-filled-icon-button'
-      );
-      expect(outlinedButtons?.length).to.equal(0);
-      expect(filledButtons?.length).to.equal(1);
-      expect(filledButtons?.[0].getAttribute('label')).to.equal(
-        'Add Substation'
-      );
-    });
   });
 
   describe('substation button', () => {
-    it('is always visible', async () => {
+    it('is always visible when a doc is present', async () => {
+      const doc = new DOMParser().parseFromString(emptyDoc, 'application/xml');
+      element.doc = doc;
+      await element.updateComplete;
       const button = element.shadowRoot?.querySelector(
         'oscd-filled-icon-button[label="Add Substation"]'
       );
@@ -80,6 +70,12 @@ describe('Bay Template Editor Plugin', () => {
     });
 
     it('is disabled when functions layer is active', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithSubstation,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
       element.showFunctions = true;
       await element.updateComplete;
 
