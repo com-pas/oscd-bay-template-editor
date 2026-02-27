@@ -382,7 +382,7 @@ describe('Bay Template Editor Plugin', () => {
             functionElement.setAttribute('name', 'TestFunction');
             element.handleStartPlaceFunction(functionElement, [1, 2]);
             await element.updateComplete;
-            expect(element.placingFunction).to.equal(functionElement);
+            expect(element.placingFunction?.element).to.equal(functionElement);
             expect(element.placingFunctionOffset).to.deep.equal([1, 2]);
             expect(element.functionsInAction).to.be.true;
             expect(element.inAction).to.be.true;
@@ -406,7 +406,11 @@ describe('Bay Template Editor Plugin', () => {
             element.doc = doc;
             await element.updateComplete;
             const functionElement = doc.createElement('Function');
-            element.placingFunction = functionElement;
+            element.placingFunction = {
+                name: 'Test Function',
+                element: functionElement,
+                parent: null,
+            };
             await element.updateComplete;
             const editEvent = new CustomEvent('oscd-edit-v2', {
                 bubbles: true,
@@ -457,7 +461,11 @@ describe('Bay Template Editor Plugin', () => {
             element.doc = doc;
             await element.updateComplete;
             const functionElement = doc.createElement('Function');
-            element.placingFunction = functionElement;
+            element.placingFunction = {
+                name: 'Test Function',
+                element: functionElement,
+                parent: null,
+            };
             element.placingFunctionOffset = [5, 10];
             element.functionsInAction = true;
             element.reset();

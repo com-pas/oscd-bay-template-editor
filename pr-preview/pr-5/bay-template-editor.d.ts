@@ -4,7 +4,8 @@ import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOu
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
-import { FunctionsLayer } from './components/functions-layer.js';
+import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
+import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends BayTemplatePlugin_base {
@@ -14,12 +15,14 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         'oscd-icon': typeof OscdIcon;
         'functions-layer': typeof FunctionsLayer;
         'sld-editor': CustomElementConstructor;
+        'create-function-dialog': typeof CreateFunctionDialog;
     };
     doc?: XMLDocument;
     editCount: number;
     gridSize: number;
     sldEditor?: SldEditor;
     labelToggle?: OscdOutlinedIconButton;
+    createFunctionDialog?: CreateFunctionDialog;
     get showLabels(): boolean;
     inAction: boolean;
     sldEditorInAction: boolean;
@@ -28,12 +31,17 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     showFunctions: boolean;
     templateElements: Record<string, Element>;
     nsp: string;
-    placingFunction?: Element;
+    placingFunction?: {
+        name: string;
+        element: Element;
+        parent: Element | null;
+    };
     placingFunctionOffset: [number, number];
     highlight: {
         id: string;
         style: any;
     }[];
+    selectedElement?: Element;
     connectedCallback(): void;
     disconnectedCallback(): void;
     private handleKeydown;
@@ -49,6 +57,11 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     startPlacing(element: Element | undefined): void;
     reset(): void;
     insertSubstation(): void;
+    createFunction(e: CustomEvent<{
+        name: string;
+        description: string | null;
+        type: string | null;
+    }>): void;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult[];
 }
