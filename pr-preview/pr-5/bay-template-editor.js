@@ -2762,9 +2762,9 @@ const ao=ft`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-s
     .coordinates.hidden {
       display: none;
     }
-  `,e([Ve({attribute:!1})],gC.prototype,"doc",void 0),e([Ve({type:Number})],gC.prototype,"editCount",void 0),e([Ve({type:Number})],gC.prototype,"gridSize",void 0),e([Ve({type:Boolean})],gC.prototype,"disabled",void 0),e([Ve({type:String})],gC.prototype,"nsp",void 0),e([Ve({attribute:!1})],gC.prototype,"placing",void 0),e([Ve({attribute:!1})],gC.prototype,"placingOffset",void 0),e([Ve({attribute:!1})],gC.prototype,"onStartPlaceFunction",void 0),e([Me()],gC.prototype,"functions",void 0),e([Me()],gC.prototype,"mouseX",void 0),e([Me()],gC.prototype,"mouseY",void 0),e([Me()],gC.prototype,"sldOffsetTop",void 0),e([Me()],gC.prototype,"sldOffsetLeft",void 0),e([Fe("svg")],gC.prototype,"svg",void 0);class TC extends(Ue(ye)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.inAction=!1,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.handleKeydown=e=>{"Escape"===e.key&&(this.sldEditorInAction||this.functionsInAction)&&(e.preventDefault(),this.reset())},this.handleStartPlaceFunction=(e,n)=>{this.placingFunction=e,this.placingFunctionOffset=n,this.functionsInAction=!0,this.updateInAction()},this.preprocessEdits=e=>{const n=e;let t=Array.isArray(n.detail)?n.detail:[n.detail];t=t.flatMap((e=>e.edit?e.edit:e)),t.forEach(((e,n)=>{if(e.node&&e.parent&&!e.node.getAttribute("name")){const n=Xc(e.node,e.parent);e.node.setAttribute("name",n)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[wc]){const n=e.attributesNS[wc],t={};Object.entries(n).forEach((([e,n])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==n&&(t[s]=n)})),"SLDAttributes"===e.element.localName?Object.entries(t).forEach((([n,t])=>{e.element.setAttributeNS(wc,`${this.nsp}:${n}`,t)})):Hc(e.element,this.nsp,t)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1,this.updateInAction())},this.handleSldSelected=e=>{const n=e.detail.element;if(this.highlight=[{id:Vn(e.detail.element).toString(),style:{stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5}}],this.doc){const e=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Function");e.setAttribute("name",Xc(e,n)),this.placingFunction=e,this.placingFunctionOffset=[0,0],this.functionsInAction=!0,this.showFunctions=!0,this.updateInAction(),this.sldEditor?.requestUpdate()}}}static get scopedElements(){return{"oscd-icon-button":St,"oscd-filled-icon-button":Et,"oscd-icon":yt,"functions-layer":gC,"sld-editor":customElements.get("sld-editor")}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown)}updateInAction(){this.inAction=this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if(!e.has("doc")||!this.doc)return;const n=this.doc.documentElement.lookupPrefix(wc);n?this.nsp=n:this.doc.documentElement.setAttributeNS("http://www.w3.org/2000/xmlns/",`xmlns:${this.nsp}`,wc),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,n){const t=e.createElementNS(e.documentElement.namespaceURI,"Bay");t.setAttribute("name","BB1"),Hc(t,n,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const a=e.createElementNS(e.documentElement.namespaceURI,"Private");a.setAttribute("type",xc);const r=e.createElementNS(wc,`${n}:Section`);Hc(r,n,{bus:"true"});const d=e.createElementNS(wc,`${n}:Vertex`);Hc(d,n,{x:"0.5",y:"0.5"}),r.appendChild(d);const i=e.createElementNS(wc,`${n}:Vertex`);return Hc(i,n,{x:"1.5",y:"0.5"}),r.appendChild(i),a.appendChild(r),s.appendChild(a),t.appendChild(s),t}(this.doc,this.nsp)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.highlight=[],this.updateInAction(),this.sldEditor?.resetWithOffset()}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,n=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),t=En(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;n.setAttribute("name",`S${s}`),Hc(n,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Nn({parent:e,node:n,reference:t}))}render(){return ae`
+  `,e([Ve({attribute:!1})],gC.prototype,"doc",void 0),e([Ve({type:Number})],gC.prototype,"editCount",void 0),e([Ve({type:Number})],gC.prototype,"gridSize",void 0),e([Ve({type:Boolean})],gC.prototype,"disabled",void 0),e([Ve({type:String})],gC.prototype,"nsp",void 0),e([Ve({attribute:!1})],gC.prototype,"placing",void 0),e([Ve({attribute:!1})],gC.prototype,"placingOffset",void 0),e([Ve({attribute:!1})],gC.prototype,"onStartPlaceFunction",void 0),e([Me()],gC.prototype,"functions",void 0),e([Me()],gC.prototype,"mouseX",void 0),e([Me()],gC.prototype,"mouseY",void 0),e([Me()],gC.prototype,"sldOffsetTop",void 0),e([Me()],gC.prototype,"sldOffsetLeft",void 0),e([Fe("svg")],gC.prototype,"svg",void 0);class TC extends(Ue(ye)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.inAction=!1,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.handleKeydown=e=>{"Escape"===e.key&&(this.sldEditorInAction||this.functionsInAction)&&(e.preventDefault(),this.reset())},this.handleStartPlaceFunction=(e,n)=>{this.placingFunction=e,this.placingFunctionOffset=n,this.functionsInAction=!0,this.updateInAction()},this.preprocessEdits=e=>{const n=e;let t=Array.isArray(n.detail)?n.detail:[n.detail];t=t.flatMap((e=>e.edit?e.edit:e)),t.forEach(((e,n)=>{if(e.node&&e.parent&&!e.node.getAttribute("name")){const n=Xc(e.node,e.parent);e.node.setAttribute("name",n)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[wc]){const n=e.attributesNS[wc],t={};Object.entries(n).forEach((([e,n])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==n&&(t[s]=n)})),"SLDAttributes"===e.element.localName?Object.entries(t).forEach((([n,t])=>{e.element.setAttributeNS(wc,`${this.nsp}:${n}`,t)})):Hc(e.element,this.nsp,t)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1,this.updateInAction())},this.handleSldSelected=e=>{const n=e.detail.element;if(this.highlight=[{id:Vn(e.detail.element).toString(),style:{stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5}}],this.doc){const e=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Function");e.setAttribute("name",Xc(e,n)),this.placingFunction=e,this.placingFunctionOffset=[0,0],this.functionsInAction=!0,this.showFunctions=!0,this.updateInAction(),this.sldEditor?.requestUpdate()}}}static get scopedElements(){return{"oscd-icon-button":St,"oscd-filled-icon-button":Et,"oscd-icon":yt,"functions-layer":gC,"sld-editor":customElements.get("sld-editor")}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown)}updateInAction(){this.inAction=this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if(!e.has("doc")||!this.doc)return;const n=this.doc.documentElement.lookupPrefix(wc);n?this.nsp=n:this.doc.documentElement.setAttributeNS("http://www.w3.org/2000/xmlns/",`xmlns:${this.nsp}`,wc),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,n){const t=e.createElementNS(e.documentElement.namespaceURI,"Bay");t.setAttribute("name","BB1"),Hc(t,n,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const a=e.createElementNS(e.documentElement.namespaceURI,"Private");a.setAttribute("type",xc);const r=e.createElementNS(wc,`${n}:Section`);Hc(r,n,{bus:"true"});const d=e.createElementNS(wc,`${n}:Vertex`);Hc(d,n,{x:"0.5",y:"0.5"}),r.appendChild(d);const i=e.createElementNS(wc,`${n}:Vertex`);return Hc(i,n,{x:"1.5",y:"0.5"}),r.appendChild(i),a.appendChild(r),s.appendChild(a),t.appendChild(s),t}(this.doc,this.nsp)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.highlight=[],this.updateInAction(),this.sldEditor?.resetWithOffset()}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,n=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),t=En(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;n.setAttribute("name",`S${s}`),Hc(n,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Nn({parent:e,node:n,reference:t}))}render(){return this.doc?ae`
       <nav>
-        ${this.doc&&Array.from(this.doc.querySelectorAll(":root > Substation > VoltageLevel > Bay")).find((e=>!qc(e)))?Bc.map((e=>{return ae`<oscd-icon-button
+        ${Array.from(this.doc.querySelectorAll(":root > Substation > VoltageLevel > Bay")).find((e=>!qc(e)))?Bc.map((e=>{return ae`<oscd-icon-button
                     ?disabled=${this.showFunctions}
                     label="Add ${e}"
                     title="Add ${e}"
@@ -2791,30 +2791,30 @@ const ao=ft`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-s
     ${DC(n)}
     ${Kc.has(n)?pC:ie}
   </svg>`}</oscd-icon-button
-                  >`;var n})).concat():ie}${this.doc&&this.doc.querySelector(":root > Substation > VoltageLevel")?ae`<oscd-icon-button
-              ?disabled=${this.showFunctions}
-              @click=${()=>{const e=this.templateElements.BusBar.cloneNode(!0);this.startPlacing(e)}}
-              label="Add Bus Bar"
-              title="Add Bus Bar"
-            >
-              <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
-            ><oscd-filled-icon-button
-              ?disabled=${this.showFunctions}
-              id="bay-button"
-              label="Add Bay"
-              title="Add Bay"
-              @click=${()=>{const e=this.templateElements.Bay.cloneNode();this.startPlacing(e)}}
-            >
-              ${oC}
-            </oscd-filled-icon-button>`:ie}${this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-filled-icon-button
-            ?disabled=${this.showFunctions}
-            id="voltage-button"
-            label="Add VoltageLevel"
-            title="Add VoltageLevel"
-            @click=${()=>{const e=this.templateElements.VoltageLevel.cloneNode();this.startPlacing(e)}}
-          >
-            ${iC}
-          </oscd-filled-icon-button>`:ie}<oscd-filled-icon-button
+                  >`;var n})).concat():ie}${this.doc.querySelector(":root > Substation > VoltageLevel")?ae`<oscd-icon-button
+                  ?disabled=${this.showFunctions}
+                  @click=${()=>{const e=this.templateElements.BusBar.cloneNode(!0);this.startPlacing(e)}}
+                  label="Add Bus Bar"
+                  title="Add Bus Bar"
+                >
+                  <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
+                ><oscd-filled-icon-button
+                  ?disabled=${this.showFunctions}
+                  id="bay-button"
+                  label="Add Bay"
+                  title="Add Bay"
+                  @click=${()=>{const e=this.templateElements.Bay.cloneNode();this.startPlacing(e)}}
+                >
+                  ${oC}
+                </oscd-filled-icon-button>`:ie}${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-filled-icon-button
+                ?disabled=${this.showFunctions}
+                id="voltage-button"
+                label="Add VoltageLevel"
+                title="Add VoltageLevel"
+                @click=${()=>{const e=this.templateElements.VoltageLevel.cloneNode();this.startPlacing(e)}}
+              >
+                ${iC}
+              </oscd-filled-icon-button>`:ie}<oscd-filled-icon-button
           ?disabled=${this.showFunctions}
           id="substation-button"
           @click=${()=>this.insertSubstation()}
@@ -2823,7 +2823,7 @@ const ao=ft`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-s
         >
           <oscd-icon>margin</oscd-icon>
         </oscd-filled-icon-button
-        >${this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
+        >${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
                   ?disabled=${this.showFunctions}
                   label="Add Single Winding Auto Transformer"
                   title="Add Single Winding Auto Transformer"
@@ -2860,45 +2860,46 @@ const ao=ft`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-s
                   @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Hc(e,this.nsp,{kind:"earthing"});const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
                   >${dC(2,{kind:"earthing"})}</oscd-icon-button
                 >`:ie}${this.doc?.querySelector("VoltageLevel, PowerTransformer")?ae`<oscd-icon-button
-            id="labels"
-            label="Toggle Labels"
-            title="Toggle Labels"
-            toggle="true"
-            @click=${()=>this.requestUpdate()}
-          >
-            <oscd-icon>font_download</oscd-icon>
-            <oscd-icon slot="selected">font_download_off</oscd-icon>
-          </oscd-icon-button>`:ie}
-        ${this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
+                id="labels"
+                label="Toggle Labels"
+                title="Toggle Labels"
+                toggle="true"
+                @click=${()=>this.requestUpdate()}
+              >
+                <oscd-icon>font_download</oscd-icon>
+                <oscd-icon slot="selected">font_download_off</oscd-icon>
+              </oscd-icon-button>`:ie}
+        ${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
                 ?disabled=${this.showFunctions}
                 id="function"
                 label="Add Function"
                 title="Add Function"
-                @click=${()=>{if(!this.doc)return;const e=["ConductingEquipment","PowerTransformer","TransformerWinding","Bay","VoltageLevel"].flatMap((e=>Array.from(this.doc.querySelectorAll(e)))),n={stroke:"#7821c9",strokeWidth:.1};this.highlight=e.map((e=>({id:Vn(e).toString(),style:n}))),this.addingFunction=!0,this.updateInAction()}}
+                @click=${()=>{if(!this.doc)return;const e=["ConductingEquipment","PowerTransformer","TransformerWinding","Bay","VoltageLevel"].flatMap((e=>Array.from(this.doc.querySelectorAll(e)))),n={stroke:"#7821c9",strokeWidth:.12,fill:"none"};this.highlight=e.map((e=>({id:Vn(e).toString(),style:n}))),this.addingFunction=!0,this.updateInAction()}}
               >
                 + <oscd-icon>function</oscd-icon>
               </oscd-icon-button>`:ie}${this.doc?.querySelector("Function")?ae`<oscd-icon-button
-            id="functions"
-            ?selected=${this.showFunctions}
-            toggle="true"
-            title=${this.showFunctions?"Hide Functions":"Show Functions"}
-            @click=${()=>{this.showFunctions=!this.showFunctions}}
-          >
-            ${CC} <span slot="selected">${cC}</span>
-          </oscd-icon-button>`:ie}${this.doc?.querySelector("Substation")?ae`<oscd-icon-button
-              label="Zoom In"
-              title="Zoom In (${Math.round(100*(this.gridSize+3)/32)}%)"
-              @click=${()=>this.zoomIn()}
-            >
-              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
-            ><oscd-icon-button
-              label="Zoom Out"
-              ?disabled=${this.gridSize<4}
-              title="Zoom Out (${Math.round(100*(this.gridSize-3)/32)}%)"
-              @click=${()=>this.zoomOut()}
-            >
-              <oscd-icon>zoom_out</oscd-icon>
-            </oscd-icon-button>`:ie}
+                id="functions"
+                ?selected=${this.showFunctions}
+                toggle="true"
+                title=${this.showFunctions?"Hide Functions":"Show Functions"}
+                @click=${()=>{this.showFunctions=!this.showFunctions}}
+              >
+                ${CC}
+                <span slot="selected">${cC}</span>
+              </oscd-icon-button>`:ie}${this.doc?.querySelector("Substation")?ae`<oscd-icon-button
+                  label="Zoom In"
+                  title="Zoom In (${Math.round(100*(this.gridSize+3)/32)}%)"
+                  @click=${()=>this.zoomIn()}
+                >
+                  <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+                ><oscd-icon-button
+                  label="Zoom Out"
+                  ?disabled=${this.gridSize<4}
+                  title="Zoom Out (${Math.round(100*(this.gridSize-3)/32)}%)"
+                  @click=${()=>this.zoomOut()}
+                >
+                  <oscd-icon>zoom_out</oscd-icon>
+                </oscd-icon-button>`:ie}
         </oscd-icon-button
         >${this.inAction?ae`<oscd-icon-button
                 label="Cancel"
@@ -2908,30 +2909,29 @@ const ao=ft`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-s
                 <oscd-icon>close</oscd-icon>
               </oscd-icon-button>`:ie}
       </nav>
-      ${this.doc?ae`<div class="editor-container">
-              <sld-editor
+      <div class="editor-container">
+        <sld-editor
+          .doc=${this.doc}
+          .docVersion=${this.editCount}
+          .gridSize=${this.gridSize}
+          .showLabels=${this.showLabels}
+          .disabled=${this.addingFunction||this.showFunctions}
+          .highlight=${this.highlight}
+          .selectable=${this.addingFunction?this.highlight.map((e=>e.id)):[]}
+          @sld-editor-in-action=${e=>{this.sldEditorInAction=e.detail,this.updateInAction()}}
+          @oscd-sld-selected=${this.handleSldSelected}
+        ></sld-editor>
+        ${this.showFunctions?ae`<functions-layer
                 .doc=${this.doc}
-                .docVersion=${this.editCount}
+                .editCount=${this.editCount}
                 .gridSize=${this.gridSize}
-                .showLabels=${this.showLabels}
-                .disabled=${this.addingFunction||this.showFunctions}
-                .highlight=${this.highlight}
-                .selectable=${this.addingFunction?this.highlight.map((e=>e.id)):[]}
-                @sld-editor-in-action=${e=>{this.sldEditorInAction=e.detail,this.updateInAction()}}
-                @oscd-sld-selected=${this.handleSldSelected}
-              ></sld-editor>
-              ${this.showFunctions?ae`<functions-layer
-                    .doc=${this.doc}
-                    .editCount=${this.editCount}
-                    .gridSize=${this.gridSize}
-                    .nsp=${this.nsp}
-                    .placing=${this.placingFunction}
-                    .placingOffset=${this.placingFunctionOffset}
-                    .onStartPlaceFunction=${this.handleStartPlaceFunction}
-                    @function-placement-active=${e=>{e.detail||this.reset()}}
-                  ></functions-layer>`:ie}
-            </div>`:ae`<p>Please open an SCL document</p>`}
-    `}}TC.styles=[c`
+                .nsp=${this.nsp}
+                .placing=${this.placingFunction}
+                .placingOffset=${this.placingFunctionOffset}
+                .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                @function-placement-active=${e=>{e.detail||this.reset()}}
+              ></functions-layer>`:ie}
+      </div>`:ae`<p>Please open an SCL document</p>`}}TC.styles=[c`
       :host {
         display: block;
         padding: 20px;
