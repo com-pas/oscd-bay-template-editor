@@ -277,10 +277,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return html`
+    return this.doc
+      ? html`
       <nav>
         ${
-          this.doc &&
           Array.from(
             this.doc.querySelectorAll(':root > Substation > VoltageLevel > Bay')
           ).find(bay => !isBusBar(bay))
@@ -302,53 +302,52 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                 .concat()
             : nothing
         }${
-      this.doc && this.doc.querySelector(':root > Substation > VoltageLevel')
-        ? html`<oscd-icon-button
-              ?disabled=${this.showFunctions}
-              @click=${() => {
-                const element = this.templateElements.BusBar!.cloneNode(
-                  true
-                ) as Element;
-                this.startPlacing(element);
-              }}
-              label="Add Bus Bar"
-              title="Add Bus Bar"
-            >
-              <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
-            ><oscd-filled-icon-button
-              ?disabled=${this.showFunctions}
-              id="bay-button"
-              label="Add Bay"
-              title="Add Bay"
-              @click=${() => {
-                const element =
-                  this.templateElements.Bay!.cloneNode() as Element;
-                this.startPlacing(element);
-              }}
-            >
-              ${bayIcon}
-            </oscd-filled-icon-button>`
-        : nothing
-    }${
-      this.doc &&
-      Array.from(this.doc.documentElement.children).find(
-        c => c.tagName === 'Substation'
-      )
-        ? html`<oscd-filled-icon-button
-            ?disabled=${this.showFunctions}
-            id="voltage-button"
-            label="Add VoltageLevel"
-            title="Add VoltageLevel"
-            @click=${() => {
-              const element =
-                this.templateElements.VoltageLevel!.cloneNode() as Element;
-              this.startPlacing(element);
-            }}
-          >
-            ${voltageLevelIcon}
-          </oscd-filled-icon-button>`
-        : nothing
-    }<oscd-filled-icon-button
+          this.doc.querySelector(':root > Substation > VoltageLevel')
+            ? html`<oscd-icon-button
+                  ?disabled=${this.showFunctions}
+                  @click=${() => {
+                    const element = this.templateElements.BusBar!.cloneNode(
+                      true
+                    ) as Element;
+                    this.startPlacing(element);
+                  }}
+                  label="Add Bus Bar"
+                  title="Add Bus Bar"
+                >
+                  <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
+                ><oscd-filled-icon-button
+                  ?disabled=${this.showFunctions}
+                  id="bay-button"
+                  label="Add Bay"
+                  title="Add Bay"
+                  @click=${() => {
+                    const element =
+                      this.templateElements.Bay!.cloneNode() as Element;
+                    this.startPlacing(element);
+                  }}
+                >
+                  ${bayIcon}
+                </oscd-filled-icon-button>`
+            : nothing
+        }${
+          Array.from(this.doc.documentElement.children).find(
+            c => c.tagName === 'Substation'
+          )
+            ? html`<oscd-filled-icon-button
+                ?disabled=${this.showFunctions}
+                id="voltage-button"
+                label="Add VoltageLevel"
+                title="Add VoltageLevel"
+                @click=${() => {
+                  const element =
+                    this.templateElements.VoltageLevel!.cloneNode() as Element;
+                  this.startPlacing(element);
+                }}
+              >
+                ${voltageLevelIcon}
+              </oscd-filled-icon-button>`
+            : nothing
+        }<oscd-filled-icon-button
           ?disabled=${this.showFunctions}
           id="substation-button"
           @click=${() => this.insertSubstation()}
@@ -358,7 +357,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           <oscd-icon>margin</oscd-icon>
         </oscd-filled-icon-button
         >${
-          this.doc &&
           Array.from(this.doc.documentElement.children).find(
             c => c.tagName === 'Substation'
           )
@@ -484,21 +482,20 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                 >`
             : nothing
         }${
-      this.doc?.querySelector('VoltageLevel, PowerTransformer')
-        ? html`<oscd-icon-button
-            id="labels"
-            label="Toggle Labels"
-            title="Toggle Labels"
-            toggle="true"
-            @click=${() => this.requestUpdate()}
-          >
-            <oscd-icon>font_download</oscd-icon>
-            <oscd-icon slot="selected">font_download_off</oscd-icon>
-          </oscd-icon-button>`
-        : nothing
-    }
+          this.doc?.querySelector('VoltageLevel, PowerTransformer')
+            ? html`<oscd-icon-button
+                id="labels"
+                label="Toggle Labels"
+                title="Toggle Labels"
+                toggle="true"
+                @click=${() => this.requestUpdate()}
+              >
+                <oscd-icon>font_download</oscd-icon>
+                <oscd-icon slot="selected">font_download_off</oscd-icon>
+              </oscd-icon-button>`
+            : nothing
+        }
         ${
-          this.doc &&
           Array.from(this.doc.documentElement.children).find(
             c => c.tagName === 'Substation'
           )
@@ -522,7 +519,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
                   const style = {
                     stroke: '#7821c9',
-                    strokeWidth: 0.1,
+                    strokeWidth: 0.12,
+                    fill: 'none',
                   };
                   this.highlight = elements.map(el => ({
                     id: identity(el).toString(),
@@ -536,39 +534,44 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               </oscd-icon-button>`
             : nothing
         }${
-      this.doc?.querySelector('Function')
-        ? html`<oscd-icon-button
-            id="functions"
-            ?selected=${this.showFunctions}
-            toggle="true"
-            title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
-            @click=${() => {
-              this.showFunctions = !this.showFunctions;
-            }}
-          >
-            ${functionsOffIcon} <span slot="selected">${functionsIcon}</span>
-          </oscd-icon-button>`
-        : nothing
-    }${
-      this.doc?.querySelector('Substation')
-        ? html`<oscd-icon-button
-              label="Zoom In"
-              title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
-              @click=${() => this.zoomIn()}
-            >
-              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
-            ><oscd-icon-button
-              label="Zoom Out"
-              ?disabled=${this.gridSize < 4}
-              title="Zoom Out (${Math.round(
-                (100 * (this.gridSize - 3)) / 32
-              )}%)"
-              @click=${() => this.zoomOut()}
-            >
-              <oscd-icon>zoom_out</oscd-icon>
-            </oscd-icon-button>`
-        : nothing
-    }
+          this.doc?.querySelector('Function')
+            ? html`<oscd-icon-button
+                id="functions"
+                ?selected=${this.showFunctions}
+                toggle="true"
+                title=${this.showFunctions
+                  ? 'Hide Functions'
+                  : 'Show Functions'}
+                @click=${() => {
+                  this.showFunctions = !this.showFunctions;
+                }}
+              >
+                ${functionsOffIcon}
+                <span slot="selected">${functionsIcon}</span>
+              </oscd-icon-button>`
+            : nothing
+        }${
+          this.doc?.querySelector('Substation')
+            ? html`<oscd-icon-button
+                  label="Zoom In"
+                  title="Zoom In (${Math.round(
+                    (100 * (this.gridSize + 3)) / 32
+                  )}%)"
+                  @click=${() => this.zoomIn()}
+                >
+                  <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+                ><oscd-icon-button
+                  label="Zoom Out"
+                  ?disabled=${this.gridSize < 4}
+                  title="Zoom Out (${Math.round(
+                    (100 * (this.gridSize - 3)) / 32
+                  )}%)"
+                  @click=${() => this.zoomOut()}
+                >
+                  <oscd-icon>zoom_out</oscd-icon>
+                </oscd-icon-button>`
+            : nothing
+        }
         </oscd-icon-button
         >${
           this.inAction
@@ -582,45 +585,43 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             : nothing
         }
       </nav>
-      ${
-        this.doc
-          ? html`<div class="editor-container">
-              <sld-editor
+      <div class="editor-container">
+        <sld-editor
+          .doc=${this.doc}
+          .docVersion=${this.editCount}
+          .gridSize=${this.gridSize}
+          .showLabels=${this.showLabels}
+          .disabled=${this.addingFunction || this.showFunctions}
+          .highlight=${this.highlight}
+          .selectable=${
+            this.addingFunction ? this.highlight.map(h => h.id) : []
+          }
+          @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
+            this.sldEditorInAction = e.detail;
+            this.updateInAction();
+          }}
+          @oscd-sld-selected=${this.handleSldSelected}
+        ></sld-editor>
+        ${
+          this.showFunctions
+            ? html`<functions-layer
                 .doc=${this.doc}
-                .docVersion=${this.editCount}
+                .editCount=${this.editCount}
                 .gridSize=${this.gridSize}
-                .showLabels=${this.showLabels}
-                .disabled=${this.addingFunction || this.showFunctions}
-                .highlight=${this.highlight}
-                .selectable=${this.addingFunction
-                  ? this.highlight.map(h => h.id)
-                  : []}
-                @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
-                  this.sldEditorInAction = e.detail;
-                  this.updateInAction();
+                .nsp=${this.nsp}
+                .placing=${this.placingFunction}
+                .placingOffset=${this.placingFunctionOffset}
+                .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                @function-placement-active=${(e: CustomEvent<boolean>) => {
+                  if (!e.detail) {
+                    this.reset();
+                  }
                 }}
-                @oscd-sld-selected=${this.handleSldSelected}
-              ></sld-editor>
-              ${this.showFunctions
-                ? html`<functions-layer
-                    .doc=${this.doc}
-                    .editCount=${this.editCount}
-                    .gridSize=${this.gridSize}
-                    .nsp=${this.nsp}
-                    .placing=${this.placingFunction}
-                    .placingOffset=${this.placingFunctionOffset}
-                    .onStartPlaceFunction=${this.handleStartPlaceFunction}
-                    @function-placement-active=${(e: CustomEvent<boolean>) => {
-                      if (!e.detail) {
-                        this.reset();
-                      }
-                    }}
-                  ></functions-layer>`
-                : nothing}
-            </div>`
-          : html`<p>Please open an SCL document</p>`
-      }
-    `;
+              ></functions-layer>`
+            : nothing
+        }
+      </div>`
+      : html`<p>Please open an SCL document</p>`;
   }
 
   static styles = [
