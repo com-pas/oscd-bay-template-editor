@@ -106,13 +106,7 @@ describe('FunctionsLayer', () => {
         it('shows preview when placing a function', async () => {
             const functionElement = element.doc?.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             element.placingOffset = [0, 0];
             await element.updateComplete;
             const previewGroups = element.shadowRoot?.querySelectorAll('g.preview');
@@ -121,13 +115,7 @@ describe('FunctionsLayer', () => {
         it('hides original function when placing', async () => {
             const functionElement = element.doc?.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             await element.updateComplete;
             // The original function should not be rendered as a normal function
             const normalFunctions = element.shadowRoot?.querySelectorAll('g.function:not(.preview)');
@@ -137,13 +125,7 @@ describe('FunctionsLayer', () => {
         it('shows coordinate tooltip when placing', async () => {
             const functionElement = element.doc?.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             await element.updateComplete;
             const coordinatesDiv = element.shadowRoot?.querySelector('.coordinates');
             expect(coordinatesDiv).to.exist;
@@ -151,13 +133,7 @@ describe('FunctionsLayer', () => {
         it('marks coordinates as invalid when outside bay boundaries', async () => {
             const functionElement = element.doc?.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             element.placingOffset = [0, 0];
             await element.updateComplete;
             // Simulate mouse position outside bay boundaries
@@ -175,13 +151,7 @@ describe('FunctionsLayer', () => {
             element.doc = doc;
             const functionElement = doc.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             element.placingOffset = [0, 0];
             await element.updateComplete;
             const editSpy = spy();
@@ -202,13 +172,7 @@ describe('FunctionsLayer', () => {
             const functionElement = doc.querySelector('Function[name="F1"]');
             expect(functionElement).to.exist;
             // Set placing mode with position outside bay
-            element.placing = {
-                name: 'TestFunction',
-                element: functionElement,
-                parent: null,
-                x: 0,
-                y: 0,
-            };
+            element.placing = functionElement;
             element.placingOffset = [0, 0];
             await element.updateComplete;
             // The function should still render (clamped to bay boundaries)

@@ -45,13 +45,7 @@ describe('FunctionsLayer component', () => {
         });
         it.skip('renders the function coordinates tooltip correctly when placing a function', async () => {
             const [fx, fy] = getFunctionPixelCoordinates(editor, 'F1');
-            editor.placing = {
-                name: 'F1',
-                parent: null,
-                element: editor.functions[0].element,
-                x: fx / editor.gridSize,
-                y: fy / editor.gridSize,
-            };
+            editor.placing = editor.functions[0].element;
             await editor.updateComplete;
             const fnRect = editor.svg.querySelector('rect#F1');
             fnRect?.dispatchEvent(new MouseEvent('click', { clientX: fx, clientY: fy, bubbles: true }));

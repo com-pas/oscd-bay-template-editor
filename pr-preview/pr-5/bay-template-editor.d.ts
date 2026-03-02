@@ -31,11 +31,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     showFunctions: boolean;
     templateElements: Record<string, Element>;
     nsp: string;
-    placingFunction?: {
-        name: string;
-        element: Element;
-        parent: Element | null;
-    };
+    placingFunction?: Element;
     placingFunctionOffset: [number, number];
     highlight: {
         id: string;

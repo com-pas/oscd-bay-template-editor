@@ -141,14 +141,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         return Math.max(MIN_WIDTH, ICON_WIDTH + SPACING + textWidth + PADDING);
     }
     finalizeFunctionPlacement(fn) {
-        console.log('Finalizing placement for function:', fn);
         const x = this.mouseX - this.placingOffset[0];
         const y = this.mouseY - this.placingOffset[1];
         let edit;
         const isExisting = this.functions.some(f => f.element === fn.element);
         if (!isExisting && this.doc) {
-            // Use parent from placing property if available
-            let parent = this.placing && this.placing.parent ? this.placing.parent : fn.parent;
+            let { parent } = fn;
             if (!parent) {
                 parent = this.doc.querySelector('Bay, VoltageLevel, Substation');
             }
@@ -180,7 +178,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         if (this.disabled)
             return;
         e.stopPropagation();
-        if (this.placing?.element === fn.element) {
+        if (this.placing === fn.element) {
             this.finalizeFunctionPlacement(fn);
             this.dispatchEvent(new CustomEvent('function-placement-active', { detail: false }));
             return;
@@ -190,17 +188,17 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
     handleContainerClick(e) {
         if (this.placing) {
-            const placingFn = this.functions.find(fn => fn.element === this.placing?.element);
+            const placingFn = this.functions.find(fn => fn.element === this.placing);
             if (placingFn) {
                 this.finalizeFunctionPlacement(placingFn);
             }
         }
     }
     renderFunction(fn, preview = false) {
-        if (this.placing?.element === fn.element && !preview) {
+        if (this.placing === fn.element && !preview) {
             return nothing;
         }
-        const isPlacing = this.placing?.element === fn.element;
+        const isPlacing = this.placing === fn.element;
         let { x, y } = fn;
         if (isPlacing) {
             x = this.mouseX - this.placingOffset[0];
@@ -253,22 +251,20 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       </g>`;
     }
     render() {
-        let placingFn;
-        if (this.placing) {
-            placingFn = this.functions.find(fn => fn.element === this.placing?.element);
-            if (!placingFn) {
-                const xAttr = getSLDAttributes(this.placing.element, 'x');
-                const yAttr = getSLDAttributes(this.placing.element, 'y');
-                const x = xAttr ? parseFloat(xAttr) : 1;
-                const y = yAttr ? parseFloat(yAttr) : 1;
-                placingFn = {
-                    element: this.placing.element,
-                    name: this.placing.name,
-                    x,
-                    y,
-                    parent: this.placing.parent,
-                };
-            }
+        let placingFn = this.functions.find(fn => fn.element === this.placing);
+        if (this.placing && !placingFn) {
+            const name = this.placing.getAttribute('name') || 'F?';
+            const xAttr = getSLDAttributes(this.placing, 'x');
+            const yAttr = getSLDAttributes(this.placing, 'y');
+            const x = xAttr ? parseFloat(xAttr) : 1;
+            const y = yAttr ? parseFloat(yAttr) : 1;
+            placingFn = {
+                element: this.placing,
+                name,
+                x,
+                y,
+                parent: null,
+            };
         }
         const { width, height } = this.getSvgDimensions();
         let coordinates = html ``;

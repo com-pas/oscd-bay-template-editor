@@ -17,11 +17,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     gridSize: number;
     disabled: boolean;
     nsp: string;
-    /**
-     * The function being placed, with its intended parent.
-     * { element: Element, parent: Element | null }
-     */
-    placing?: FunctionData;
+    placing?: Element;
     placingOffset: Point;
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
     functions: FunctionData[];
