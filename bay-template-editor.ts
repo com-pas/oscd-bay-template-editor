@@ -18,18 +18,21 @@ import {
   voltageLevelIcon,
   functionsIcon,
   functionsOffIcon,
+  functionAddIcon,
 } from './icons.js';
 import {
   eqTypes,
   isBusBar,
   makeBusBar,
   setSLDAttributes,
+  getSLDAttributes,
   sldNs,
   uniqueName,
   xmlnsNs,
-  getSLDAttributes,
+  getInitialFunctionCoordinates,
 } from './util.js';
-import { FunctionsLayer } from './components/functions-layer.js';
+import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
+import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
@@ -40,6 +43,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       'oscd-icon': OscdIcon,
       'functions-layer': FunctionsLayer,
       'sld-editor': customElements.get('sld-editor')!,
+      'create-function-dialog': CreateFunctionDialog,
     };
   }
 
@@ -55,6 +59,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @query('sld-editor') sldEditor?: SldEditor;
 
   @query('#labels') labelToggle?: OscdOutlinedIconButton;
+
+  @query('create-function-dialog') createFunctionDialog?: CreateFunctionDialog;
 
   @state()
   get showLabels(): boolean {
@@ -91,6 +97,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @state()
   highlight: { id: string; style: any }[] = [];
+
+  @state()
+  selectedElement?: Element;
 
   connectedCallback() {
     super.connectedCallback();
@@ -179,7 +188,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   };
 
   handleSldSelected = (event: CustomEvent<{ element: Element }>) => {
-    const selectedElement = event.detail.element;
+    this.selectedElement = event.detail.element;
     const style = {
       stroke: '#7821c9',
       strokeWidth: 0.1,
@@ -192,18 +201,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         style,
       },
     ];
-    if (this.doc) {
-      const func = this.doc.createElementNS(
-        this.doc.documentElement.namespaceURI,
-        'Function'
-      );
-      func.setAttribute('name', uniqueName(func, selectedElement));
-      this.placingFunction = func;
-      this.placingFunctionOffset = [0, 0];
-      this.functionsInAction = true;
-      this.showFunctions = true;
-      this.updateInAction();
-      this.sldEditor?.requestUpdate();
+    if (this.doc && this.createFunctionDialog) {
+      this.createFunctionDialog.parent = event.detail.element;
+      this.createFunctionDialog?.show();
     }
   };
 
@@ -254,6 +254,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.addingFunction = false;
     this.placingFunction = undefined;
     this.placingFunctionOffset = [0, 0];
+    this.selectedElement = undefined;
     this.highlight = [];
 
     this.updateInAction();
@@ -274,6 +275,40 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     node.setAttribute('name', `S${index}`);
     setSLDAttributes(node, this.nsp, { w: '50', h: '25' });
     this.dispatchEvent(newEditEventV2({ parent, node, reference }));
+  }
+
+  createFunction(
+    e: CustomEvent<{
+      name: string;
+      description: string | null;
+      type: string | null;
+    }>
+  ) {
+    const { name, description, type } = e.detail;
+    if (!this.doc || !this.selectedElement) return;
+    const func = this.doc.createElementNS(
+      this.doc.documentElement.namespaceURI,
+      'Function'
+    );
+    func.setAttribute('name', name);
+    if (description) func.setAttribute('description', description);
+    if (type) func.setAttribute('type', type);
+    const { x, y } = getInitialFunctionCoordinates(
+      this.doc,
+      this.selectedElement
+    );
+    setSLDAttributes(func, this.nsp, {
+      x: String(x),
+      y: String(y),
+    });
+
+    const parent = this.selectedElement;
+    const reference = null;
+    this.dispatchEvent(newEditEventV2({ parent, node: func, reference }));
+
+    this.reset();
+    this.showFunctions = true;
+    this.createFunctionDialog?.close();
   }
 
   render() {
@@ -530,7 +565,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                   this.updateInAction();
                 }}
               >
-                + <oscd-icon>function</oscd-icon>
+                ${functionAddIcon}
               </oscd-icon-button>`
             : nothing
         }${
@@ -620,7 +655,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               ></functions-layer>`
             : nothing
         }
-      </div>`
+      </div>
+      <create-function-dialog
+        @cancel=${this.reset}
+        @save=${this.createFunction}
+      ></create-function-dialog>
+    `
       : html`<p>Please open an SCL document</p>`;
   }
 

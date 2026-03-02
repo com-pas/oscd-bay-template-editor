@@ -10,7 +10,7 @@ import {
   getSLDAttributes,
   setSLDAttributes,
   updateSLDAttributes,
-} from '../util.js';
+} from '../../util.js';
 
 type Point = [number, number];
 

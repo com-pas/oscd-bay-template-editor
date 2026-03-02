@@ -179,3 +179,77 @@ export function uniqueName(element: Element, parent: Element): string {
 
   return baseName + index.toString();
 }
+
+/**
+ * Calculates initial coordinates for a new Function element.
+ * - Centers in substation for Bay/VoltageLevel parents.
+ * - Otherwise, places below parent or sibling with coordinates, or centers in substation as fallback.
+ * - Avoids stacking by offsetting if position is occupied.
+ * @param doc XMLDocument containing the SCL structure
+ * @param parent Parent element under which the function is created
+ * @returns { x, y } coordinates for the new function
+ */
+export function getInitialFunctionCoordinates(
+  doc: XMLDocument,
+  parent: Element
+): { x: number; y: number } {
+  let x = 1;
+  let y = 1;
+
+  function getSubstationCenter(): { x: number; y: number } {
+    const substation = doc.querySelector(':root > Substation');
+    const w = substation
+      ? parseFloat(getSLDAttributes(substation, 'w') ?? '50')
+      : 50;
+    const h = substation
+      ? parseFloat(getSLDAttributes(substation, 'h') ?? '25')
+      : 25;
+    return { x: w / 2, y: h / 2 };
+  }
+
+  // Center for Bay/VoltageLevel
+  if (['Bay', 'VoltageLevel'].includes(parent.tagName)) {
+    const center = getSubstationCenter();
+    x = center.x;
+    y = center.y;
+  } else {
+    const parentX = getSLDAttributes(parent, 'x');
+    const parentY = getSLDAttributes(parent, 'y');
+    if (parentX && parentY) {
+      x = parseFloat(parentX);
+      y = parseFloat(parentY) + 2;
+    } else {
+      const childWithCoords = Array.from(parent.children).find(
+        el => getSLDAttributes(el, 'x') && getSLDAttributes(el, 'y')
+      );
+      if (childWithCoords) {
+        x = parseFloat(getSLDAttributes(childWithCoords, 'x')!);
+        y = parseFloat(getSLDAttributes(childWithCoords, 'y')!) + 2;
+      } else {
+        // Fallback: center in substation
+        const center = getSubstationCenter();
+        x = center.x;
+        y = center.y;
+      }
+    }
+  }
+
+  // Avoid stacking: offset if position is occupied by another Function
+  const existingFunctions = Array.from(doc.querySelectorAll('Function'));
+  function isOccupied(testX: number, testY: number): boolean {
+    return existingFunctions.some(fn => {
+      const fx = parseFloat(getSLDAttributes(fn, 'x') ?? 'NaN');
+      const fy = parseFloat(getSLDAttributes(fn, 'y') ?? 'NaN');
+      return fx === testX && fy === testY;
+    });
+  }
+
+  let offsetTries = 20;
+  while (isOccupied(x, y) && offsetTries > 0) {
+    x += 1;
+    y += 1;
+    offsetTries -= 1;
+  }
+
+  return { x, y };
+}
