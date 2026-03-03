@@ -11,7 +11,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'oscd-filled-text-field': typeof OscdFilledTextField;
         'oscd-scl-text-field': typeof OscdSclTextField;
     };
-    open: boolean;
     parent: Element | null;
     dialog: OscdDialog;
     name: string;

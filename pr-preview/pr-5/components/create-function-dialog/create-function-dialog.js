@@ -10,7 +10,6 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
-        this.open = false;
         this.parent = null;
         this.name = '';
         this.nameError = null;
@@ -41,7 +40,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         this.description = null;
         this.type = null;
         this.nameError = null;
-        this.requestUpdate();
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -103,10 +101,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             this.type = e.target.value;
         }}
           ></oscd-scl-text-field>
-          <div
-            slot="actions"
-            style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;"
-          >
+          <div slot="actions">
             <oscd-filled-button type="button" @click=${this.cancel}
               >Close</oscd-filled-button
             >
@@ -137,9 +132,6 @@ CreateFunctionDialog.styles = css `
       justify-content: flex-end;
     }
   `;
-__decorate([
-    property({ type: Boolean })
-], CreateFunctionDialog.prototype, "open", void 0);
 __decorate([
     property({ type: Object })
 ], CreateFunctionDialog.prototype, "parent", void 0);
