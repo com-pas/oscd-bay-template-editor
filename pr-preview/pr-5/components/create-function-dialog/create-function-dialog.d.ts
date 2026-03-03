@@ -5,7 +5,6 @@ import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilled
 import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTextField.js';
 declare const CreateFunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
-    nameError: string | null;
     static get scopedElements(): {
         'oscd-dialog': typeof OscdDialog;
         'oscd-filled-button': typeof OscdFilledButton;
@@ -15,9 +14,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     open: boolean;
     parent: Element | null;
     dialog: OscdDialog;
-    descriptionField: OscdSclTextField;
-    typeField: OscdSclTextField;
     name: string;
+    nameError: string | null;
     description: null;
     type: null;
     show(): void;
