@@ -3483,8 +3483,8 @@ const zp=e=>e??de;class qp extends(We(Le)){constructor(){super(...arguments),thi
       --md-icon-button-icon-size: 48px;
     }
   `,e([Ve({type:Boolean})],qp.prototype,"nullable",void 0),e([Me()],qp.prototype,"textFieldValue",void 0),e([Ve({type:String})],qp.prototype,"value",null),e([Ve({type:Boolean})],qp.prototype,"disabled",void 0),e([Ve({type:String})],qp.prototype,"label",void 0),e([Ve({type:Boolean})],qp.prototype,"required",void 0),e([Ve({type:String})],qp.prototype,"supportingText",void 0),e([Ve({type:Boolean})],qp.prototype,"error",void 0),e([Ve({type:String})],qp.prototype,"errorText",void 0),e([Ve({type:String})],qp.prototype,"suffixText",void 0),e([Ve({type:String})],qp.prototype,"placeholder",void 0),e([Ve({type:String})],qp.prototype,"type",void 0),e([Ve({type:String})],qp.prototype,"pattern",void 0),e([Ve({type:String})],qp.prototype,"max",void 0),e([Ve({type:String})],qp.prototype,"min",void 0),e([Ve({type:Number})],qp.prototype,"maxLength",void 0),e([Ve({type:Number})],qp.prototype,"minLength",void 0),e([Ve({type:String})],qp.prototype,"unit",void 0),e([Ve({type:Array})],qp.prototype,"multipliers",void 0),e([Ve({type:String})],qp.prototype,"multiplier",null),e([Me()],qp.prototype,"isNull",void 0),e([Me()],qp.prototype,"null",null),e([xe(".nullswitch.element")],qp.prototype,"nullSwitch",void 0),e([xe(".multipliers")],qp.prototype,"multiplierMenu",void 0),e([xe(".input.element")],qp.prototype,"textField",void 0);class $p extends(We(Le)){constructor(){super(...arguments),this.nameError=null,this.open=!1,this.parent=null,this.name="",this.description=null,this.type=null}static get scopedElements(){return{"oscd-dialog":Zl,"oscd-filled-button":cC,"oscd-filled-text-field":UC,"oscd-scl-text-field":qp}}show(){this.dialog.show()}close(){this.dialog.close(),this.reset()}cancel(){this.close(),this.dispatchEvent(new CustomEvent("cancel"))}reset(){this.name="",this.description=null,this.type=null,this.nameError=null,this.descriptionField.reset(),this.typeField.reset()}handleSubmit(e){if(e.preventDefault(),this.nameError=null,!this.name.trim())return this.nameError="Name is required.",void this.requestUpdate();if(this.parent){if(Array.from(this.parent.children).find((e=>"Function"===e.tagName&&e.getAttribute("name")?.trim()===this.name.trim())))return this.nameError=`A Function with the name "${this.name.trim()}" already exists.`,void this.requestUpdate()}this.dispatchEvent(new CustomEvent("save",{detail:{name:this.name,description:this.description,type:this.type}}))}render(){return ae`
-      <oscd-dialog>
-        <div slot="headline">Add function</div>
+      <oscd-dialog @closed=${this.cancel}>
+        <div slot="headline">Add Function</div>
         <form slot="content" @submit=${this.handleSubmit} autocomplete="off">
           <oscd-filled-text-field
             label="Name"
@@ -3539,9 +3539,93 @@ const zp=e=>e??de;class qp extends(We(Le)){constructor(){super(...arguments),thi
       gap: 8px;
       justify-content: flex-end;
     }
-  `,e([Me()],$p.prototype,"nameError",void 0),e([Ve({type:Boolean})],$p.prototype,"open",void 0),e([Ve({type:Object})],$p.prototype,"parent",void 0),e([xe("oscd-dialog")],$p.prototype,"dialog",void 0),e([xe('oscd-scl-text-field[name="description"]')],$p.prototype,"descriptionField",void 0),e([xe('oscd-scl-text-field[name="type"]')],$p.prototype,"typeField",void 0),e([Me()],$p.prototype,"name",void 0),e([Me()],$p.prototype,"description",void 0),e([Me()],$p.prototype,"type",void 0);class Xp extends(We(Le)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.inAction=!1,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.handleKeydown=e=>{"Escape"===e.key&&(this.sldEditorInAction||this.functionsInAction)&&(e.preventDefault(),this.reset())},this.handleStartPlaceFunction=(e,n)=>{this.placingFunction=e,this.placingFunctionOffset=n,this.functionsInAction=!0,this.updateInAction()},this.preprocessEdits=e=>{const n=e;let t=Array.isArray(n.detail)?n.detail:[n.detail];t=t.flatMap((e=>e.edit?e.edit:e)),t.forEach(((e,n)=>{if(e.node&&e.parent&&!e.node.getAttribute("name")){const n=function(e,n){const t=Array.from(n.children),s=e.getAttribute("name");if(s&&!t.find((e=>e.getAttribute("name")===s)))return s;const a=e.getAttribute("name")?.replace(/[0-9]*$/,"")??e.getAttribute("type")??e.tagName.charAt(0);let r=1;function i(e){return e.getAttribute("name")===a+r.toString()}for(;t.find(i);)r+=1;return a+r.toString()}(e.node,e.parent);e.node.setAttribute("name",n)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[qc]){const n=e.attributesNS[qc],t={};Object.entries(n).forEach((([e,n])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==n&&(t[s]=n)})),"SLDAttributes"===e.element.localName?Object.entries(t).forEach((([n,t])=>{e.element.setAttributeNS(qc,`${this.nsp}:${n}`,t)})):Qc(e.element,this.nsp,t)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1,this.updateInAction())},this.handleSldSelected=e=>{this.selectedElement=e.detail.element;this.highlight=[{id:Gn(e.detail.element).toString(),style:{stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5}}],this.doc&&this.createFunctionDialog&&(this.createFunctionDialog.parent=e.detail.element,this.createFunctionDialog?.show())}}static get scopedElements(){return{"oscd-icon-button":ft,"oscd-filled-icon-button":Pt,"oscd-icon":Mt,"functions-layer":wl,"sld-editor":customElements.get("sld-editor"),"create-function-dialog":$p}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown)}updateInAction(){this.inAction=this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if(!e.has("doc")||!this.doc)return;const n=this.doc.documentElement.lookupPrefix(qc);n?this.nsp=n:this.doc.documentElement.setAttributeNS("http://www.w3.org/2000/xmlns/",`xmlns:${this.nsp}`,qc),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,n){const t=e.createElementNS(e.documentElement.namespaceURI,"Bay");t.setAttribute("name","BB1"),Qc(t,n,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const a=e.createElementNS(e.documentElement.namespaceURI,"Private");a.setAttribute("type",zc);const r=e.createElementNS(qc,`${n}:Section`);Qc(r,n,{bus:"true"});const i=e.createElementNS(qc,`${n}:Vertex`);Qc(i,n,{x:"0.5",y:"0.5"}),r.appendChild(i);const d=e.createElementNS(qc,`${n}:Vertex`);return Qc(d,n,{x:"1.5",y:"0.5"}),r.appendChild(d),a.appendChild(r),s.appendChild(a),t.appendChild(s),t}(this.doc,this.nsp)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.selectedElement=void 0,this.highlight=[],this.updateInAction(),this.sldEditor?.resetWithOffset()}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,n=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),t=Sn(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;n.setAttribute("name",`S${s}`),Qc(n,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Nn({parent:e,node:n,reference:t}))}createFunction(e){const{name:n,description:t,type:s}=e.detail;if(!this.doc||!this.selectedElement)return;const a=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Function");a.setAttribute("name",n),t&&a.setAttribute("description",t),s&&a.setAttribute("type",s);const{x:r,y:i}=function(e,n){let t=1,s=1;function a(){const n=e.querySelector(":root > Substation");return{x:(n?parseFloat(Jc(n,"w")??"50"):50)/2,y:(n?parseFloat(Jc(n,"h")??"25"):25)/2}}if(["Bay","VoltageLevel"].includes(n.tagName)){const e=a();t=e.x,s=e.y}else{const e=Jc(n,"x"),r=Jc(n,"y");if(e&&r)t=parseFloat(e),s=parseFloat(r)+2;else{const e=Array.from(n.children).find((e=>Jc(e,"x")&&Jc(e,"y")));if(e)t=parseFloat(Jc(e,"x")),s=parseFloat(Jc(e,"y"))+2;else{const e=a();t=e.x,s=e.y}}}const r=Array.from(e.querySelectorAll("Function"));function i(e,n){return r.some((t=>{const s=parseFloat(Jc(t,"x")??"NaN"),a=parseFloat(Jc(t,"y")??"NaN");return s===e&&a===n}))}let d=20;for(;i(t,s)&&d>0;)t+=1,s+=1,d-=1;return{x:t,y:s}}(this.doc,this.selectedElement);Qc(a,this.nsp,{x:String(r),y:String(i)});const d=this.selectedElement;this.dispatchEvent(Nn({parent:d,node:a,reference:null})),this.reset(),this.showFunctions=!0,this.createFunctionDialog?.close()}render(){return this.doc?ae`
-      <nav>
-        ${Array.from(this.doc.querySelectorAll(":root > Substation > VoltageLevel > Bay")).find((e=>!nl(e)))?$c.map((e=>{return ae`<oscd-icon-button
+  `,e([Me()],$p.prototype,"nameError",void 0),e([Ve({type:Boolean})],$p.prototype,"open",void 0),e([Ve({type:Object})],$p.prototype,"parent",void 0),e([xe("oscd-dialog")],$p.prototype,"dialog",void 0),e([xe('oscd-scl-text-field[name="description"]')],$p.prototype,"descriptionField",void 0),e([xe('oscd-scl-text-field[name="type"]')],$p.prototype,"typeField",void 0),e([Me()],$p.prototype,"name",void 0),e([Me()],$p.prototype,"description",void 0),e([Me()],$p.prototype,"type",void 0);const Xp=["ConductingEquipment","PowerTransformer","TransformerWinding","Bay","VoltageLevel"],Zp={stroke:"#7821c9",strokeWidth:.12,fill:"none"},Yp={stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5};class Qp extends(We(Le)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.handleKeydown=e=>{"Escape"===e.key&&(this.sldEditorInAction||this.functionsInAction||this.addingFunction)&&(e.preventDefault(),this.reset())},this.handleStartPlaceFunction=(e,n)=>{this.placingFunction=e,this.placingFunctionOffset=n,this.functionsInAction=!0},this.preprocessEdits=e=>{const n=e;let t=Array.isArray(n.detail)?n.detail:[n.detail];t=t.flatMap((e=>e.edit?e.edit:e)),t.forEach((e=>{if(e.node&&e.parent&&!e.node.getAttribute("name")){const n=function(e,n){const t=Array.from(n.children),s=e.getAttribute("name");if(s&&!t.find((e=>e.getAttribute("name")===s)))return s;const a=e.getAttribute("name")?.replace(/[0-9]*$/,"")??e.getAttribute("type")??e.tagName.charAt(0);let r=1;function i(e){return e.getAttribute("name")===a+r.toString()}for(;t.find(i);)r+=1;return a+r.toString()}(e.node,e.parent);e.node.setAttribute("name",n)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[qc]){const n=e.attributesNS[qc],t={};Object.entries(n).forEach((([e,n])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==n&&(t[s]=n)})),"SLDAttributes"===e.element.localName?Object.entries(t).forEach((([n,t])=>{e.element.setAttributeNS(qc,`${this.nsp}:${n}`,t)})):Qc(e.element,this.nsp,t)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1)},this.handleSldSelected=e=>{this.addingFunction=!1,this.selectedElement=e.detail.element,this.highlight=[{id:Gn(e.detail.element).toString(),style:Yp}],this.doc&&this.createFunctionDialog&&(this.createFunctionDialog.parent=e.detail.element,this.createFunctionDialog.show())}}static get scopedElements(){return{"oscd-icon-button":ft,"oscd-filled-icon-button":Pt,"oscd-icon":Mt,"functions-layer":wl,"sld-editor":customElements.get("sld-editor"),"create-function-dialog":$p}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown)}get inAction(){return this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if(!e.has("doc")||!this.doc)return;const n=this.doc.documentElement.lookupPrefix(qc);n?this.nsp=n:this.doc.documentElement.setAttributeNS("http://www.w3.org/2000/xmlns/",`xmlns:${this.nsp}`,qc),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,n){const t=e.createElementNS(e.documentElement.namespaceURI,"Bay");t.setAttribute("name","BB1"),Qc(t,n,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const a=e.createElementNS(e.documentElement.namespaceURI,"Private");a.setAttribute("type",zc);const r=e.createElementNS(qc,`${n}:Section`);Qc(r,n,{bus:"true"});const i=e.createElementNS(qc,`${n}:Vertex`);Qc(i,n,{x:"0.5",y:"0.5"}),r.appendChild(i);const d=e.createElementNS(qc,`${n}:Vertex`);return Qc(d,n,{x:"1.5",y:"0.5"}),r.appendChild(d),a.appendChild(r),s.appendChild(a),t.appendChild(s),t}(this.doc,this.nsp)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.selectedElement=void 0,this.highlight=[],this.sldEditor?.resetWithOffset()}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,n=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),t=Sn(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;n.setAttribute("name",`S${s}`),Qc(n,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Nn({parent:e,node:n,reference:t}))}createFunction(e){const{name:n,description:t,type:s}=e.detail;if(!this.doc||!this.selectedElement)return;const a=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Function");a.setAttribute("name",n),null!==t&&a.setAttribute("description",t),null!==s&&a.setAttribute("type",s);const{x:r,y:i}=function(e,n){let t=1,s=1;function a(){const n=e.querySelector(":root > Substation");return{x:(n?parseFloat(Jc(n,"w")??"50"):50)/2,y:(n?parseFloat(Jc(n,"h")??"25"):25)/2}}if(["Bay","VoltageLevel"].includes(n.tagName)){const e=a();t=e.x,s=e.y}else{const e=Jc(n,"x"),r=Jc(n,"y");if(e&&r)t=parseFloat(e),s=parseFloat(r)+2;else{const e=Array.from(n.children).find((e=>Jc(e,"x")&&Jc(e,"y")));if(e)t=parseFloat(Jc(e,"x")),s=parseFloat(Jc(e,"y"))+2;else{const e=a();t=e.x,s=e.y}}}const r=Array.from(e.querySelectorAll("Function"));function i(e,n){return r.some((t=>{const s=parseFloat(Jc(t,"x")??"NaN"),a=parseFloat(Jc(t,"y")??"NaN");return s===e&&a===n}))}let d=20;for(;i(t,s)&&d>0;)t+=1,s+=1,d-=1;return{x:t,y:s}}(this.doc,this.selectedElement);Qc(a,this.nsp,{x:String(r),y:String(i)});const d=this.selectedElement,o=Sn(d,"Function");this.dispatchEvent(Nn({parent:d,node:a,reference:o})),this.reset(),this.showFunctions=!0,this.createFunctionDialog?.close()}renderTransformerButtons(){return this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Single Winding Auto Transformer"
+        title="Add Single Winding Auto Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"auto",rot:"3"});const n=this.templateElements.TransformerWinding.cloneNode();n.setAttribute("type","PTW"),n.setAttribute("name","W1"),e.appendChild(n),this.startPlacing(e)}}
+        >${ml(1,{kind:"auto"})}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Auto Transformer"
+        title="Add Two Winding Auto Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"auto"});const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
+        >${ml(2,{kind:"auto"})}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Transformer"
+        title="Add Two Winding Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR");const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
+        >${ml(2)}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Three Winding Transformer"
+        title="Add Three Winding Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR");const n=[];for(let e=1;e<=3;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
+        >${ml(3)}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Single Winding Earthing Transformer"
+        title="Add Single Winding Earthing Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"earthing"});const n=this.templateElements.TransformerWinding.cloneNode();n.setAttribute("type","PTW"),n.setAttribute("name","W1"),e.appendChild(n),this.startPlacing(e)}}
+        >${ml(1,{kind:"earthing"})}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Earthing Transformer"
+        title="Add Two Winding Earthing Transformer"
+        @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"earthing"});const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
+        >${ml(2,{kind:"earthing"})}</oscd-icon-button
+      >`:de}renderFunctionButtons(){return this.doc?ae`${this.doc.querySelector("VoltageLevel, PowerTransformer")?ae`<oscd-icon-button
+            id="labels"
+            label="Toggle Labels"
+            title="Toggle Labels"
+            toggle="true"
+            @click=${()=>this.requestUpdate()}
+          >
+            <oscd-icon>font_download</oscd-icon>
+            <oscd-icon slot="selected">font_download_off</oscd-icon>
+          </oscd-icon-button>`:de}
+      ${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
+              ?disabled=${this.showFunctions}
+              id="function"
+              label="Add Function"
+              title="Add Function"
+              @click=${()=>{if(!this.doc)return;const e=Xp.flatMap((e=>Array.from(this.doc.querySelectorAll(e))));this.highlight=e.map((e=>({id:Gn(e).toString(),style:Zp}))),this.addingFunction=!0}}
+            >
+              ${Nl}
+            </oscd-icon-button>`:de}${this.doc.querySelector("Function")?ae`<oscd-icon-button
+            id="functions"
+            ?selected=${this.showFunctions}
+            toggle="true"
+            title=${this.showFunctions?"Hide Functions":"Show Functions"}
+            @click=${()=>{this.showFunctions=!this.showFunctions}}
+          >
+            ${Il}
+            <span slot="selected">${Dl}</span>
+          </oscd-icon-button>`:de}${this.doc.querySelector("Substation")?ae`<oscd-icon-button
+              label="Zoom In"
+              title="Zoom In (${Math.round(100*(this.gridSize+3)/32)}%)"
+              @click=${()=>this.zoomIn()}
+            >
+              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+            ><oscd-icon-button
+              label="Zoom Out"
+              ?disabled=${this.gridSize<4}
+              title="Zoom Out (${Math.round(100*(this.gridSize-3)/32)}%)"
+              @click=${()=>this.zoomOut()}
+            >
+              <oscd-icon>zoom_out</oscd-icon>
+            </oscd-icon-button>`:de}
+      </oscd-icon-button
+      >${this.inAction?ae`<oscd-icon-button
+              label="Cancel"
+              title="Cancel"
+              @click=${()=>this.reset()}
+            >
+              <oscd-icon>close</oscd-icon>
+            </oscd-icon-button>`:de}`:de}render(){return this.doc?ae`
+          <nav>
+            ${Array.from(this.doc.querySelectorAll(":root > Substation > VoltageLevel > Bay")).find((e=>!nl(e)))?$c.map((e=>{return ae`<oscd-icon-button
                     ?disabled=${this.showFunctions}
                     label="Add ${e}"
                     title="Add ${e}"
@@ -3568,152 +3652,67 @@ const zp=e=>e??de;class qp extends(We(Le)){constructor(){super(...arguments),thi
     ${Ol(n)}
     ${Xc.has(n)?Al:de}
   </svg>`}</oscd-icon-button
-                  >`;var n})).concat():de}${this.doc.querySelector(":root > Substation > VoltageLevel")?ae`<oscd-icon-button
+                  >`;var n})):de}${this.doc.querySelector(":root > Substation > VoltageLevel")?ae`<oscd-icon-button
+                    ?disabled=${this.showFunctions}
+                    @click=${()=>{const e=this.templateElements.BusBar.cloneNode(!0);this.startPlacing(e)}}
+                    label="Add Bus Bar"
+                    title="Add Bus Bar"
+                  >
+                    <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
+                  ><oscd-filled-icon-button
+                    ?disabled=${this.showFunctions}
+                    id="bay-button"
+                    label="Add Bay"
+                    title="Add Bay"
+                    @click=${()=>{const e=this.templateElements.Bay.cloneNode();this.startPlacing(e)}}
+                  >
+                    ${_l}
+                  </oscd-filled-icon-button>`:de}${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-filled-icon-button
                   ?disabled=${this.showFunctions}
-                  @click=${()=>{const e=this.templateElements.BusBar.cloneNode(!0);this.startPlacing(e)}}
-                  label="Add Bus Bar"
-                  title="Add Bus Bar"
+                  id="voltage-button"
+                  label="Add VoltageLevel"
+                  title="Add VoltageLevel"
+                  @click=${()=>{const e=this.templateElements.VoltageLevel.cloneNode();this.startPlacing(e)}}
                 >
-                  <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
-                ><oscd-filled-icon-button
-                  ?disabled=${this.showFunctions}
-                  id="bay-button"
-                  label="Add Bay"
-                  title="Add Bay"
-                  @click=${()=>{const e=this.templateElements.Bay.cloneNode();this.startPlacing(e)}}
-                >
-                  ${_l}
-                </oscd-filled-icon-button>`:de}${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-filled-icon-button
-                ?disabled=${this.showFunctions}
-                id="voltage-button"
-                label="Add VoltageLevel"
-                title="Add VoltageLevel"
-                @click=${()=>{const e=this.templateElements.VoltageLevel.cloneNode();this.startPlacing(e)}}
-              >
-                ${bl}
-              </oscd-filled-icon-button>`:de}<oscd-filled-icon-button
-          ?disabled=${this.showFunctions}
-          id="substation-button"
-          @click=${()=>this.insertSubstation()}
-          label="Add Substation"
-          title="Add Substation"
-        >
-          <oscd-icon>margin</oscd-icon>
-        </oscd-filled-icon-button
-        >${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Single Winding Auto Transformer"
-                  title="Add Single Winding Auto Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"auto",rot:"3"});const n=this.templateElements.TransformerWinding.cloneNode();n.setAttribute("type","PTW"),n.setAttribute("name","W1"),e.appendChild(n),this.startPlacing(e)}}
-                  >${ml(1,{kind:"auto"})}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Auto Transformer"
-                  title="Add Two Winding Auto Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"auto"});const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
-                  >${ml(2,{kind:"auto"})}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Transformer"
-                  title="Add Two Winding Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR");const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
-                  >${ml(2)}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Three Winding Transformer"
-                  title="Add Three Winding Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR");const n=[];for(let e=1;e<=3;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
-                  >${ml(3)}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Single Winding Earthing Transformer"
-                  title="Add Single Winding Earthing Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"earthing"});const n=this.templateElements.TransformerWinding.cloneNode();n.setAttribute("type","PTW"),n.setAttribute("name","W1"),e.appendChild(n),this.startPlacing(e)}}
-                  >${ml(1,{kind:"earthing"})}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Earthing Transformer"
-                  title="Add Two Winding Earthing Transformer"
-                  @click=${()=>{const e=this.templateElements.PowerTransformer.cloneNode();e.setAttribute("type","PTR"),Qc(e,this.nsp,{kind:"earthing"});const n=[];for(let e=1;e<=2;e+=1){const t=this.templateElements.TransformerWinding.cloneNode();t.setAttribute("type","PTW"),t.setAttribute("name",`W${e}`),n.push(t)}e.append(...n),this.startPlacing(e)}}
-                  >${ml(2,{kind:"earthing"})}</oscd-icon-button
-                >`:de}${this.doc?.querySelector("VoltageLevel, PowerTransformer")?ae`<oscd-icon-button
-                id="labels"
-                label="Toggle Labels"
-                title="Toggle Labels"
-                toggle="true"
-                @click=${()=>this.requestUpdate()}
-              >
-                <oscd-icon>font_download</oscd-icon>
-                <oscd-icon slot="selected">font_download_off</oscd-icon>
-              </oscd-icon-button>`:de}
-        ${Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?ae`<oscd-icon-button
-                ?disabled=${this.showFunctions}
-                id="function"
-                label="Add Function"
-                title="Add Function"
-                @click=${()=>{if(!this.doc)return;const e=["ConductingEquipment","PowerTransformer","TransformerWinding","Bay","VoltageLevel"].flatMap((e=>Array.from(this.doc.querySelectorAll(e)))),n={stroke:"#7821c9",strokeWidth:.12,fill:"none"};this.highlight=e.map((e=>({id:Gn(e).toString(),style:n}))),this.addingFunction=!0,this.updateInAction()}}
-              >
-                ${Nl}
-              </oscd-icon-button>`:de}${this.doc?.querySelector("Function")?ae`<oscd-icon-button
-                id="functions"
-                ?selected=${this.showFunctions}
-                toggle="true"
-                title=${this.showFunctions?"Hide Functions":"Show Functions"}
-                @click=${()=>{this.showFunctions=!this.showFunctions}}
-              >
-                ${Il}
-                <span slot="selected">${Dl}</span>
-              </oscd-icon-button>`:de}${this.doc?.querySelector("Substation")?ae`<oscd-icon-button
-                  label="Zoom In"
-                  title="Zoom In (${Math.round(100*(this.gridSize+3)/32)}%)"
-                  @click=${()=>this.zoomIn()}
-                >
-                  <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
-                ><oscd-icon-button
-                  label="Zoom Out"
-                  ?disabled=${this.gridSize<4}
-                  title="Zoom Out (${Math.round(100*(this.gridSize-3)/32)}%)"
-                  @click=${()=>this.zoomOut()}
-                >
-                  <oscd-icon>zoom_out</oscd-icon>
-                </oscd-icon-button>`:de}
-        </oscd-icon-button
-        >${this.inAction?ae`<oscd-icon-button
-                label="Cancel"
-                title="Cancel"
-                @click=${()=>this.reset()}
-              >
-                <oscd-icon>close</oscd-icon>
-              </oscd-icon-button>`:de}
-      </nav>
-      <div class="editor-container">
-        <sld-editor
-          .doc=${this.doc}
-          .docVersion=${this.editCount}
-          .gridSize=${this.gridSize}
-          .showLabels=${this.showLabels}
-          .disabled=${this.addingFunction||this.showFunctions}
-          .highlight=${this.highlight}
-          .selectable=${this.addingFunction?this.highlight.map((e=>e.id)):[]}
-          @sld-editor-in-action=${e=>{this.sldEditorInAction=e.detail,this.updateInAction()}}
-          @oscd-sld-selected=${this.handleSldSelected}
-        ></sld-editor>
-        ${this.showFunctions?ae`<functions-layer
-                .doc=${this.doc}
-                .editCount=${this.editCount}
-                .gridSize=${this.gridSize}
-                .nsp=${this.nsp}
-                .placing=${this.placingFunction}
-                .placingOffset=${this.placingFunctionOffset}
-                .onStartPlaceFunction=${this.handleStartPlaceFunction}
-                @function-placement-active=${e=>{e.detail||this.reset()}}
-              ></functions-layer>`:de}
-      </div>
-      <create-function-dialog
-        @cancel=${this.reset}
-        @save=${this.createFunction}
-      ></create-function-dialog>
-    `:ae`<p>Please open an SCL document</p>`}}Xp.styles=[c`
+                  ${bl}
+                </oscd-filled-icon-button>`:de}<oscd-filled-icon-button
+              ?disabled=${this.showFunctions}
+              id="substation-button"
+              @click=${()=>this.insertSubstation()}
+              label="Add Substation"
+              title="Add Substation"
+            >
+              <oscd-icon>margin</oscd-icon> </oscd-filled-icon-button
+            >${this.renderTransformerButtons()}${this.renderFunctionButtons()}
+          </nav>
+          <div class="editor-container">
+            <sld-editor
+              .doc=${this.doc}
+              .docVersion=${this.editCount}
+              .gridSize=${this.gridSize}
+              .showLabels=${this.showLabels}
+              .disabled=${this.addingFunction||this.showFunctions}
+              .highlight=${this.highlight}
+              .selectable=${this.addingFunction?this.highlight.map((e=>e.id)):[]}
+              @sld-editor-in-action=${e=>{this.sldEditorInAction=e.detail}}
+              @oscd-sld-selected=${this.handleSldSelected}
+            ></sld-editor>
+            ${this.showFunctions?ae`<functions-layer
+                  .doc=${this.doc}
+                  .editCount=${this.editCount}
+                  .gridSize=${this.gridSize}
+                  .nsp=${this.nsp}
+                  .placing=${this.placingFunction}
+                  .placingOffset=${this.placingFunctionOffset}
+                  .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                  @function-placement-active=${e=>{e.detail||this.reset()}}
+                ></functions-layer>`:de}
+          </div>
+          <create-function-dialog
+            @cancel=${this.reset}
+            @save=${this.createFunction}
+          ></create-function-dialog>
+        `:ae`<p>Please open an SCL document</p>`}}Qp.styles=[c`
       :host {
         display: block;
         padding: 20px;
@@ -3771,5 +3770,5 @@ const zp=e=>e??de;class qp extends(We(Le)){constructor(){super(...arguments),thi
         width: 100%;
         height: 100%;
       }
-    `],e([Ve({attribute:!1})],Xp.prototype,"doc",void 0),e([Ve({type:Number})],Xp.prototype,"editCount",void 0),e([Ve({type:Number})],Xp.prototype,"gridSize",void 0),e([xe("sld-editor")],Xp.prototype,"sldEditor",void 0),e([xe("#labels")],Xp.prototype,"labelToggle",void 0),e([xe("create-function-dialog")],Xp.prototype,"createFunctionDialog",void 0),e([Me()],Xp.prototype,"showLabels",null),e([Me()],Xp.prototype,"inAction",void 0),e([Me()],Xp.prototype,"sldEditorInAction",void 0),e([Me()],Xp.prototype,"functionsInAction",void 0),e([Me()],Xp.prototype,"addingFunction",void 0),e([Me()],Xp.prototype,"showFunctions",void 0),e([Me()],Xp.prototype,"templateElements",void 0),e([Me()],Xp.prototype,"nsp",void 0),e([Me()],Xp.prototype,"placingFunction",void 0),e([Me()],Xp.prototype,"placingFunctionOffset",void 0),e([Me()],Xp.prototype,"highlight",void 0),e([Me()],Xp.prototype,"selectedElement",void 0);export{Xp as default};
+    `],e([Ve({attribute:!1})],Qp.prototype,"doc",void 0),e([Ve({type:Number})],Qp.prototype,"editCount",void 0),e([Ve({type:Number})],Qp.prototype,"gridSize",void 0),e([xe("sld-editor")],Qp.prototype,"sldEditor",void 0),e([xe("#labels")],Qp.prototype,"labelToggle",void 0),e([xe("create-function-dialog")],Qp.prototype,"createFunctionDialog",void 0),e([Me()],Qp.prototype,"showLabels",null),e([Me()],Qp.prototype,"sldEditorInAction",void 0),e([Me()],Qp.prototype,"functionsInAction",void 0),e([Me()],Qp.prototype,"addingFunction",void 0),e([Me()],Qp.prototype,"showFunctions",void 0),e([Me()],Qp.prototype,"templateElements",void 0),e([Me()],Qp.prototype,"nsp",void 0),e([Me()],Qp.prototype,"placingFunction",void 0),e([Me()],Qp.prototype,"placingFunctionOffset",void 0),e([Me()],Qp.prototype,"highlight",void 0),e([Me()],Qp.prototype,"selectedElement",void 0);export{Qp as default};
 //# sourceMappingURL=bay-template-editor.js.map

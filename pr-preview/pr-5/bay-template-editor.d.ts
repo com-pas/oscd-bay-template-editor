@@ -6,6 +6,7 @@ import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
+import { type HighlightStyle } from './constants.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends BayTemplatePlugin_base {
@@ -24,7 +25,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     labelToggle?: OscdOutlinedIconButton;
     createFunctionDialog?: CreateFunctionDialog;
     get showLabels(): boolean;
-    inAction: boolean;
     sldEditorInAction: boolean;
     functionsInAction: boolean;
     addingFunction: boolean;
@@ -35,19 +35,19 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     placingFunctionOffset: [number, number];
     highlight: {
         id: string;
-        style: any;
+        style: HighlightStyle;
     }[];
     selectedElement?: Element;
     connectedCallback(): void;
     disconnectedCallback(): void;
     private handleKeydown;
     handleStartPlaceFunction: (element: Element, offset: [number, number]) => void;
-    updateInAction(): void;
+    get inAction(): boolean;
     private preprocessEdits;
     handleSldSelected: (event: CustomEvent<{
         element: Element;
     }>) => void;
-    updated(changedProperties: Map<string, any>): void;
+    updated(changedProperties: Map<PropertyKey, unknown>): void;
     zoomIn(): void;
     zoomOut(): void;
     startPlacing(element: Element | undefined): void;
@@ -58,6 +58,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         description: string | null;
         type: string | null;
     }>): void;
+    private renderTransformerButtons;
+    private renderFunctionButtons;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult[];
 }
