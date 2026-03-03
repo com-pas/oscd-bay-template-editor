@@ -180,8 +180,18 @@ export function uniqueName(element: Element, parent: Element): string {
   return baseName + index.toString();
 }
 
+function getCenter(el: Element | null): { x: number; y: number } {
+  const parentW = el ? parseFloat(getSLDAttributes(el, 'w') ?? '0') : 0;
+  const parentH = el ? parseFloat(getSLDAttributes(el, 'h') ?? '0') : 0;
+  const parentX = el ? parseFloat(getSLDAttributes(el, 'x') ?? '0') : 0;
+  const parentY = el ? parseFloat(getSLDAttributes(el, 'y') ?? '0') : 0;
+  const centerX = Math.round(parentX + parentW / 2);
+  const centerY = Math.round(parentY + parentH / 2);
+  return { x: centerX, y: centerY };
+}
+
 /**
- * Calculates initial coordinates for a new Function element.
+ * Calculates coordinates for a new Function element.
  * - Centers in substation for Bay/VoltageLevel parents.
  * - Otherwise, places below parent or sibling with coordinates, or centers in substation as fallback.
  * - Avoids stacking by offsetting if position is occupied.
@@ -189,30 +199,20 @@ export function uniqueName(element: Element, parent: Element): string {
  * @param parent Parent element under which the function is created
  * @returns { x, y } coordinates for the new function
  */
-export function getInitialFunctionCoordinates(
+export function getFunctionCoordinates(
   doc: XMLDocument,
   parent: Element
 ): { x: number; y: number } {
   let x = 1;
   let y = 1;
 
-  function getSubstationCenter(): { x: number; y: number } {
-    const substation = doc.querySelector(':root > Substation');
-    const w = substation
-      ? parseFloat(getSLDAttributes(substation, 'w') ?? '50')
-      : 50;
-    const h = substation
-      ? parseFloat(getSLDAttributes(substation, 'h') ?? '25')
-      : 25;
-    return { x: w / 2, y: h / 2 };
-  }
-
   // Center for Bay/VoltageLevel
   if (['Bay', 'VoltageLevel'].includes(parent.tagName)) {
-    const center = getSubstationCenter();
+    const center = getCenter(parent);
     x = center.x;
     y = center.y;
   } else {
+    // Place below parent if it has coordinates
     const parentX = getSLDAttributes(parent, 'x');
     const parentY = getSLDAttributes(parent, 'y');
     if (parentX && parentY) {
@@ -227,7 +227,8 @@ export function getInitialFunctionCoordinates(
         y = parseFloat(getSLDAttributes(childWithCoords, 'y')!) + 2;
       } else {
         // Fallback: center in substation
-        const center = getSubstationCenter();
+        const substation = parent.closest('Substation');
+        const center = getCenter(substation);
         x = center.x;
         y = center.y;
       }

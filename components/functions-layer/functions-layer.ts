@@ -6,11 +6,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import {
-  getSLDAttributes,
-  setSLDAttributes,
-  updateSLDAttributes,
-} from '../../util.js';
+import { getSLDAttributes, updateSLDAttributes } from '../../util.js';
 
 type Point = [number, number];
 
@@ -219,27 +215,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     const x = this.mouseX - this.placingOffset[0];
     const y = this.mouseY - this.placingOffset[1];
 
-    let edit;
-    const isExisting = this.functions.some(f => f.element === fn.element);
-    if (!isExisting && this.doc) {
-      let { parent } = fn;
-      if (!parent) {
-        parent = this.doc.querySelector('Bay, VoltageLevel, Substation');
-      }
-      const reference = null;
-      setSLDAttributes(fn.element, this.nsp, { x: String(x), y: String(y) });
-
-      edit = {
-        parent,
-        node: fn.element,
-        reference,
-      };
-    } else {
-      edit = updateSLDAttributes(fn.element, this.nsp, {
-        x: x.toString(),
-        y: y.toString(),
-      });
-    }
+    const edit = updateSLDAttributes(fn.element, this.nsp, {
+      x: x.toString(),
+      y: y.toString(),
+    });
     this.dispatchEvent(newEditEventV2(edit));
   }
 
@@ -258,9 +237,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     if (this.placing === fn.element) {
       this.finalizeFunctionPlacement(fn);
-      this.dispatchEvent(
-        new CustomEvent('function-placement-active', { detail: false })
-      );
       return;
     }
 
@@ -341,21 +317,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    let placingFn = this.functions.find(fn => fn.element === this.placing);
-    if (this.placing && !placingFn) {
-      const name = this.placing.getAttribute('name') || 'F?';
-      const xAttr = getSLDAttributes(this.placing, 'x');
-      const yAttr = getSLDAttributes(this.placing, 'y');
-      const x = xAttr ? parseFloat(xAttr) : 1;
-      const y = yAttr ? parseFloat(yAttr) : 1;
-      placingFn = {
-        element: this.placing,
-        name,
-        x,
-        y,
-        parent: null,
-      };
-    }
+    const placingFn = this.functions.find(fn => fn.element === this.placing);
     const { width, height } = this.getSvgDimensions();
 
     let coordinates = html``;

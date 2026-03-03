@@ -711,11 +711,9 @@ export const functionAddIcon = html`<svg
   width="24"
   height="24"
 >
-  <!-- Plus sign on the left -->
   <g>
     <rect x="120" y="-680" width="80" height="320" fill="currentColor" />
     <rect x="0" y="-560" width="320" height="80" fill="currentColor" />
   </g>
-  <!-- Material function icon, shifted right -->
   <g transform="translate(320,0)">${functionPath}</g>
 </svg>`;

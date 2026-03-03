@@ -529,7 +529,8 @@ describe('Bay Template Editor Plugin', () => {
 
   describe('reset method', () => {
     it('sets inAction to false', async () => {
-      element.inAction = true;
+      element.sldEditorInAction = true;
+      expect(element.inAction).to.be.true;
       element.reset();
       expect(element.inAction).to.be.false;
     });
@@ -702,35 +703,29 @@ describe('Bay Template Editor Plugin', () => {
   describe('function layer state management', () => {
     it('updates inAction when functionsInAction changes', async () => {
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.false;
     });
 
     it('sets inAction when either sldEditor or functions are in action', async () => {
       element.sldEditorInAction = true;
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.sldEditorInAction = false;
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.sldEditorInAction = true;
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
     });
 
     it('clears inAction when both states are false', async () => {
       element.sldEditorInAction = false;
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.false;
     });
   });

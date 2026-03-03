@@ -8,9 +8,6 @@ import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilled
 import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTextField.js';
 
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
-  @state()
-  nameError: string | null = null;
-
   static get scopedElements() {
     return {
       'oscd-dialog': OscdDialog,
@@ -20,23 +17,17 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     };
   }
 
-  @property({ type: Boolean })
-  open = false;
-
   @property({ type: Object })
   parent: Element | null = null;
 
   @query('oscd-dialog')
   dialog!: OscdDialog;
 
-  @query('oscd-scl-text-field[name="description"]')
-  descriptionField!: OscdSclTextField;
-
-  @query('oscd-scl-text-field[name="type"]')
-  typeField!: OscdSclTextField;
-
   @state()
   name = '';
+
+  @state()
+  nameError: string | null = null;
 
   @state()
   description = null;
@@ -63,15 +54,13 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.description = null;
     this.type = null;
     this.nameError = null;
-    this.descriptionField.reset();
-    this.typeField.reset();
   }
 
   private handleSubmit(e: Event) {
     e.preventDefault();
     this.nameError = null;
     if (!this.name.trim()) {
-      this.nameError = 'Name is required.';
+      this.nameError = 'Name is required';
       this.requestUpdate();
       return;
     }
@@ -82,7 +71,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
           el.getAttribute('name')?.trim() === this.name.trim()
       );
       if (existing) {
-        this.nameError = `A Function with the name "${this.name.trim()}" already exists.`;
+        this.nameError = `A Function with the name "${this.name.trim()}" already exists`;
         this.requestUpdate();
         return;
       }
@@ -100,9 +89,14 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-      <oscd-dialog>
-        <div slot="headline">Add function</div>
-        <form slot="content" @submit=${this.handleSubmit} autocomplete="off">
+      <oscd-dialog @closed=${this.cancel}>
+        <div slot="headline">Add Function</div>
+        <form
+          slot="content"
+          novalidate
+          @submit=${this.handleSubmit}
+          autocomplete="off"
+        >
           <oscd-filled-text-field
             label="Name"
             required
@@ -133,10 +127,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
               this.type = e.target.value;
             }}
           ></oscd-scl-text-field>
-          <div
-            slot="actions"
-            style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;"
-          >
+          <div slot="actions">
             <oscd-filled-button type="button" @click=${this.cancel}
               >Close</oscd-filled-button
             >

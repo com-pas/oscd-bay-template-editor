@@ -25,14 +25,19 @@ import {
   isBusBar,
   makeBusBar,
   setSLDAttributes,
-  getSLDAttributes,
   sldNs,
   uniqueName,
   xmlnsNs,
-  getInitialFunctionCoordinates,
+  getFunctionCoordinates,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
+import {
+  PSR_TAGS,
+  PSR_HIGHLIGHT_STYLE,
+  SELECTED_PSR_HIGHLIGHT_STYLE,
+  type HighlightStyle,
+} from './const.js';
 
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
@@ -69,9 +74,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   @state()
-  inAction: boolean = false;
-
-  @state()
   sldEditorInAction: boolean = false;
 
   @state()
@@ -96,7 +98,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   placingFunctionOffset: [number, number] = [0, 0];
 
   @state()
-  highlight: { id: string; style: any }[] = [];
+  highlight: { id: string; style: HighlightStyle }[] = [];
 
   @state()
   selectedElement?: Element;
@@ -119,7 +121,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   private handleKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
-      if (this.sldEditorInAction || this.functionsInAction) {
+      if (
+        this.sldEditorInAction ||
+        this.functionsInAction ||
+        this.addingFunction
+      ) {
         event.preventDefault();
         this.reset();
       }
@@ -130,12 +136,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.placingFunction = element;
     this.placingFunctionOffset = offset;
     this.functionsInAction = true;
-    this.updateInAction();
   };
 
-  updateInAction() {
-    this.inAction =
-      this.sldEditorInAction || this.functionsInAction || this.addingFunction;
+  get inAction(): boolean {
+    return (
+      this.sldEditorInAction || this.functionsInAction || this.addingFunction
+    );
   }
 
   // TODO: Remove this workaround once the official oscd-editor is integrated in open-scd (https://github.com/com-pas/open-scd/issues/25).
@@ -149,7 +155,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     edits = edits.flatMap((e: any) => (e.edit ? e.edit : e));
 
-    edits.forEach((edit: any, index: number) => {
+    edits.forEach((edit: any) => {
       if (edit.node && edit.parent && !edit.node.getAttribute('name')) {
         const name = uniqueName(edit.node, edit.parent);
         edit.node.setAttribute('name', name);
@@ -183,31 +189,25 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       this.placingFunction = undefined;
       this.placingFunctionOffset = [0, 0];
       this.functionsInAction = false;
-      this.updateInAction();
     }
   };
 
   handleSldSelected = (event: CustomEvent<{ element: Element }>) => {
+    this.addingFunction = false;
     this.selectedElement = event.detail.element;
-    const style = {
-      stroke: '#7821c9',
-      strokeWidth: 0.1,
-      fill: '#d3b9ec',
-      opacity: 0.5,
-    };
     this.highlight = [
       {
         id: identity(event.detail.element).toString(),
-        style,
+        style: SELECTED_PSR_HIGHLIGHT_STYLE,
       },
     ];
     if (this.doc && this.createFunctionDialog) {
       this.createFunctionDialog.parent = event.detail.element;
-      this.createFunctionDialog?.show();
+      this.createFunctionDialog.show();
     }
   };
 
-  updated(changedProperties: Map<string, any>) {
+  updated(changedProperties: Map<PropertyKey, unknown>) {
     if (!changedProperties.has('doc') || !this.doc) return;
     const sldNsPrefix = this.doc.documentElement.lookupPrefix(sldNs);
     if (sldNsPrefix) this.nsp = sldNsPrefix;
@@ -257,7 +257,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.selectedElement = undefined;
     this.highlight = [];
 
-    this.updateInAction();
     this.sldEditor?.resetWithOffset();
   }
 
@@ -291,19 +290,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       'Function'
     );
     func.setAttribute('name', name);
-    if (description) func.setAttribute('description', description);
-    if (type) func.setAttribute('type', type);
-    const { x, y } = getInitialFunctionCoordinates(
-      this.doc,
-      this.selectedElement
-    );
+    if (description !== null) func.setAttribute('description', description);
+    if (type !== null) func.setAttribute('type', type);
+    const { x, y } = getFunctionCoordinates(this.doc, this.selectedElement);
     setSLDAttributes(func, this.nsp, {
       x: String(x),
       y: String(y),
     });
 
     const parent = this.selectedElement;
-    const reference = null;
+    const reference = getReference(parent, 'Function');
     this.dispatchEvent(newEditEventV2({ parent, node: func, reference }));
 
     this.reset();
@@ -311,16 +307,235 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.createFunctionDialog?.close();
   }
 
+  private renderTransformerButtons() {
+    if (
+      !this.doc ||
+      !Array.from(this.doc.documentElement.children).find(
+        c => c.tagName === 'Substation'
+      )
+    )
+      return nothing;
+    return html`<oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Single Winding Auto Transformer"
+        title="Add Single Winding Auto Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          setSLDAttributes(element, this.nsp, {
+            kind: 'auto',
+            rot: '3',
+          });
+          const winding =
+            this.templateElements.TransformerWinding!.cloneNode() as Element;
+          winding.setAttribute('type', 'PTW');
+          winding.setAttribute('name', 'W1');
+          element.appendChild(winding);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(1, { kind: 'auto' })}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Auto Transformer"
+        title="Add Two Winding Auto Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          setSLDAttributes(element, this.nsp, { kind: 'auto' });
+          const windings = [];
+          for (let i = 1; i <= 2; i += 1) {
+            const winding =
+              this.templateElements.TransformerWinding!.cloneNode() as Element;
+            winding.setAttribute('type', 'PTW');
+            winding.setAttribute('name', `W${i}`);
+            windings.push(winding);
+          }
+          element.append(...windings);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(2, { kind: 'auto' })}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Transformer"
+        title="Add Two Winding Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          const windings = [];
+          for (let i = 1; i <= 2; i += 1) {
+            const winding =
+              this.templateElements.TransformerWinding!.cloneNode() as Element;
+            winding.setAttribute('type', 'PTW');
+            winding.setAttribute('name', `W${i}`);
+            windings.push(winding);
+          }
+          element.append(...windings);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(2)}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Three Winding Transformer"
+        title="Add Three Winding Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          const windings = [];
+          for (let i = 1; i <= 3; i += 1) {
+            const winding =
+              this.templateElements.TransformerWinding!.cloneNode() as Element;
+            winding.setAttribute('type', 'PTW');
+            winding.setAttribute('name', `W${i}`);
+            windings.push(winding);
+          }
+          element.append(...windings);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(3)}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Single Winding Earthing Transformer"
+        title="Add Single Winding Earthing Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          setSLDAttributes(element, this.nsp, { kind: 'earthing' });
+          const winding =
+            this.templateElements.TransformerWinding!.cloneNode() as Element;
+          winding.setAttribute('type', 'PTW');
+          winding.setAttribute('name', 'W1');
+          element.appendChild(winding);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(1, { kind: 'earthing' })}</oscd-icon-button
+      ><oscd-icon-button
+        ?disabled=${this.showFunctions}
+        label="Add Two Winding Earthing Transformer"
+        title="Add Two Winding Earthing Transformer"
+        @click=${() => {
+          const element =
+            this.templateElements.PowerTransformer!.cloneNode() as Element;
+          element.setAttribute('type', 'PTR');
+          setSLDAttributes(element, this.nsp, { kind: 'earthing' });
+          const windings = [];
+          for (let i = 1; i <= 2; i += 1) {
+            const winding =
+              this.templateElements.TransformerWinding!.cloneNode() as Element;
+            winding.setAttribute('type', 'PTW');
+            winding.setAttribute('name', `W${i}`);
+            windings.push(winding);
+          }
+          element.append(...windings);
+          this.startPlacing(element);
+        }}
+        >${ptrIcon(2, { kind: 'earthing' })}</oscd-icon-button
+      >`;
+  }
+
+  private renderFunctionButtons() {
+    if (!this.doc) return nothing;
+    return html`${
+      this.doc.querySelector('VoltageLevel, PowerTransformer')
+        ? html`<oscd-icon-button
+            id="labels"
+            label="Toggle Labels"
+            title="Toggle Labels"
+            toggle="true"
+            @click=${() => this.requestUpdate()}
+          >
+            <oscd-icon>font_download</oscd-icon>
+            <oscd-icon slot="selected">font_download_off</oscd-icon>
+          </oscd-icon-button>`
+        : nothing
+    }
+      ${
+        Array.from(this.doc.documentElement.children).find(
+          c => c.tagName === 'Substation'
+        )
+          ? html`<oscd-icon-button
+              ?disabled=${this.showFunctions}
+              id="function"
+              label="Add Function"
+              title="Add Function"
+              @click=${() => {
+                if (!this.doc) return;
+                const elements = PSR_TAGS.flatMap(tag =>
+                  Array.from(this.doc!.querySelectorAll(tag))
+                );
+                this.highlight = elements.map(el => ({
+                  id: identity(el).toString(),
+                  style: PSR_HIGHLIGHT_STYLE,
+                }));
+                this.addingFunction = true;
+              }}
+            >
+              ${functionAddIcon}
+            </oscd-icon-button>`
+          : nothing
+      }${
+      this.doc.querySelector('Function')
+        ? html`<oscd-icon-button
+            id="functions"
+            ?selected=${this.showFunctions}
+            toggle="true"
+            title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
+            @click=${() => {
+              this.showFunctions = !this.showFunctions;
+            }}
+          >
+            ${functionsOffIcon}
+            <span slot="selected">${functionsIcon}</span>
+          </oscd-icon-button>`
+        : nothing
+    }${
+      this.doc.querySelector('Substation')
+        ? html`<oscd-icon-button
+              label="Zoom In"
+              title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
+              @click=${() => this.zoomIn()}
+            >
+              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+            ><oscd-icon-button
+              label="Zoom Out"
+              ?disabled=${this.gridSize < 4}
+              title="Zoom Out (${Math.round(
+                (100 * (this.gridSize - 3)) / 32
+              )}%)"
+              @click=${() => this.zoomOut()}
+            >
+              <oscd-icon>zoom_out</oscd-icon>
+            </oscd-icon-button>`
+        : nothing
+    }
+      </oscd-icon-button
+      >${
+        this.inAction
+          ? html`<oscd-icon-button
+              label="Cancel"
+              title="Cancel"
+              @click=${() => this.reset()}
+            >
+              <oscd-icon>close</oscd-icon>
+            </oscd-icon-button>`
+          : nothing
+      }`;
+  }
+
   render() {
     return this.doc
       ? html`
-      <nav>
-        ${
-          Array.from(
-            this.doc.querySelectorAll(':root > Substation > VoltageLevel > Bay')
-          ).find(bay => !isBusBar(bay))
-            ? eqTypes
-                .map(
+          <nav>
+            ${Array.from(
+              this.doc.querySelectorAll(
+                ':root > Substation > VoltageLevel > Bay'
+              )
+            ).find(bay => !isBusBar(bay))
+              ? eqTypes.map(
                   eqType => html`<oscd-icon-button
                     ?disabled=${this.showFunctions}
                     label="Add ${eqType}"
@@ -334,333 +549,93 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     >${equipmentIcon(eqType)}</oscd-icon-button
                   >`
                 )
-                .concat()
-            : nothing
-        }${
-          this.doc.querySelector(':root > Substation > VoltageLevel')
-            ? html`<oscd-icon-button
+              : nothing}${this.doc.querySelector(
+              ':root > Substation > VoltageLevel'
+            )
+              ? html`<oscd-icon-button
+                    ?disabled=${this.showFunctions}
+                    @click=${() => {
+                      const element = this.templateElements.BusBar!.cloneNode(
+                        true
+                      ) as Element;
+                      this.startPlacing(element);
+                    }}
+                    label="Add Bus Bar"
+                    title="Add Bus Bar"
+                  >
+                    <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
+                  ><oscd-filled-icon-button
+                    ?disabled=${this.showFunctions}
+                    id="bay-button"
+                    label="Add Bay"
+                    title="Add Bay"
+                    @click=${() => {
+                      const element =
+                        this.templateElements.Bay!.cloneNode() as Element;
+                      this.startPlacing(element);
+                    }}
+                  >
+                    ${bayIcon}
+                  </oscd-filled-icon-button>`
+              : nothing}${Array.from(this.doc.documentElement.children).find(
+              c => c.tagName === 'Substation'
+            )
+              ? html`<oscd-filled-icon-button
                   ?disabled=${this.showFunctions}
-                  @click=${() => {
-                    const element = this.templateElements.BusBar!.cloneNode(
-                      true
-                    ) as Element;
-                    this.startPlacing(element);
-                  }}
-                  label="Add Bus Bar"
-                  title="Add Bus Bar"
-                >
-                  <oscd-icon>horizontal_rule</oscd-icon> </oscd-icon-button
-                ><oscd-filled-icon-button
-                  ?disabled=${this.showFunctions}
-                  id="bay-button"
-                  label="Add Bay"
-                  title="Add Bay"
+                  id="voltage-button"
+                  label="Add VoltageLevel"
+                  title="Add VoltageLevel"
                   @click=${() => {
                     const element =
-                      this.templateElements.Bay!.cloneNode() as Element;
+                      this.templateElements.VoltageLevel!.cloneNode() as Element;
                     this.startPlacing(element);
                   }}
                 >
-                  ${bayIcon}
+                  ${voltageLevelIcon}
                 </oscd-filled-icon-button>`
-            : nothing
-        }${
-          Array.from(this.doc.documentElement.children).find(
-            c => c.tagName === 'Substation'
-          )
-            ? html`<oscd-filled-icon-button
-                ?disabled=${this.showFunctions}
-                id="voltage-button"
-                label="Add VoltageLevel"
-                title="Add VoltageLevel"
-                @click=${() => {
-                  const element =
-                    this.templateElements.VoltageLevel!.cloneNode() as Element;
-                  this.startPlacing(element);
-                }}
-              >
-                ${voltageLevelIcon}
-              </oscd-filled-icon-button>`
-            : nothing
-        }<oscd-filled-icon-button
-          ?disabled=${this.showFunctions}
-          id="substation-button"
-          @click=${() => this.insertSubstation()}
-          label="Add Substation"
-          title="Add Substation"
-        >
-          <oscd-icon>margin</oscd-icon>
-        </oscd-filled-icon-button
-        >${
-          Array.from(this.doc.documentElement.children).find(
-            c => c.tagName === 'Substation'
-          )
-            ? html`<oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Single Winding Auto Transformer"
-                  title="Add Single Winding Auto Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    setSLDAttributes(element, this.nsp, {
-                      kind: 'auto',
-                      rot: '3',
-                    });
-                    const winding =
-                      this.templateElements.TransformerWinding!.cloneNode() as Element;
-                    winding.setAttribute('type', 'PTW');
-                    winding.setAttribute('name', 'W1');
-                    element.appendChild(winding);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(1, { kind: 'auto' })}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Auto Transformer"
-                  title="Add Two Winding Auto Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    setSLDAttributes(element, this.nsp, { kind: 'auto' });
-                    const windings = [];
-                    for (let i = 1; i <= 2; i += 1) {
-                      const winding =
-                        this.templateElements.TransformerWinding!.cloneNode() as Element;
-                      winding.setAttribute('type', 'PTW');
-                      winding.setAttribute('name', `W${i}`);
-                      windings.push(winding);
-                    }
-                    element.append(...windings);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(2, { kind: 'auto' })}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Transformer"
-                  title="Add Two Winding Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    const windings = [];
-                    for (let i = 1; i <= 2; i += 1) {
-                      const winding =
-                        this.templateElements.TransformerWinding!.cloneNode() as Element;
-                      winding.setAttribute('type', 'PTW');
-                      winding.setAttribute('name', `W${i}`);
-                      windings.push(winding);
-                    }
-                    element.append(...windings);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(2)}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Three Winding Transformer"
-                  title="Add Three Winding Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    const windings = [];
-                    for (let i = 1; i <= 3; i += 1) {
-                      const winding =
-                        this.templateElements.TransformerWinding!.cloneNode() as Element;
-                      winding.setAttribute('type', 'PTW');
-                      winding.setAttribute('name', `W${i}`);
-                      windings.push(winding);
-                    }
-                    element.append(...windings);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(3)}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Single Winding Earthing Transformer"
-                  title="Add Single Winding Earthing Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    setSLDAttributes(element, this.nsp, { kind: 'earthing' });
-                    const winding =
-                      this.templateElements.TransformerWinding!.cloneNode() as Element;
-                    winding.setAttribute('type', 'PTW');
-                    winding.setAttribute('name', 'W1');
-                    element.appendChild(winding);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(1, { kind: 'earthing' })}</oscd-icon-button
-                ><oscd-icon-button
-                  ?disabled=${this.showFunctions}
-                  label="Add Two Winding Earthing Transformer"
-                  title="Add Two Winding Earthing Transformer"
-                  @click=${() => {
-                    const element =
-                      this.templateElements.PowerTransformer!.cloneNode() as Element;
-                    element.setAttribute('type', 'PTR');
-                    setSLDAttributes(element, this.nsp, { kind: 'earthing' });
-                    const windings = [];
-                    for (let i = 1; i <= 2; i += 1) {
-                      const winding =
-                        this.templateElements.TransformerWinding!.cloneNode() as Element;
-                      winding.setAttribute('type', 'PTW');
-                      winding.setAttribute('name', `W${i}`);
-                      windings.push(winding);
-                    }
-                    element.append(...windings);
-                    this.startPlacing(element);
-                  }}
-                  >${ptrIcon(2, { kind: 'earthing' })}</oscd-icon-button
-                >`
-            : nothing
-        }${
-          this.doc?.querySelector('VoltageLevel, PowerTransformer')
-            ? html`<oscd-icon-button
-                id="labels"
-                label="Toggle Labels"
-                title="Toggle Labels"
-                toggle="true"
-                @click=${() => this.requestUpdate()}
-              >
-                <oscd-icon>font_download</oscd-icon>
-                <oscd-icon slot="selected">font_download_off</oscd-icon>
-              </oscd-icon-button>`
-            : nothing
-        }
-        ${
-          Array.from(this.doc.documentElement.children).find(
-            c => c.tagName === 'Substation'
-          )
-            ? html`<oscd-icon-button
-                ?disabled=${this.showFunctions}
-                id="function"
-                label="Add Function"
-                title="Add Function"
-                @click=${() => {
-                  if (!this.doc) return;
-                  const equipmentTags = [
-                    'ConductingEquipment',
-                    'PowerTransformer',
-                    'TransformerWinding',
-                    'Bay',
-                    'VoltageLevel',
-                  ];
-                  const elements = equipmentTags.flatMap(tag =>
-                    Array.from(this.doc!.querySelectorAll(tag))
-                  );
-
-                  const style = {
-                    stroke: '#7821c9',
-                    strokeWidth: 0.12,
-                    fill: 'none',
-                  };
-                  this.highlight = elements.map(el => ({
-                    id: identity(el).toString(),
-                    style,
-                  }));
-                  this.addingFunction = true;
-                  this.updateInAction();
-                }}
-              >
-                ${functionAddIcon}
-              </oscd-icon-button>`
-            : nothing
-        }${
-          this.doc?.querySelector('Function')
-            ? html`<oscd-icon-button
-                id="functions"
-                ?selected=${this.showFunctions}
-                toggle="true"
-                title=${this.showFunctions
-                  ? 'Hide Functions'
-                  : 'Show Functions'}
-                @click=${() => {
-                  this.showFunctions = !this.showFunctions;
-                }}
-              >
-                ${functionsOffIcon}
-                <span slot="selected">${functionsIcon}</span>
-              </oscd-icon-button>`
-            : nothing
-        }${
-          this.doc?.querySelector('Substation')
-            ? html`<oscd-icon-button
-                  label="Zoom In"
-                  title="Zoom In (${Math.round(
-                    (100 * (this.gridSize + 3)) / 32
-                  )}%)"
-                  @click=${() => this.zoomIn()}
-                >
-                  <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
-                ><oscd-icon-button
-                  label="Zoom Out"
-                  ?disabled=${this.gridSize < 4}
-                  title="Zoom Out (${Math.round(
-                    (100 * (this.gridSize - 3)) / 32
-                  )}%)"
-                  @click=${() => this.zoomOut()}
-                >
-                  <oscd-icon>zoom_out</oscd-icon>
-                </oscd-icon-button>`
-            : nothing
-        }
-        </oscd-icon-button
-        >${
-          this.inAction
-            ? html`<oscd-icon-button
-                label="Cancel"
-                title="Cancel"
-                @click=${() => this.reset()}
-              >
-                <oscd-icon>close</oscd-icon>
-              </oscd-icon-button>`
-            : nothing
-        }
-      </nav>
-      <div class="editor-container">
-        <sld-editor
-          .doc=${this.doc}
-          .docVersion=${this.editCount}
-          .gridSize=${this.gridSize}
-          .showLabels=${this.showLabels}
-          .disabled=${this.addingFunction || this.showFunctions}
-          .highlight=${this.highlight}
-          .selectable=${
-            this.addingFunction ? this.highlight.map(h => h.id) : []
-          }
-          @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
-            this.sldEditorInAction = e.detail;
-            this.updateInAction();
-          }}
-          @oscd-sld-selected=${this.handleSldSelected}
-        ></sld-editor>
-        ${
-          this.showFunctions
-            ? html`<functions-layer
-                .doc=${this.doc}
-                .editCount=${this.editCount}
-                .gridSize=${this.gridSize}
-                .nsp=${this.nsp}
-                .placing=${this.placingFunction}
-                .placingOffset=${this.placingFunctionOffset}
-                .onStartPlaceFunction=${this.handleStartPlaceFunction}
-                @function-placement-active=${(e: CustomEvent<boolean>) => {
-                  if (!e.detail) {
-                    this.reset();
-                  }
-                }}
-              ></functions-layer>`
-            : nothing
-        }
-      </div>
-      <create-function-dialog
-        @cancel=${this.reset}
-        @save=${this.createFunction}
-      ></create-function-dialog>
-    `
+              : nothing}<oscd-filled-icon-button
+              ?disabled=${this.showFunctions}
+              id="substation-button"
+              @click=${() => this.insertSubstation()}
+              label="Add Substation"
+              title="Add Substation"
+            >
+              <oscd-icon>margin</oscd-icon> </oscd-filled-icon-button
+            >${this.renderTransformerButtons()}${this.renderFunctionButtons()}
+          </nav>
+          <div class="editor-container">
+            <sld-editor
+              .doc=${this.doc}
+              .docVersion=${this.editCount}
+              .gridSize=${this.gridSize}
+              .showLabels=${this.showLabels}
+              .disabled=${this.addingFunction || this.showFunctions}
+              .highlight=${this.highlight}
+              .selectable=${this.addingFunction
+                ? this.highlight.map(h => h.id)
+                : []}
+              @sld-editor-in-action=${(e: CustomEvent<boolean>) => {
+                this.sldEditorInAction = e.detail;
+              }}
+              @oscd-sld-selected=${this.handleSldSelected}
+            ></sld-editor>
+            ${this.showFunctions
+              ? html`<functions-layer
+                  .doc=${this.doc}
+                  .editCount=${this.editCount}
+                  .gridSize=${this.gridSize}
+                  .nsp=${this.nsp}
+                  .placing=${this.placingFunction}
+                  .placingOffset=${this.placingFunctionOffset}
+                  .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                ></functions-layer>`
+              : nothing}
+          </div>
+          <create-function-dialog
+            @cancel=${this.reset}
+            @save=${this.createFunction}
+          ></create-function-dialog>
+        `
       : html`<p>Please open an SCL document</p>`;
   }
 
