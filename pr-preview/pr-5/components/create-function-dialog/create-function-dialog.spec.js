@@ -21,10 +21,14 @@ describe('CreateFunctionDialog', () => {
     it('shows error if name is empty on submit', async () => {
         element.name = '';
         await element.updateComplete;
+        element.show();
+        await element.updateComplete;
         const form = element.shadowRoot?.querySelector('form');
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await element.updateComplete;
-        expect(element.nameError).to.equal('Name is required');
+        const nameField = element.shadowRoot?.querySelector('oscd-filled-text-field[name="name"]');
+        expect(nameField?.error).to.be.true;
+        expect(nameField?.errorText).to.equal('Name is required');
     });
     it('shows error if duplicate name exists in parent', async () => {
         const parent = doc.createElement('Bay');
@@ -34,15 +38,22 @@ describe('CreateFunctionDialog', () => {
         element.parent = parent;
         element.name = 'F1';
         await element.updateComplete;
+        element.show();
+        await element.updateComplete;
         const form = element.shadowRoot?.querySelector('form');
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await element.updateComplete;
-        expect(element.nameError).to.equal('A Function with the name "F1" already exists');
+        const nameField = element.shadowRoot?.querySelector('oscd-filled-text-field[name="name"]');
+        expect(nameField?.error).to.be.true;
+        expect(nameField?.errorText).to.equal('A Function with the name "F1" already exists');
     });
     it('dispatches save event with correct details', async () => {
         element.name = 'F2';
         element.description = null;
         element.type = null;
+        await element.updateComplete;
+        element.show();
+        await element.updateComplete;
         let saveDetail = null;
         element.addEventListener('save', (e) => {
             saveDetail = e.detail;
@@ -75,7 +86,9 @@ describe('CreateFunctionDialog', () => {
         expect(element.name).to.equal('');
         expect(element.description).to.equal(null);
         expect(element.type).to.equal(null);
-        expect(element.nameError).to.equal(null);
+        const nameField = element.shadowRoot?.querySelector('oscd-filled-text-field[name="name"]');
+        expect(nameField?.error).to.be.false;
+        expect(nameField?.errorText).to.equal('');
     });
 });
 //# sourceMappingURL=create-function-dialog.spec.js.map

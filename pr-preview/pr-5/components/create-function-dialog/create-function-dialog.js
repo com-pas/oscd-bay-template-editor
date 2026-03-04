@@ -7,14 +7,24 @@ import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTextField.js';
+import { FormGroup, Validators, } from '@compas-oscd/forms';
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
         this.parent = null;
         this.name = '';
-        this.nameError = null;
         this.description = null;
         this.type = null;
+        this.formGroup = null;
+        this.nameTakenValidator = (value) => {
+            const trimmed = value.trim();
+            if (!this.parent)
+                return null;
+            const existing = Array.from(this.parent.children).find(el => el.tagName === 'Function' && el.getAttribute('name')?.trim() === trimmed);
+            return existing
+                ? `A Function with the name "${trimmed}" already exists`
+                : null;
+        };
     }
     static get scopedElements() {
         return {
@@ -25,6 +35,23 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         };
     }
     show() {
+        this.formGroup = new FormGroup({
+            name: {
+                formField: this.nameField,
+                validators: [
+                    Validators.required('Name is required'),
+                    this.nameTakenValidator,
+                ],
+            },
+            description: {
+                formField: this.descriptionField,
+                validators: [],
+            },
+            type: {
+                formField: this.typeField,
+                validators: [],
+            },
+        });
         this.dialog.show();
     }
     close() {
@@ -39,24 +66,23 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         this.name = '';
         this.description = null;
         this.type = null;
-        this.nameError = null;
+        if (this.nameField) {
+            this.nameField.errorText = '';
+            this.nameField.error = false;
+            this.nameField.value = '';
+        }
+        if (this.descriptionField) {
+            this.descriptionField.value = null;
+        }
+        if (this.typeField) {
+            this.typeField.value = null;
+        }
+        this.formGroup = null;
     }
     handleSubmit(e) {
         e.preventDefault();
-        this.nameError = null;
-        if (!this.name.trim()) {
-            this.nameError = 'Name is required';
-            this.requestUpdate();
+        if (!this.formGroup?.validate()) {
             return;
-        }
-        if (this.parent) {
-            const existing = Array.from(this.parent.children).find(el => el.tagName === 'Function' &&
-                el.getAttribute('name')?.trim() === this.name.trim());
-            if (existing) {
-                this.nameError = `A Function with the name "${this.name.trim()}" already exists`;
-                this.requestUpdate();
-                return;
-            }
         }
         this.dispatchEvent(new CustomEvent('save', {
             detail: {
@@ -81,11 +107,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             required
             name="name"
             .value=${this.name}
-            .errorText=${this.nameError ?? ''}
-            .error=${!!this.nameError}
             @input=${(e) => {
             this.name = e.target.value;
-            this.nameError = null;
         }}
           ></oscd-filled-text-field>
           <oscd-scl-text-field
@@ -144,11 +167,17 @@ __decorate([
     query('oscd-dialog')
 ], CreateFunctionDialog.prototype, "dialog", void 0);
 __decorate([
-    state()
-], CreateFunctionDialog.prototype, "name", void 0);
+    query('oscd-filled-text-field[name="name"]')
+], CreateFunctionDialog.prototype, "nameField", void 0);
+__decorate([
+    query('oscd-scl-text-field[name="description"]')
+], CreateFunctionDialog.prototype, "descriptionField", void 0);
+__decorate([
+    query('oscd-scl-text-field[name="type"]')
+], CreateFunctionDialog.prototype, "typeField", void 0);
 __decorate([
     state()
-], CreateFunctionDialog.prototype, "nameError", void 0);
+], CreateFunctionDialog.prototype, "name", void 0);
 __decorate([
     state()
 ], CreateFunctionDialog.prototype, "description", void 0);
