@@ -6,6 +6,13 @@ import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTextField.js';
+import {
+  FormGroup,
+  Validators,
+  type FormField,
+  type Validator,
+  type Value,
+} from '@compas-oscd/forms';
 
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
@@ -23,11 +30,17 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-dialog')
   dialog!: OscdDialog;
 
-  @state()
-  name = '';
+  @query('oscd-filled-text-field[name="name"]')
+  nameField!: OscdFilledTextField;
+
+  @query('oscd-scl-text-field[name="description"]')
+  descriptionField!: OscdSclTextField;
+
+  @query('oscd-scl-text-field[name="type"]')
+  typeField!: OscdSclTextField;
 
   @state()
-  nameError: string | null = null;
+  name = '';
 
   @state()
   description = null;
@@ -35,7 +48,26 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   type = null;
 
+  private formGroup: FormGroup | null = null;
+
   show() {
+    this.formGroup = new FormGroup({
+      name: {
+        formField: this.nameField,
+        validators: [
+          Validators.required('Name is required'),
+          this.nameTakenValidator,
+        ],
+      },
+      description: {
+        formField: this.descriptionField as FormField,
+        validators: [],
+      },
+      type: {
+        formField: this.typeField as FormField,
+        validators: [],
+      },
+    });
     this.dialog.show();
   }
 
@@ -53,28 +85,36 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.name = '';
     this.description = null;
     this.type = null;
-    this.nameError = null;
+    if (this.nameField) {
+      this.nameField.errorText = '';
+      this.nameField.error = false;
+      this.nameField.value = '';
+    }
+    if (this.descriptionField) {
+      this.descriptionField.value = null;
+    }
+    if (this.typeField) {
+      this.typeField.value = null;
+    }
+    this.formGroup = null;
   }
+
+  private nameTakenValidator: Validator = (value: Value) => {
+    const trimmed = (value as string).trim();
+    if (!this.parent) return null;
+    const existing = Array.from(this.parent.children).find(
+      el =>
+        el.tagName === 'Function' && el.getAttribute('name')?.trim() === trimmed
+    );
+    return existing
+      ? `A Function with the name "${trimmed}" already exists`
+      : null;
+  };
 
   private handleSubmit(e: Event) {
     e.preventDefault();
-    this.nameError = null;
-    if (!this.name.trim()) {
-      this.nameError = 'Name is required';
-      this.requestUpdate();
+    if (!this.formGroup?.validate()) {
       return;
-    }
-    if (this.parent) {
-      const existing = Array.from(this.parent.children).find(
-        el =>
-          el.tagName === 'Function' &&
-          el.getAttribute('name')?.trim() === this.name.trim()
-      );
-      if (existing) {
-        this.nameError = `A Function with the name "${this.name.trim()}" already exists`;
-        this.requestUpdate();
-        return;
-      }
     }
     this.dispatchEvent(
       new CustomEvent('save', {
@@ -102,11 +142,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             required
             name="name"
             .value=${this.name}
-            .errorText=${this.nameError ?? ''}
-            .error=${!!this.nameError}
             @input=${(e: any) => {
               this.name = e.target.value;
-              this.nameError = null;
             }}
           ></oscd-filled-text-field>
           <oscd-scl-text-field
