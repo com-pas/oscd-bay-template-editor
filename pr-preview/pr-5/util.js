@@ -46,7 +46,7 @@ function sldAttributes(element, nsPrefix) {
         return sldAttrs;
     if (!nsPrefix)
         return null;
-    const priv = element.ownerDocument.createElement('Private');
+    const priv = element.ownerDocument.createElementNS(element.namespaceURI, 'Private');
     priv.setAttribute('type', privType);
     element.insertBefore(priv, getReference(element, 'Private'));
     const sldAttrsNew = element.ownerDocument.createElementNS(sldNs, `${nsPrefix}:SLDAttributes`);
