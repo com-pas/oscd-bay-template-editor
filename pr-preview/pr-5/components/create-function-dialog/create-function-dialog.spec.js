@@ -24,7 +24,7 @@ describe('CreateFunctionDialog', () => {
         const form = element.shadowRoot?.querySelector('form');
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await element.updateComplete;
-        expect(element.nameError).to.equal('Name is required.');
+        expect(element.nameError).to.equal('Name is required');
     });
     it('shows error if duplicate name exists in parent', async () => {
         const parent = doc.createElement('Bay');
@@ -37,7 +37,7 @@ describe('CreateFunctionDialog', () => {
         const form = element.shadowRoot?.querySelector('form');
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await element.updateComplete;
-        expect(element.nameError).to.equal('A Function with the name "F1" already exists.');
+        expect(element.nameError).to.equal('A Function with the name "F1" already exists');
     });
     it('dispatches save event with correct details', async () => {
         element.name = 'F2';

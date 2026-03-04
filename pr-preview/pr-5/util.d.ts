@@ -17,7 +17,7 @@ export declare function isBusBar(element: Element): boolean;
 export declare function makeBusBar(doc: XMLDocument, nsp: string): Element;
 export declare function uniqueName(element: Element, parent: Element): string;
 /**
- * Calculates initial coordinates for a new Function element.
+ * Calculates coordinates for a new Function element.
  * - Centers in substation for Bay/VoltageLevel parents.
  * - Otherwise, places below parent or sibling with coordinates, or centers in substation as fallback.
  * - Avoids stacking by offsetting if position is occupied.
@@ -25,7 +25,7 @@ export declare function uniqueName(element: Element, parent: Element): string;
  * @param parent Parent element under which the function is created
  * @returns { x, y } coordinates for the new function
  */
-export declare function getInitialFunctionCoordinates(doc: XMLDocument, parent: Element): {
+export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element): {
     x: number;
     y: number;
 };

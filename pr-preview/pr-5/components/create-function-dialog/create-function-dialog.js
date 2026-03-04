@@ -45,7 +45,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         e.preventDefault();
         this.nameError = null;
         if (!this.name.trim()) {
-            this.nameError = 'Name is required.';
+            this.nameError = 'Name is required';
             this.requestUpdate();
             return;
         }
@@ -53,7 +53,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             const existing = Array.from(this.parent.children).find(el => el.tagName === 'Function' &&
                 el.getAttribute('name')?.trim() === this.name.trim());
             if (existing) {
-                this.nameError = `A Function with the name "${this.name.trim()}" already exists.`;
+                this.nameError = `A Function with the name "${this.name.trim()}" already exists`;
                 this.requestUpdate();
                 return;
             }
@@ -70,7 +70,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         return html `
       <oscd-dialog @closed=${this.cancel}>
         <div slot="headline">Add Function</div>
-        <form slot="content" @submit=${this.handleSubmit} autocomplete="off">
+        <form
+          slot="content"
+          novalidate
+          @submit=${this.handleSubmit}
+          autocomplete="off"
+        >
           <oscd-filled-text-field
             label="Name"
             required

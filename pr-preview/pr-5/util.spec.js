@@ -1,30 +1,23 @@
 import { expect } from '@open-wc/testing';
-import { getInitialFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, sldNs, } from './util.js';
+import { getFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, sldNs, } from './util.js';
+import { docWithBayAndFunctions } from './components/functions-layer/functions-layer-testfiles.js';
 describe('utils', () => {
     let doc;
     beforeEach(() => {
-        doc = document.implementation.createDocument('', 'SCL', null);
-        const substation = doc.createElement('Substation');
-        substation.setAttribute('name', 'S1');
-        doc.documentElement.appendChild(substation);
+        doc = new DOMParser().parseFromString(docWithBayAndFunctions, 'application/xml');
     });
-    describe('getInitialFunctionCoordinates', () => {
+    describe('getFunctionCoordinates', () => {
         it('centers for Bay parent', () => {
-            const bay = doc.createElement('Bay');
-            doc.documentElement.firstElementChild.appendChild(bay);
-            setSLDAttributes(doc.documentElement.firstElementChild, 'eosld', {
-                w: '100',
-                h: '40',
-            });
-            const coords = getInitialFunctionCoordinates(doc, bay);
-            expect(coords.x).equal(50);
-            expect(coords.y).equal(20);
+            const bay = doc.querySelector('Bay[name="B1"]');
+            const coords = getFunctionCoordinates(doc, bay);
+            expect(coords.x).equal(15);
+            expect(coords.y).equal(13);
         });
         it('places below parent with coordinates', () => {
             const parent = doc.createElement('ConductingEquipment');
             setSLDAttributes(parent, 'eosld', { x: '10', y: '20' });
             doc.documentElement.firstElementChild.appendChild(parent);
-            const coords = getInitialFunctionCoordinates(doc, parent);
+            const coords = getFunctionCoordinates(doc, parent);
             expect(coords.x).equal(10);
             expect(coords.y).equal(22);
         });
@@ -34,7 +27,7 @@ describe('utils', () => {
             setSLDAttributes(child, 'eosld', { x: '5', y: '7' });
             parent.appendChild(child);
             doc.documentElement.firstElementChild.appendChild(parent);
-            const coords = getInitialFunctionCoordinates(doc, parent);
+            const coords = getFunctionCoordinates(doc, parent);
             expect(coords.x).equal(5);
             expect(coords.y).equal(9);
         });
@@ -49,7 +42,7 @@ describe('utils', () => {
             setSLDAttributes(fn2, 'eosld', { x: '2', y: '4' });
             doc.documentElement.appendChild(fn2);
             // Next function should avoid (1,3) and (2,4)
-            const coords = getInitialFunctionCoordinates(doc, parent);
+            const coords = getFunctionCoordinates(doc, parent);
             expect(coords.x).not.equal(1);
             expect(coords.y).not.equal(3);
             expect(coords.x).not.equal(2);
