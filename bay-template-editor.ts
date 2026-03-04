@@ -101,6 +101,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   highlight: { id: string; style: HighlightStyle }[] = [];
 
   @state()
+  functionHoverHighlight: { id: string; style: HighlightStyle }[] = [];
+
+  @state()
   selectedElement?: Element;
 
   @state()
@@ -147,6 +150,19 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.placingFunction = element;
     this.placingFunctionOffset = offset;
     this.functionsInAction = true;
+  };
+
+  handleFunctionHover = (parent: Element | null) => {
+    if (!parent) {
+      this.functionHoverHighlight = [];
+      return;
+    }
+    this.functionHoverHighlight = [
+      {
+        id: identity(parent).toString(),
+        style: SELECTED_PSR_HIGHLIGHT_STYLE,
+      },
+    ];
   };
 
   get inAction(): boolean {
@@ -706,7 +722,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               .gridSize=${this.gridSize}
               .showLabels=${this.showLabels}
               .disabled=${this.addingFunction || this.showFunctions}
-              .highlight=${this.highlight}
+              .highlight=${[...this.highlight, ...this.functionHoverHighlight]}
               .selectable=${this.addingFunction
                 ? this.highlight.map(h => h.id)
                 : []}
@@ -726,6 +742,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .placing=${this.placingFunction}
                     .placingOffset=${this.placingFunctionOffset}
                     .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                    .onHoverFunction=${this.handleFunctionHover}
                   ></functions-layer>`
                 )
               : nothing}

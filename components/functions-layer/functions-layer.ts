@@ -11,6 +11,7 @@ import {
   updateSLDAttributes,
   getSldSvgs,
 } from '../../util.js';
+import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 
 type Point = [number, number];
 
@@ -70,6 +71,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   @property({ attribute: false })
   onStartPlaceFunction?: (element: Element, offset: Point) => void;
 
+  @property({ attribute: false })
+  onHoverFunction?: (parent: Element | null) => void;
+
   @state()
   functions: FunctionData[] = [];
 
@@ -84,6 +88,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   @state()
   sldOffsetLeft = 0;
+
+  @state()
+  private hoveredFunction: string | null = null;
 
   @query('svg')
   svg!: SVGSVGElement;
@@ -254,6 +261,18 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  private handleFunctionMouseEnter(fn: FunctionData) {
+    this.hoveredFunction = fn.name;
+    if (fn.parent) {
+      this.onHoverFunction?.(fn.parent);
+    }
+  }
+
+  private handleFunctionMouseLeave() {
+    this.hoveredFunction = null;
+    this.onHoverFunction?.(null);
+  }
+
   private renderFunction(fn: FunctionData, preview = false) {
     if (this.placing === fn.element && !preview) {
       return nothing;
@@ -279,19 +298,39 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     let classAttr = 'function';
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
+    const isHovered = this.hoveredFunction === fn.name;
+
+    let fill: string;
+    let stroke: string;
+    let strokeWidth: number;
+    if (isHovered) {
+      fill = SELECTED_PSR_HIGHLIGHT_STYLE.fill;
+      stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
+      strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
+    } else if (preview) {
+      fill = PREVIEW_FILL;
+      stroke = PREVIEW_STROKE;
+      strokeWidth = STROKE_WIDTH;
+    } else {
+      fill = NORMAL_FILL;
+      stroke = STROKE;
+      strokeWidth = STROKE_WIDTH;
+    }
 
     const centerY = rectY + HEIGHT / 2;
     return svg`<g class="${classAttr}"
          @click=${(e: MouseEvent) => this.handleFunctionClick(fn, e)}
+         @mouseenter=${() => this.handleFunctionMouseEnter(fn)}
+         @mouseleave=${() => this.handleFunctionMouseLeave()}
          tabindex="0">
         <rect
           x="${rectX}"
           y="${rectY}"
           width="${boxWidth}"
           height="${HEIGHT}"
-          fill="${preview ? PREVIEW_FILL : NORMAL_FILL}"
-          stroke="${preview ? PREVIEW_STROKE : STROKE}"
-          stroke-width="${STROKE_WIDTH}"
+          fill="${fill}"
+          stroke="${stroke}"
+          stroke-width="${strokeWidth}"
           rx="${BORDER_RADIUS}"
           id="${fn.name}"
         />
