@@ -34,3 +34,9 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
 };
 export declare function getProcessPath(element: Element): string;
 export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path: string): Element;
+/**
+ * Returns all SLD SVG canvases from sld-editor, one per Substations
+ *
+ * WORKAROUND: relies on internal shadow DOM structure.
+ */
+export declare function getSldSvgs(sldEditor: Element): SVGSVGElement[];

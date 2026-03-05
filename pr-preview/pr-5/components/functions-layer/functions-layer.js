@@ -7,7 +7,7 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, ref } from 'lit/directives/ref.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import { getSLDAttributes, updateSLDAttributes } from '../../util.js';
+import { getSLDAttributes, updateSLDAttributes, getSldSvgs, } from '../../util.js';
 export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
@@ -48,33 +48,28 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     updated(changedProperties) {
         super.updated(changedProperties);
         if (changedProperties.has('doc') ||
+            changedProperties.has('substation') ||
             changedProperties.has('gridSize') ||
             changedProperties.has('editCount')) {
             this.functions = this.extractFunctions();
         }
-        if (changedProperties.has('doc') || changedProperties.has('gridSize')) {
+        if (changedProperties.has('doc') ||
+            changedProperties.has('substation') ||
+            changedProperties.has('gridSize')) {
             requestAnimationFrame(() => this.calculateSldOffset());
         }
     }
     calculateSldOffset() {
-        // TEMPORARY WORKAROUND: This method relies on the internal structure and shadow DOM of sld-editor and sld-substation-editor.
-        // This is necessary until sld-editor exposes a public API to access the SLD SVG position.
         const parent = this.parentElement;
         if (!parent)
             return;
         const sldEditor = parent.querySelector('sld-editor');
-        if (!sldEditor) {
-            console.warn('[FunctionsLayer] Could not find <sld-editor> in parent. SLD offset calculation skipped.');
-            return;
-        }
-        const substationEditor = sldEditor.shadowRoot?.querySelector('sld-substation-editor');
-        if (!substationEditor) {
-            console.warn('[FunctionsLayer] Could not find <sld-substation-editor> in <sld-editor> shadowRoot. SLD offset calculation skipped.');
-            return;
-        }
-        const sldSvg = substationEditor.shadowRoot?.querySelector('svg#sld');
+        const svgs = sldEditor ? getSldSvgs(sldEditor) : [];
+        const substations = Array.from((this.substation?.ownerDocument ?? this.doc)?.querySelectorAll(':root > Substation') ?? []);
+        const idx = this.substation ? substations.indexOf(this.substation) : 0;
+        const sldSvg = svgs[idx] ?? null;
         if (!sldSvg) {
-            console.warn('[FunctionsLayer] Could not find <svg id="sld"> in <sld-substation-editor> shadowRoot. SLD offset calculation skipped.');
+            console.warn('[FunctionsLayer] Could not find SVG for substation. SLD offset calculation skipped.');
             return;
         }
         const sldRect = sldSvg.getBoundingClientRect();
@@ -101,7 +96,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     extractFunctions() {
         if (!this.doc)
             return [];
-        const functions = Array.from(this.doc.querySelectorAll('Function'));
+        const scope = this.substation ?? this.doc;
+        const functions = Array.from(scope.querySelectorAll('Function'));
         const result = [];
         functions.forEach(fn => {
             const xAttr = getSLDAttributes(fn, 'x');
@@ -123,7 +119,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         return result;
     }
     getSvgDimensions() {
-        const substation = this.doc?.querySelector(':root > Substation');
+        const substation = this.substation ?? this.doc?.querySelector(':root > Substation');
         const w = substation
             ? parseFloat(getSLDAttributes(substation, 'w') ?? '0')
             : 0;
@@ -355,6 +351,9 @@ FunctionsLayer.styles = css `
 __decorate([
     property({ attribute: false })
 ], FunctionsLayer.prototype, "doc", void 0);
+__decorate([
+    property({ attribute: false })
+], FunctionsLayer.prototype, "substation", void 0);
 __decorate([
     property({ type: Number })
 ], FunctionsLayer.prototype, "editCount", void 0);

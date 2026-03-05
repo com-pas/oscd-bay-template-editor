@@ -22,9 +22,9 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     editCount: number;
     gridSize: number;
     sldEditor?: SldEditor;
+    editorContainer?: HTMLElement;
     labelToggle?: OscdOutlinedIconButton;
     createFunctionDialog?: CreateFunctionDialog;
-    get showLabels(): boolean;
     sldEditorInAction: boolean;
     functionsInAction: boolean;
     addingFunction: boolean;
@@ -38,6 +38,9 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         style: HighlightStyle;
     }[];
     selectedElement?: Element;
+    private sldBounds;
+    private readonly onResize;
+    get showLabels(): boolean;
     connectedCallback(): void;
     disconnectedCallback(): void;
     private handleKeydown;
@@ -48,6 +51,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         element: Element;
     }>) => void;
     updated(changedProperties: Map<PropertyKey, unknown>): void;
+    private calculateSldBounds;
     zoomIn(): void;
     zoomOut(): void;
     startPlacing(element: Element | undefined): void;
@@ -60,6 +64,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         type: string | null;
     }>): void;
     private renderTransformerButtons;
+    private renderSubstationHighlight;
     private renderFunctionButtons;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult[];

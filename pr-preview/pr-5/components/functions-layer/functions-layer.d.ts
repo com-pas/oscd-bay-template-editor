@@ -13,6 +13,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private readonly FUNCTION_BOX;
     private readonly FUNCTION_COLORS;
     doc?: XMLDocument;
+    substation?: Element;
     editCount: number;
     gridSize: number;
     disabled: boolean;
