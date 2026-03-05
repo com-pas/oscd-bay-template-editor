@@ -765,6 +765,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         display: flex;
         gap: 4px;
         flex-wrap: wrap;
+        z-index: 2;
       }
       #bay-button {
         --md-filled-icon-button-container-color: #12579b;
