@@ -470,7 +470,7 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
     });
 
-    it('calls onHoverFunction with parent element on mouseenter', async () => {
+    it('calls onHoverFunction with function element on mouseenter', async () => {
       const onHoverFunctionSpy = spy();
       element.onHoverFunction = onHoverFunctionSpy;
 
@@ -487,7 +487,7 @@ describe('FunctionsLayer', () => {
       expect(onHoverFunctionSpy.calledOnce).to.be.true;
       const calledWith = onHoverFunctionSpy.firstCall.args[0] as Element;
       expect(calledWith).to.not.be.null;
-      expect(calledWith.tagName).to.equal('Bay');
+      expect(calledWith.tagName).to.equal('Function');
     });
 
     it('calls onHoverFunction with null on mouseleave', async () => {

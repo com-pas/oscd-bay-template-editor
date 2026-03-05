@@ -72,7 +72,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onStartPlaceFunction?: (element: Element, offset: Point) => void;
 
   @property({ attribute: false })
-  onHoverFunction?: (parent: Element | null) => void;
+  onHoverFunction?: (funcElement: Element | null) => void;
 
   @state()
   functions: FunctionData[] = [];
@@ -262,9 +262,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   private handleFunctionMouseEnter(fn: FunctionData) {
-    this.hoveredFunction = fn.name;
-    if (fn.parent) {
-      this.onHoverFunction?.(fn.parent);
+    if (!this.placing) {
+      this.hoveredFunction = fn.name;
+      this.onHoverFunction?.(fn.element);
     }
   }
 
@@ -453,6 +453,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       right: 0;
       bottom: 0;
       pointer-events: none;
+      z-index: 2;
     }
 
     svg {

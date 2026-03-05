@@ -33,6 +33,7 @@ import {
   getProcessPath,
   createPowerSystemRelationPrivate,
   getSldSvgs,
+  eTr6100Ns,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
@@ -104,6 +105,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   functionHoverHighlight: { id: string; style: HighlightStyle }[] = [];
 
   @state()
+  private hoveredSubstation?: Element;
+
+  @state()
   selectedElement?: Element;
 
   @state()
@@ -152,18 +156,62 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.functionsInAction = true;
   };
 
-  handleFunctionHover = (parent: Element | null) => {
-    if (!parent) {
+  handleFunctionHover = (funcElement: Element | null) => {
+    if (!funcElement) {
       this.functionHoverHighlight = [];
+      this.hoveredSubstation = undefined;
       return;
     }
+
+    // If the Function has a PowerSystemRelation Private, resolve the referenced
+    // element and highlight that instead of the DOM parent.
+    const psrRelationEl = funcElement.getElementsByTagNameNS(
+      eTr6100Ns,
+      'PowerSystemRelation'
+    )[0];
+    const relation = psrRelationEl?.getAttribute('relation');
+    const target = relation
+      ? this.getElementFromProcessPath(relation)
+      : funcElement.parentElement;
+
+    if (!target) {
+      this.functionHoverHighlight = [];
+      this.hoveredSubstation = undefined;
+      return;
+    }
+
+    if (target.tagName === 'Substation') {
+      this.functionHoverHighlight = [];
+      this.hoveredSubstation = target;
+      return;
+    }
+
+    this.hoveredSubstation = undefined;
     this.functionHoverHighlight = [
       {
-        id: identity(parent).toString(),
+        id: identity(target).toString(),
         style: SELECTED_PSR_HIGHLIGHT_STYLE,
       },
     ];
   };
+
+  private getElementFromProcessPath(path: string): Element | null {
+    if (!this.doc) return null;
+    const parts = path.split('/');
+    if (!parts.length || !parts[0]) return null;
+
+    let current: Element | null = this.doc.querySelector(
+      `:root > Substation[name="${parts[0]}"]`
+    );
+    for (let i = 1; i < parts.length && current; i += 1) {
+      const name = parts[i];
+      current =
+        Array.from(current.children).find(
+          child => child.getAttribute('name') === name
+        ) ?? null;
+    }
+    return current;
+  }
 
   get inAction(): boolean {
     return (
@@ -533,33 +581,53 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   private renderSubstationHighlight() {
-    if (!this.addingFunction || !this.doc) return nothing;
+    if (!this.doc) return nothing;
     const substations = Array.from(
       this.doc.querySelectorAll(':root > Substation')
     );
     if (!substations.length) return nothing;
-    return substations.map((substation, i) => {
+
+    const result = [];
+
+    if (this.addingFunction) {
+      result.push(
+        ...substations.map((substation, i) => {
+          const b = this.sldBounds[i];
+          const style = b
+            ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px`
+            : 'inset:0';
+          return html`
+            <div class="substation-highlight" style="${style}">
+              <button
+                class="substation-chip"
+                title="Select Substation ${substation.getAttribute('name')}"
+                @click=${() =>
+                  this.handleSldSelected(
+                    new CustomEvent('oscd-sld-selected', {
+                      detail: { element: substation },
+                    })
+                  )}
+              >
+                ${substation.getAttribute('name')}
+              </button>
+            </div>
+          `;
+        })
+      );
+    }
+
+    if (this.hoveredSubstation) {
+      const i = substations.indexOf(this.hoveredSubstation);
       const b = this.sldBounds[i];
       const style = b
-        ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px`
+        ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px;z-index:1;background:rgba(210,185,236,0.5);`
         : 'inset:0';
-      return html`
-        <div class="substation-highlight" style="${style}">
-          <button
-            class="substation-chip"
-            title="Select Substation ${substation.getAttribute('name')}"
-            @click=${() =>
-              this.handleSldSelected(
-                new CustomEvent('oscd-sld-selected', {
-                  detail: { element: substation },
-                })
-              )}
-          >
-            ${substation.getAttribute('name')}
-          </button>
-        </div>
-      `;
-    });
+      result.push(
+        html`<div class="substation-highlight" style="${style}"></div>`
+      );
+    }
+
+    return result;
   }
 
   private renderFunctionButtons() {
@@ -715,7 +783,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             >${this.renderTransformerButtons()}${this.renderFunctionButtons()}
           </nav>
           <div class="editor-container">
-            ${this.renderSubstationHighlight()}
             <sld-editor
               .doc=${this.doc}
               .docVersion=${this.editCount}
@@ -731,6 +798,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               }}
               @oscd-sld-selected=${this.handleSldSelected}
             ></sld-editor>
+            ${this.renderSubstationHighlight()}
             ${this.showFunctions
               ? Array.from(this.doc.querySelectorAll(':root > Substation')).map(
                   substation => html`<functions-layer
@@ -784,7 +852,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         display: flex;
         gap: 4px;
         flex-wrap: wrap;
-        z-index: 2;
+        z-index: 3;
       }
       #bay-button {
         --md-filled-icon-button-container-color: #12579b;
