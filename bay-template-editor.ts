@@ -31,6 +31,7 @@ import {
   getFunctionCoordinates,
   getProcessPath,
   createPowerSystemRelationPrivate,
+  getSldSvgs,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
@@ -65,15 +66,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @query('sld-editor') sldEditor?: SldEditor;
 
+  @query('.editor-container') editorContainer?: HTMLElement;
+
   @query('#labels') labelToggle?: OscdOutlinedIconButton;
 
   @query('create-function-dialog') createFunctionDialog?: CreateFunctionDialog;
-
-  @state()
-  get showLabels(): boolean {
-    if (this.labelToggle) return !this.labelToggle.selected;
-    return true;
-  }
 
   @state()
   sldEditorInAction: boolean = false;
@@ -105,12 +102,28 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @state()
   selectedElement?: Element;
 
+  @state()
+  private sldBounds: {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  }[] = [];
+
+  private readonly onResize = () => this.calculateSldBounds();
+
+  get showLabels(): boolean {
+    if (this.labelToggle) return !this.labelToggle.selected;
+    return true;
+  }
+
   connectedCallback() {
     super.connectedCallback();
     this.addEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
     window.addEventListener('keydown', this.handleKeydown);
+    window.addEventListener('resize', this.onResize);
   }
 
   disconnectedCallback() {
@@ -119,18 +132,13 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       capture: true,
     });
     window.removeEventListener('keydown', this.handleKeydown);
+    window.removeEventListener('resize', this.onResize);
   }
 
   private handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      if (
-        this.sldEditorInAction ||
-        this.functionsInAction ||
-        this.addingFunction
-      ) {
-        event.preventDefault();
-        this.reset();
-      }
+    if (event.key === 'Escape' && this.inAction) {
+      event.preventDefault();
+      this.reset();
     }
   };
 
@@ -212,6 +220,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   };
 
   updated(changedProperties: Map<PropertyKey, unknown>) {
+    if (
+      changedProperties.has('doc') ||
+      changedProperties.has('gridSize') ||
+      changedProperties.has('editCount') ||
+      changedProperties.has('addingFunction')
+    ) {
+      requestAnimationFrame(() => this.calculateSldBounds());
+    }
+
     if (!changedProperties.has('doc') || !this.doc) return;
     const sldNsPrefix = this.doc.documentElement.lookupPrefix(sldNs);
     if (sldNsPrefix) this.nsp = sldNsPrefix;
@@ -236,6 +253,20 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       );
     });
     this.templateElements.BusBar = makeBusBar(this.doc, this.nsp);
+  }
+
+  private calculateSldBounds() {
+    if (!this.sldEditor || !this.editorContainer) return;
+    const containerRect = this.editorContainer.getBoundingClientRect();
+    this.sldBounds = getSldSvgs(this.sldEditor).map(svg => {
+      const r = svg.getBoundingClientRect();
+      return {
+        top: r.top - containerRect.top,
+        left: r.left - containerRect.left,
+        width: r.width,
+        height: r.height,
+      };
+    });
   }
 
   zoomIn() {
@@ -483,93 +514,109 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       >`;
   }
 
+  private renderSubstationHighlight() {
+    if (!this.addingFunction || !this.doc) return nothing;
+    const substations = Array.from(
+      this.doc.querySelectorAll(':root > Substation')
+    );
+    if (!substations.length) return nothing;
+    return substations.map((substation, i) => {
+      const b = this.sldBounds[i];
+      const style = b
+        ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px`
+        : 'inset:0';
+      return html`
+        <div class="substation-highlight" style="${style}">
+          <button
+            class="substation-chip"
+            title="Select Substation ${substation.getAttribute('name')}"
+            @click=${() =>
+              this.handleSldSelected(
+                new CustomEvent('oscd-sld-selected', {
+                  detail: { element: substation },
+                })
+              )}
+          >
+            ${substation.getAttribute('name')}
+          </button>
+        </div>
+      `;
+    });
+  }
+
   private renderFunctionButtons() {
     if (!this.doc) return nothing;
-    return html`${
-      this.doc.querySelector('VoltageLevel, PowerTransformer')
-        ? html`<oscd-icon-button
-            id="labels"
-            label="Toggle Labels"
-            title="Toggle Labels"
-            toggle="true"
-            @click=${() => this.requestUpdate()}
+    return html`${this.doc.querySelector('VoltageLevel, PowerTransformer')
+      ? html`<oscd-icon-button
+          id="labels"
+          label="Toggle Labels"
+          title="Toggle Labels"
+          toggle="true"
+          @click=${() => this.requestUpdate()}
+        >
+          <oscd-icon>font_download</oscd-icon>
+          <oscd-icon slot="selected">font_download_off</oscd-icon>
+        </oscd-icon-button>`
+      : nothing}
+    ${Array.from(this.doc.documentElement.children).find(
+      c => c.tagName === 'Substation'
+    )
+      ? html`<oscd-icon-button
+          ?disabled=${this.showFunctions}
+          id="function"
+          label="Add Function"
+          title="Add Function"
+          @click=${() => {
+            if (!this.doc) return;
+            const elements = PSR_TAGS.flatMap(tag =>
+              Array.from(this.doc!.querySelectorAll(tag))
+            );
+            this.highlight = elements.map(el => ({
+              id: identity(el).toString(),
+              style: PSR_HIGHLIGHT_STYLE,
+            }));
+            this.addingFunction = true;
+          }}
+        >
+          ${functionAddIcon}
+        </oscd-icon-button>`
+      : nothing}${this.doc.querySelector('Function')
+      ? html`<oscd-icon-button
+          id="functions"
+          ?selected=${this.showFunctions}
+          toggle="true"
+          title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
+          @click=${() => {
+            this.showFunctions = !this.showFunctions;
+          }}
+        >
+          ${functionsOffIcon}
+          <span slot="selected">${functionsIcon}</span>
+        </oscd-icon-button>`
+      : nothing}${this.doc.querySelector('Substation')
+      ? html`<oscd-icon-button
+            label="Zoom In"
+            title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
+            @click=${() => this.zoomIn()}
           >
-            <oscd-icon>font_download</oscd-icon>
-            <oscd-icon slot="selected">font_download_off</oscd-icon>
-          </oscd-icon-button>`
-        : nothing
-    }
-      ${
-        Array.from(this.doc.documentElement.children).find(
-          c => c.tagName === 'Substation'
-        )
-          ? html`<oscd-icon-button
-              ?disabled=${this.showFunctions}
-              id="function"
-              label="Add Function"
-              title="Add Function"
-              @click=${() => {
-                if (!this.doc) return;
-                const elements = PSR_TAGS.flatMap(tag =>
-                  Array.from(this.doc!.querySelectorAll(tag))
-                );
-                this.highlight = elements.map(el => ({
-                  id: identity(el).toString(),
-                  style: PSR_HIGHLIGHT_STYLE,
-                }));
-                this.addingFunction = true;
-              }}
-            >
-              ${functionAddIcon}
-            </oscd-icon-button>`
-          : nothing
-      }${
-      this.doc.querySelector('Function')
-        ? html`<oscd-icon-button
-            id="functions"
-            ?selected=${this.showFunctions}
-            toggle="true"
-            title=${this.showFunctions ? 'Hide Functions' : 'Show Functions'}
-            @click=${() => {
-              this.showFunctions = !this.showFunctions;
-            }}
+            <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
+          ><oscd-icon-button
+            label="Zoom Out"
+            ?disabled=${this.gridSize < 4}
+            title="Zoom Out (${Math.round((100 * (this.gridSize - 3)) / 32)}%)"
+            @click=${() => this.zoomOut()}
           >
-            ${functionsOffIcon}
-            <span slot="selected">${functionsIcon}</span>
+            <oscd-icon>zoom_out</oscd-icon>
           </oscd-icon-button>`
-        : nothing
-    }${
-      this.doc.querySelector('Substation')
-        ? html`<oscd-icon-button
-              label="Zoom In"
-              title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
-              @click=${() => this.zoomIn()}
-            >
-              <oscd-icon>zoom_in</oscd-icon> </oscd-icon-button
-            ><oscd-icon-button
-              label="Zoom Out"
-              ?disabled=${this.gridSize < 4}
-              title="Zoom Out (${Math.round(
-                (100 * (this.gridSize - 3)) / 32
-              )}%)"
-              @click=${() => this.zoomOut()}
-            >
-              <oscd-icon>zoom_out</oscd-icon>
-            </oscd-icon-button>`
-        : nothing
-    }
-      </oscd-icon-button
-      >${
-        this.inAction
-          ? html`<oscd-icon-button
-              label="Cancel"
-              title="Cancel"
-              @click=${() => this.reset()}
-            >
-              <oscd-icon>close</oscd-icon>
-            </oscd-icon-button>`
-          : nothing
-      }`;
+      : nothing}${this.inAction
+      ? html`<oscd-icon-button
+          label="Cancel"
+          title="Cancel"
+          @click=${() => this.reset()}
+        >
+          <oscd-icon>close</oscd-icon>
+        </oscd-icon-button>`
+      : nothing}`;
   }
 
   render() {
@@ -650,6 +697,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             >${this.renderTransformerButtons()}${this.renderFunctionButtons()}
           </nav>
           <div class="editor-container">
+            ${this.renderSubstationHighlight()}
             <sld-editor
               .doc=${this.doc}
               .docVersion=${this.editCount}
@@ -666,15 +714,18 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               @oscd-sld-selected=${this.handleSldSelected}
             ></sld-editor>
             ${this.showFunctions
-              ? html`<functions-layer
-                  .doc=${this.doc}
-                  .editCount=${this.editCount}
-                  .gridSize=${this.gridSize}
-                  .nsp=${this.nsp}
-                  .placing=${this.placingFunction}
-                  .placingOffset=${this.placingFunctionOffset}
-                  .onStartPlaceFunction=${this.handleStartPlaceFunction}
-                ></functions-layer>`
+              ? Array.from(this.doc.querySelectorAll(':root > Substation')).map(
+                  substation => html`<functions-layer
+                    .doc=${this.doc}
+                    .substation=${substation}
+                    .editCount=${this.editCount}
+                    .gridSize=${this.gridSize}
+                    .nsp=${this.nsp}
+                    .placing=${this.placingFunction}
+                    .placingOffset=${this.placingFunctionOffset}
+                    .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                  ></functions-layer>`
+                )
               : nothing}
           </div>
           <create-function-dialog
@@ -743,6 +794,33 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         display: block;
         width: 100%;
         height: 100%;
+      }
+      .substation-highlight {
+        position: absolute;
+        border: 3px solid #7821c9;
+        border-radius: 2px;
+        box-sizing: border-box;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .substation-chip {
+        position: absolute;
+        top: -40px;
+        pointer-events: all;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        color: #7821c9;
+        background: rgba(210, 185, 236, 0.9);
+        border: 2px solid #7821c9;
+        border-radius: 12px;
+        padding: 2px 10px;
+        user-select: none;
+        line-height: 20px;
+      }
+      .substation-chip:hover {
+        background: rgba(120, 33, 201, 0.15);
       }
     `,
   ];

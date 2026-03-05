@@ -6,7 +6,11 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import { getSLDAttributes, updateSLDAttributes } from '../../util.js';
+import {
+  getSLDAttributes,
+  updateSLDAttributes,
+  getSldSvgs,
+} from '../../util.js';
 
 type Point = [number, number];
 
@@ -41,6 +45,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   @property({ attribute: false })
   doc?: XMLDocument;
+
+  @property({ attribute: false })
+  substation?: Element;
 
   @property({ type: Number })
   editCount: number = -1;
@@ -93,47 +100,39 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     if (
       changedProperties.has('doc') ||
+      changedProperties.has('substation') ||
       changedProperties.has('gridSize') ||
       changedProperties.has('editCount')
     ) {
       this.functions = this.extractFunctions();
     }
 
-    if (changedProperties.has('doc') || changedProperties.has('gridSize')) {
+    if (
+      changedProperties.has('doc') ||
+      changedProperties.has('substation') ||
+      changedProperties.has('gridSize')
+    ) {
       requestAnimationFrame(() => this.calculateSldOffset());
     }
   }
 
   private calculateSldOffset() {
-    // TEMPORARY WORKAROUND: This method relies on the internal structure and shadow DOM of sld-editor and sld-substation-editor.
-    // This is necessary until sld-editor exposes a public API to access the SLD SVG position.
     const parent = this.parentElement;
     if (!parent) return;
 
     const sldEditor = parent.querySelector('sld-editor');
-    if (!sldEditor) {
-      console.warn(
-        '[FunctionsLayer] Could not find <sld-editor> in parent. SLD offset calculation skipped.'
-      );
-      return;
-    }
-
-    const substationEditor = sldEditor.shadowRoot?.querySelector(
-      'sld-substation-editor'
+    const svgs = sldEditor ? getSldSvgs(sldEditor) : [];
+    const substations = Array.from(
+      (this.substation?.ownerDocument ?? this.doc)?.querySelectorAll(
+        ':root > Substation'
+      ) ?? []
     );
-    if (!substationEditor) {
-      console.warn(
-        '[FunctionsLayer] Could not find <sld-substation-editor> in <sld-editor> shadowRoot. SLD offset calculation skipped.'
-      );
-      return;
-    }
+    const idx = this.substation ? substations.indexOf(this.substation) : 0;
+    const sldSvg = svgs[idx] ?? null;
 
-    const sldSvg = substationEditor.shadowRoot?.querySelector(
-      'svg#sld'
-    ) as SVGSVGElement;
     if (!sldSvg) {
       console.warn(
-        '[FunctionsLayer] Could not find <svg id="sld"> in <sld-substation-editor> shadowRoot. SLD offset calculation skipped.'
+        '[FunctionsLayer] Could not find SVG for substation. SLD offset calculation skipped.'
       );
       return;
     }
@@ -164,7 +163,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   private extractFunctions(): FunctionData[] {
     if (!this.doc) return [];
 
-    const functions = Array.from(this.doc.querySelectorAll('Function'));
+    const scope: Element | Document = this.substation ?? this.doc;
+    const functions = Array.from(scope.querySelectorAll('Function'));
     const result: FunctionData[] = [];
 
     functions.forEach(fn => {
@@ -191,7 +191,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   private getSvgDimensions(): { width: number; height: number } {
-    const substation = this.doc?.querySelector(':root > Substation');
+    const substation =
+      this.substation ?? this.doc?.querySelector(':root > Substation');
     const w = substation
       ? parseFloat(getSLDAttributes(substation, 'w') ?? '0')
       : 0;

@@ -308,3 +308,18 @@ export function createPowerSystemRelationPrivate(
   priv.appendChild(relations);
   return priv;
 }
+
+/**
+ * Returns all SLD SVG canvases from sld-editor, one per Substations
+ *
+ * WORKAROUND: relies on internal shadow DOM structure.
+ */
+export function getSldSvgs(sldEditor: Element): SVGSVGElement[] {
+  const substationEditors = Array.from(
+    sldEditor.shadowRoot?.querySelectorAll('sld-substation-editor') ?? []
+  );
+  return substationEditors.flatMap(se => {
+    const svg = se.shadowRoot?.querySelector('svg#sld') as SVGSVGElement | null;
+    return svg ? [svg] : [];
+  });
+}
