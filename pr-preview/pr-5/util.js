@@ -154,8 +154,8 @@ function getCenter(el) {
 export function getFunctionCoordinates(doc, parent) {
     let x = 1;
     let y = 1;
-    // Center for Bay/VoltageLevel
-    if (['Bay', 'VoltageLevel'].includes(parent.tagName)) {
+    // Center for Bay/VoltageLevel/Substation
+    if (['Bay', 'VoltageLevel', 'Substation'].includes(parent.tagName)) {
         const center = getCenter(parent);
         x = center.x;
         y = center.y;
