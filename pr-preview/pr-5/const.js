@@ -2,9 +2,9 @@
 export const PSR_TAGS = [
     'ConductingEquipment',
     'PowerTransformer',
-    'TransformerWinding',
     'Bay',
     'VoltageLevel',
+    'Substation',
 ];
 /** Highlight style applied to all selectable PSRs when adding a Function */
 export const PSR_HIGHLIGHT_STYLE = {

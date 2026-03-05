@@ -2,6 +2,9 @@ import { EditV2 } from '@openscd/oscd-api';
 export declare const privType = "OpenSCD-SLD-Layout";
 export declare const sldNs = "https://openscd.org/SCL/SSD/SLD/v0";
 export declare const xmlnsNs = "http://www.w3.org/2000/xmlns/";
+export declare const eTr6100Ns = "http://www.iec.ch/61850/2019/SCL/6-100";
+export declare const eTr6100NsPrefix = "eTr_6-100";
+export declare const eTr6100PrivType = "eIEC61850-6-100";
 export declare const svgNs = "http://www.w3.org/2000/svg";
 export declare const xlinkNs = "http://www.w3.org/1999/xlink";
 export declare const eqTypes: readonly ["CAB", "CAP", "CBR", "CTR", "DIS", "GEN", "IFL", "LIN", "MOT", "REA", "RES", "SAR", "SMC", "VTR"];
@@ -29,3 +32,5 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
     x: number;
     y: number;
 };
+export declare function getProcessPath(element: Element): string;
+export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path: string): Element;

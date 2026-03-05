@@ -6,7 +6,7 @@ export type HighlightStyle = {
     opacity?: number;
 };
 /** PSR element tags that are valid parents for a Function element */
-export declare const PSR_TAGS: readonly ["ConductingEquipment", "PowerTransformer", "TransformerWinding", "Bay", "VoltageLevel"];
+export declare const PSR_TAGS: readonly ["ConductingEquipment", "PowerTransformer", "Bay", "VoltageLevel", "Substation"];
 /** Highlight style applied to all selectable PSRs when adding a Function */
 export declare const PSR_HIGHLIGHT_STYLE: {
     readonly stroke: "#7821c9";

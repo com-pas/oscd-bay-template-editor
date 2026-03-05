@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { getFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, sldNs, } from './util.js';
+import { getFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, eTr6100PrivType, sldNs, getProcessPath, createPowerSystemRelationPrivate, } from './util.js';
 import { docWithBayAndFunctions } from './components/functions-layer/functions-layer-testfiles.js';
 describe('utils', () => {
     let doc;
@@ -114,6 +114,27 @@ describe('utils', () => {
             expect(vertices.length).equal(2);
             expect(getSLDAttributes(vertices[0], 'x')).equal('0.5');
             expect(getSLDAttributes(vertices[1], 'x')).equal('1.5');
+        });
+    });
+    describe('getProcessPath', () => {
+        it('returns path of element in document', () => {
+            const element = doc.querySelector('ConductingEquipment[name="CE1"]');
+            const path = getProcessPath(element);
+            expect(path).equal('S1/V1/B1/CE1');
+        });
+    });
+    describe('createPowerSystemRelationPrivate', () => {
+        it('creates Private element with correct type and path', () => {
+            const element = doc.querySelector('ConductingEquipment[name="CE1"]');
+            const path = getProcessPath(element);
+            const priv = createPowerSystemRelationPrivate(doc, path);
+            expect(priv.tagName).equal('Private');
+            expect(priv.getAttribute('type')).equal(eTr6100PrivType);
+            const psrElement1 = priv.querySelector('PowerSystemRelations');
+            const psrElement2 = psrElement1.querySelector('PowerSystemRelation');
+            expect(psrElement2).not.equal(null);
+            expect(psrElement2.getAttribute('relation')).equal(path);
+            console.log('priv', priv);
         });
     });
 });

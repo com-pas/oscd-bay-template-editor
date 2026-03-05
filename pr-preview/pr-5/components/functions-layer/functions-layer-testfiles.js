@@ -11,15 +11,16 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
           <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
         </Private>
         <Function name="F1">
-          <Private type="OpenSCD-SLD-Layout">
-            <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
-          </Private>
+        <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+        </Private>
         </Function>
         <Function name="F2">
-          <Private type="OpenSCD-SLD-Layout">
-            <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
-          </Private>
+        <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
+        </Private>
         </Function>
+        <ConductingEquipment name="CE1" />
       </Bay>
     </VoltageLevel>
   </Substation>

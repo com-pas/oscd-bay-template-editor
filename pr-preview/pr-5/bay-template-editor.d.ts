@@ -53,6 +53,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     startPlacing(element: Element | undefined): void;
     reset(): void;
     insertSubstation(): void;
+    private getFunctionParent;
     createFunction(e: CustomEvent<{
         name: string;
         description: string | null;
