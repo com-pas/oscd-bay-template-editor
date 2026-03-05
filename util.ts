@@ -4,6 +4,9 @@ import { EditV2 } from '@openscd/oscd-api';
 export const privType = 'OpenSCD-SLD-Layout';
 export const sldNs = 'https://openscd.org/SCL/SSD/SLD/v0';
 export const xmlnsNs = 'http://www.w3.org/2000/xmlns/';
+export const eTr6100Ns = 'http://www.iec.ch/61850/2019/SCL/6-100';
+export const eTr6100NsPrefix = 'eTr_6-100';
+export const eTr6100PrivType = 'eIEC61850-6-100';
 export const svgNs = 'http://www.w3.org/2000/svg';
 export const xlinkNs = 'http://www.w3.org/1999/xlink';
 
@@ -256,4 +259,52 @@ export function getFunctionCoordinates(
   }
 
   return { x, y };
+}
+
+export function getProcessPath(element: Element): string {
+  const startingElementName = element.getAttribute('name') ?? '';
+  const pathParts: string[] = [startingElementName];
+
+  let currentElement = element;
+  while (currentElement.parentElement) {
+    currentElement = currentElement.parentElement;
+
+    const elementName = currentElement.getAttribute('name') ?? '';
+    pathParts.push(elementName);
+
+    if (currentElement.tagName === 'Substation') {
+      break;
+    }
+  }
+
+  return pathParts.reverse().join('/');
+}
+
+export function createPowerSystemRelationPrivate(
+  doc: XMLDocument,
+  path: string
+): Element {
+  const nsp = doc.documentElement.lookupPrefix(eTr6100Ns) ?? eTr6100NsPrefix;
+
+  if (!doc.documentElement.lookupPrefix(eTr6100Ns)) {
+    doc.documentElement.setAttributeNS(
+      xmlnsNs,
+      `xmlns:${eTr6100NsPrefix}`,
+      eTr6100Ns
+    );
+  }
+
+  const priv = doc.createElementNS(doc.documentElement.namespaceURI, 'Private');
+  priv.setAttribute('type', eTr6100PrivType);
+
+  const relations = doc.createElementNS(
+    eTr6100Ns,
+    `${nsp}:PowerSystemRelations`
+  );
+  const relation = doc.createElementNS(eTr6100Ns, `${nsp}:PowerSystemRelation`);
+  relation.setAttribute('relation', path);
+
+  relations.appendChild(relation);
+  priv.appendChild(relations);
+  return priv;
 }

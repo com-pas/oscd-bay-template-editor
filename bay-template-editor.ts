@@ -29,6 +29,8 @@ import {
   uniqueName,
   xmlnsNs,
   getFunctionCoordinates,
+  getProcessPath,
+  createPowerSystemRelationPrivate,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
@@ -202,7 +204,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       },
     ];
     if (this.doc && this.createFunctionDialog) {
-      this.createFunctionDialog.parent = event.detail.element;
+      this.createFunctionDialog.parent = this.getFunctionParent(
+        event.detail.element
+      );
       this.createFunctionDialog.show();
     }
   };
@@ -276,6 +280,25 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(newEditEventV2({ parent, node, reference }));
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private getFunctionParent(selected: Element): Element | null {
+    const { tagName } = selected;
+    if (
+      tagName === 'Bay' ||
+      tagName === 'VoltageLevel' ||
+      tagName === 'Substation'
+    ) {
+      return selected;
+    }
+    if (tagName === 'ConductingEquipment') {
+      return selected.closest('Bay');
+    }
+    if (tagName === 'PowerTransformer' || tagName === 'TransformerWinding') {
+      return selected.closest('Bay, VoltageLevel, Substation');
+    }
+    return null;
+  }
+
   createFunction(
     e: CustomEvent<{
       name: string;
@@ -285,6 +308,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   ) {
     const { name, description, type } = e.detail;
     if (!this.doc || !this.selectedElement) return;
+
+    const selected = this.selectedElement;
+    const { tagName } = selected;
+    const functionParent = this.getFunctionParent(selected);
+    if (!functionParent) return;
+
     const func = this.doc.createElementNS(
       this.doc.documentElement.namespaceURI,
       'Function'
@@ -292,15 +321,32 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     func.setAttribute('name', name);
     if (description !== null) func.setAttribute('description', description);
     if (type !== null) func.setAttribute('type', type);
-    const { x, y } = getFunctionCoordinates(this.doc, this.selectedElement);
+
+    if (tagName === 'ConductingEquipment') {
+      const path = getProcessPath(selected);
+      func.appendChild(createPowerSystemRelationPrivate(this.doc, path));
+    } else if (
+      tagName === 'PowerTransformer' ||
+      tagName === 'TransformerWinding'
+    ) {
+      const powerTransformer =
+        tagName === 'PowerTransformer' ? selected : selected.parentElement;
+      if (powerTransformer) {
+        const path = getProcessPath(powerTransformer);
+        func.appendChild(createPowerSystemRelationPrivate(this.doc, path));
+      }
+    }
+
+    const { x, y } = getFunctionCoordinates(this.doc, functionParent);
     setSLDAttributes(func, this.nsp, {
       x: String(x),
       y: String(y),
     });
 
-    const parent = this.selectedElement;
-    const reference = getReference(parent, 'Function');
-    this.dispatchEvent(newEditEventV2({ parent, node: func, reference }));
+    const reference = getReference(functionParent, 'Function');
+    this.dispatchEvent(
+      newEditEventV2({ parent: functionParent, node: func, reference })
+    );
 
     this.reset();
     this.showFunctions = true;

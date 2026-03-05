@@ -10,9 +10,9 @@ export type HighlightStyle = {
 export const PSR_TAGS = [
   'ConductingEquipment',
   'PowerTransformer',
-  'TransformerWinding',
   'Bay',
   'VoltageLevel',
+  'Substation',
 ] as const;
 
 /** Highlight style applied to all selectable PSRs when adding a Function */

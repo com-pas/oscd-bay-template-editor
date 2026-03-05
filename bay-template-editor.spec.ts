@@ -26,6 +26,135 @@ describe('Bay Template Editor Plugin', () => {
     await element.updateComplete;
   });
 
+  describe('createFunction', () => {
+    function setupElementWithDoc(xml: string) {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      element.doc = doc;
+      return doc;
+    }
+
+    function triggerAndCapture(selected: Element, name = 'F1') {
+      const dispatchSpy = spy(element, 'dispatchEvent');
+      element.selectedElement = selected;
+      element.createFunction({
+        detail: { name, description: 'desc', type: 'type' },
+      } as any);
+      const editCall = dispatchSpy.args.find(
+        args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
+      );
+      expect(editCall, 'oscd-edit-v2 event was dispatched').to.exist;
+      const { edit } = (editCall![0] as CustomEvent).detail;
+      const { parent, node } = edit;
+      dispatchSpy.restore();
+      return { parent: parent as Element, fn: node as Element };
+    }
+
+    it('adds Function to Bay', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const { parent, fn } = triggerAndCapture(bay, 'Fbay');
+      expect(parent).to.equal(bay);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fbay');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to VoltageLevel', async () => {
+      const doc = setupElementWithDoc(docWithVoltageLevel);
+      const vl = doc.querySelector('VoltageLevel')!;
+      const { parent, fn } = triggerAndCapture(vl, 'Fvl');
+      expect(parent).to.equal(vl);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fvl');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to Substation', async () => {
+      const doc = setupElementWithDoc(docWithSubstation);
+      const sub = doc.querySelector('Substation')!;
+      const { parent, fn } = triggerAndCapture(sub, 'Fsub');
+      expect(parent).to.equal(sub);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fsub');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to parent Bay for ConductingEquipment, with PowerSystemRelation', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const ce = doc.createElement('ConductingEquipment');
+      ce.setAttribute('name', 'CE1');
+      bay.appendChild(ce);
+      const { parent, fn } = triggerAndCapture(ce, 'Fce');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Fce');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('CE1');
+    });
+
+    it('adds Function to parent Bay for PowerTransformer, with PowerSystemRelation', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const pt = doc.createElement('PowerTransformer');
+      pt.setAttribute('name', 'PTR1');
+      bay.appendChild(pt);
+      const { parent, fn } = triggerAndCapture(pt, 'Fptr');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Fptr');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('PTR1');
+    });
+
+    it('adds Function to parent Bay for TransformerWinding, with PowerSystemRelation from PowerTransformer', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const pt = doc.createElement('PowerTransformer');
+      pt.setAttribute('name', 'PTR1');
+      const tw = doc.createElement('TransformerWinding');
+      tw.setAttribute('name', 'TW1');
+      pt.appendChild(tw);
+      bay.appendChild(pt);
+      const { parent, fn } = triggerAndCapture(tw, 'Ftw');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Ftw');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('PTR1');
+    });
+  });
+
   afterEach(() => {
     sinon.restore();
   });
@@ -779,7 +908,6 @@ describe('Bay Template Editor Plugin', () => {
 
       expect(element.placingFunction).to.exist;
 
-      // Disconnect the element
       element.disconnectedCallback();
 
       // Keydown event should not affect the element after disconnection
