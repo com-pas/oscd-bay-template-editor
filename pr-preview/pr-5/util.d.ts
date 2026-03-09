@@ -35,6 +35,15 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
 export declare function getProcessPath(element: Element): string;
 export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path: string): Element;
 /**
+ * Returns Function elements associated with a given SCL element.
+ *
+ * - For Bay, VoltageLevel, Substation: returns direct child Function elements
+ *   that have no PowerSystemRelation private (i.e. not linked to specific equipment).
+ * - For ConductingEquipment and PowerTransformer: returns Function elements anywhere
+ *   in the document whose PowerSystemRelation references this element's process path.
+ */
+export declare function getFunctions(element: Element): Element[];
+/**
  * Returns all SLD SVG canvases from sld-editor, one per Substations
  *
  * WORKAROUND: relies on internal shadow DOM structure.
