@@ -309,6 +309,42 @@ export function createPowerSystemRelationPrivate(
 }
 
 /**
+ * Returns Function elements associated with a given SCL element.
+ *
+ * - For Bay, VoltageLevel, Substation: returns direct child Function elements
+ *   that have no PowerSystemRelation private (i.e. not linked to specific equipment).
+ * - For ConductingEquipment and PowerTransformer: returns Function elements anywhere
+ *   in the document whose PowerSystemRelation references this element's process path.
+ */
+export function getFunctions(element: Element): Element[] {
+  const { tagName } = element;
+
+  if (
+    tagName === 'Bay' ||
+    tagName === 'VoltageLevel' ||
+    tagName === 'Substation'
+  ) {
+    return Array.from(
+      element.querySelectorAll(
+        `:scope > Function:not(:has(> Private[type="${eTr6100PrivType}"]))`
+      )
+    );
+  }
+
+  if (tagName === 'ConductingEquipment' || tagName === 'PowerTransformer') {
+    const path = getProcessPath(element);
+    const doc = element.ownerDocument;
+    return Array.from(
+      doc.querySelectorAll(
+        `Function:has(> Private[type="${eTr6100PrivType}"] > PowerSystemRelations > PowerSystemRelation[relation="${path}"])`
+      )
+    );
+  }
+
+  return [];
+}
+
+/**
  * Returns all SLD SVG canvases from sld-editor, one per Substations
  *
  * WORKAROUND: relies on internal shadow DOM structure.

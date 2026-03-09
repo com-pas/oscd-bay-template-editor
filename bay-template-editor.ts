@@ -212,9 +212,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       },
     ];
     if (this.doc && this.createFunctionDialog) {
-      this.createFunctionDialog.parent = this.getFunctionParent(
-        event.detail.element
-      );
+      this.createFunctionDialog.parent = this.selectedElement;
       this.createFunctionDialog.show();
     }
   };

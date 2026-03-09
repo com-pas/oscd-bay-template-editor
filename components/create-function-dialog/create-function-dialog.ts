@@ -13,6 +13,7 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
+import { getFunctions } from '../../util.js';
 
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
@@ -102,9 +103,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   private nameTakenValidator: Validator = (value: Value) => {
     const trimmed = (value as string).trim();
     if (!this.parent) return null;
-    const existing = Array.from(this.parent.children).find(
-      el =>
-        el.tagName === 'Function' && el.getAttribute('name')?.trim() === trimmed
+    const functions = getFunctions(this.parent);
+    const existing = functions.find(
+      fn => fn.getAttribute('name')?.trim() === trimmed
     );
     return existing
       ? `A Function with the name "${trimmed}" already exists`
