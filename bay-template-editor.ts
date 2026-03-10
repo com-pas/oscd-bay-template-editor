@@ -5,6 +5,7 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
+import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
@@ -343,13 +344,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     const functionParent = this.getFunctionParent(selected);
     if (!functionParent) return;
 
-    const func = this.doc.createElementNS(
-      this.doc.documentElement.namespaceURI,
-      'Function'
-    );
-    func.setAttribute('name', name);
-    if (description !== null) func.setAttribute('description', description);
-    if (type !== null) func.setAttribute('type', type);
+    const func = createElement(this.doc, 'Function', {
+      name,
+      desc: description,
+      type,
+    });
 
     if (tagName === 'ConductingEquipment') {
       const path = getProcessPath(selected);
@@ -366,7 +365,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       }
     }
 
-    const { x, y } = getFunctionCoordinates(this.doc, functionParent);
+    const { x, y } = getFunctionCoordinates(this.doc, selected);
     setSLDAttributes(func, this.nsp, {
       x: String(x),
       y: String(y),
