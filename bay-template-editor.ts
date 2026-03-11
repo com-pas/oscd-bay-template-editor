@@ -167,7 +167,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     edits = edits.flatMap((e: any) => (e.edit ? e.edit : e));
 
     edits.forEach((edit: any) => {
-      if (edit.node && edit.parent && !edit.node.getAttribute('name')) {
+      if (
+        edit.node &&
+        edit.parent &&
+        !edit.node.getAttribute('name') &&
+        edit.node.tagName !== 'Private'
+      ) {
         const name = uniqueName(edit.node, edit.parent);
         edit.node.setAttribute('name', name);
       }

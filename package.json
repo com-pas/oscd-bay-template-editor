@@ -52,7 +52,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
     "@custom-elements-manifest/analyzer": "^0.4.17",
-    "@omicronenergy/oscd-editor-sld": "OMICRONEnergyOSS/oscd-editor-sld",
+    "@omicronenergy/oscd-editor-sld": "github:OMICRONEnergyOSS/oscd-editor-sld#main",
     "@open-wc/building-rollup": "^2.0.2",
     "@open-wc/eslint-config": "^8.0.2",
     "@open-wc/testing": "^3.1.6",
