@@ -176,7 +176,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
     handleFunctionMouseEnter(fn) {
         if (!this.placing) {
-            this.hoveredFunction = fn.name;
+            this.hoveredFunction = fn.element;
             this.onHoverFunction?.(fn.element);
         }
     }
@@ -204,7 +204,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             classAttr += ' preview';
         if (isPlacing)
             classAttr += ' placing';
-        const isHovered = this.hoveredFunction === fn.name;
+        const isHovered = this.hoveredFunction === fn.element;
         let fill;
         let stroke;
         let strokeWidth;
