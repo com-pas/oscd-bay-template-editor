@@ -95,9 +95,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
             return html `
               <oscd-list-item type="button">
                 <span slot="headline" title=${id}>${id || lnClass}</span>
-                <span slot="supporting-text">
-                  ${lnClass}${desc ? ` — ${desc}` : ''}
-                </span>
+                <span slot="supporting-text">${desc}</span>
               </oscd-list-item>
             `;
         })}
