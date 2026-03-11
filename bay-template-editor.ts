@@ -146,6 +146,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   private handleKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && this.inAction) {
       event.preventDefault();
+      if (this.addingFunction) {
+        this.showFunctions = false;
+      }
       this.reset();
     }
   };
@@ -662,6 +665,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               style: PSR_HIGHLIGHT_STYLE,
             }));
             this.addingFunction = true;
+            this.showFunctions = true;
           }}
         >
           ${functionAddIcon}
@@ -698,7 +702,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       ? html`<oscd-icon-button
           label="Cancel"
           title="Cancel"
-          @click=${() => this.reset()}
+          @click=${() => {
+            if (this.addingFunction) {
+              this.showFunctions = false;
+            }
+            this.reset();
+          }}
         >
           <oscd-icon>close</oscd-icon>
         </oscd-icon-button>`
