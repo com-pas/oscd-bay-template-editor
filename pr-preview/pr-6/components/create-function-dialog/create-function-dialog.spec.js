@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import { fixture, expect, html } from '@open-wc/testing';
+import sinon, { spy } from 'sinon';
 import { CreateFunctionDialog } from './create-function-dialog.js';
 if (!customElements.get('create-function-dialog')) {
     customElements.define('create-function-dialog', CreateFunctionDialog);
@@ -19,8 +20,6 @@ describe('CreateFunctionDialog', () => {
         expect(element.shadowRoot?.querySelector('oscd-scl-text-field[name="type"]')).to.exist;
     });
     it('shows error if name is empty on submit', async () => {
-        element.name = '';
-        await element.updateComplete;
         element.show();
         await element.updateComplete;
         const form = element.shadowRoot?.querySelector('form');
@@ -48,34 +47,35 @@ describe('CreateFunctionDialog', () => {
         expect(nameField?.errorText).to.equal('A Function with the name "F1" already exists');
     });
     it('dispatches save event with correct details', async () => {
+        const dispatchSpy = spy(element, 'dispatchEvent');
         element.name = 'F2';
         element.description = null;
         element.type = null;
-        await element.updateComplete;
         element.show();
         await element.updateComplete;
-        let saveDetail = null;
-        element.addEventListener('save', (e) => {
-            saveDetail = e.detail;
-        });
         const form = element.shadowRoot?.querySelector('form');
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
         await element.updateComplete;
-        expect(saveDetail).to.deep.equal({
+        expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'save'))).to.be
+            .true;
+        const saveEvent = dispatchSpy
+            .getCalls()
+            .find(call => call.args[0].type === 'save')?.args[0];
+        expect(saveEvent?.detail).to.deep.equal({
             name: 'F2',
             description: null,
             type: null,
         });
     });
     it('dispatches cancel event on close', async () => {
-        let cancelled = false;
-        element.addEventListener('cancel', () => {
-            cancelled = true;
-        });
+        const dispatchSpy = spy(element, 'dispatchEvent');
+        element.show();
+        await element.updateComplete;
         const closeBtn = element.shadowRoot?.querySelector('oscd-filled-button[type="button"]');
         closeBtn?.click();
         await element.updateComplete;
-        expect(cancelled).to.be.true;
+        expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'cancel'))).to.be
+            .true;
     });
     it('resets fields on close', async () => {
         element.name = 'F3';

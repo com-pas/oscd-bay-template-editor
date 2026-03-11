@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { getFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, eTr6100PrivType, sldNs, getProcessPath, createPowerSystemRelationPrivate, } from './util.js';
-import { docWithBayAndFunctions } from './components/functions-layer/functions-layer-testfiles.js';
+import { getFunctionCoordinates, setSLDAttributes, getSLDAttributes, uniqueName, isBusBar, makeBusBar, privType, eTr6100PrivType, sldNs, getProcessPath, createPowerSystemRelationPrivate, getFunctions, } from './util.js';
+import { docWithBayAndFunctions } from './util-testfiles.js';
 describe('utils', () => {
     let doc;
     beforeEach(() => {
@@ -118,14 +118,14 @@ describe('utils', () => {
     });
     describe('getProcessPath', () => {
         it('returns path of element in document', () => {
-            const element = doc.querySelector('ConductingEquipment[name="CE1"]');
+            const element = doc.querySelector('ConductingEquipment[name="CAB1"]');
             const path = getProcessPath(element);
-            expect(path).equal('S1/V1/B1/CE1');
+            expect(path).equal('S1/V1/B1/CAB1');
         });
     });
     describe('createPowerSystemRelationPrivate', () => {
         it('creates Private element with correct type and path', () => {
-            const element = doc.querySelector('ConductingEquipment[name="CE1"]');
+            const element = doc.querySelector('ConductingEquipment[name="CAB1"]');
             const path = getProcessPath(element);
             const priv = createPowerSystemRelationPrivate(doc, path);
             expect(priv.tagName).equal('Private');
@@ -134,6 +134,29 @@ describe('utils', () => {
             const psrElement2 = psrElement1.querySelector('PowerSystemRelation');
             expect(psrElement2).not.equal(null);
             expect(psrElement2.getAttribute('relation')).equal(path);
+        });
+    });
+    describe('getFunctions', () => {
+        it('returns all Function elements related to a Bay', () => {
+            const bay = doc.querySelector('Bay[name="B1"]');
+            const functions = getFunctions(bay);
+            expect(functions.length).equal(2);
+            const names = functions.map(fn => fn.getAttribute('name'));
+            expect(names).to.include.members(['F1', 'F2']);
+        });
+        it('returns all Function elements related to a VoltageLevel', () => {
+            const voltageLevel = doc.querySelector('VoltageLevel[name="V1"]');
+            const functions = getFunctions(voltageLevel);
+            expect(functions.length).equal(1);
+            const names = functions.map(fn => fn.getAttribute('name'));
+            expect(names).to.include.members(['F3']);
+        });
+        it('returns all Function elments related to ConductingEquipment', () => {
+            const ce = doc.querySelector('ConductingEquipment[name="CAB1"]');
+            const functions = getFunctions(ce);
+            expect(functions.length).equal(1);
+            const names = functions.map(fn => fn.getAttribute('name'));
+            expect(names).to.include.members(['CABFunction']);
         });
     });
 });
