@@ -90,7 +90,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   sldOffsetLeft = 0;
 
   @state()
-  private hoveredFunction: string | null = null;
+  private hoveredFunction: Element | null = null;
 
   @query('svg')
   svg!: SVGSVGElement;
@@ -263,7 +263,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   private handleFunctionMouseEnter(fn: FunctionData) {
     if (!this.placing) {
-      this.hoveredFunction = fn.name;
+      this.hoveredFunction = fn.element;
       this.onHoverFunction?.(fn.element);
     }
   }
@@ -298,7 +298,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     let classAttr = 'function';
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
-    const isHovered = this.hoveredFunction === fn.name;
+    const isHovered = this.hoveredFunction === fn.element;
 
     let fill: string;
     let stroke: string;

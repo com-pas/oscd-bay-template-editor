@@ -211,18 +211,18 @@ export function getFunctionCoordinates(
 ): { x: number; y: number } {
   let x = 1;
   let y = 1;
-  // Center for Bay/VoltageLevel/Substation
-  if (['Bay', 'VoltageLevel', 'Substation'].includes(parent.tagName)) {
-    const center = getCenter(parent);
-    x = center.x;
-    y = center.y;
+
+  // For Substation, place at top-left corner of SLD canvas
+  if (parent.tagName === 'Substation') {
+    x = 1;
+    y = 1;
   } else {
     // Place below parent if it has coordinates
     const parentX = getSLDAttributes(parent, 'x');
     const parentY = getSLDAttributes(parent, 'y');
     if (parentX && parentY) {
-      x = parseFloat(parentX);
-      y = parseFloat(parentY) + 2;
+      x = parseFloat(parentX) + 1;
+      y = parseFloat(parentY) + 1;
     } else {
       const childWithCoords = Array.from(parent.children).find(
         el => getSLDAttributes(el, 'x') && getSLDAttributes(el, 'y')
@@ -257,6 +257,7 @@ export function getFunctionCoordinates(
     offsetTries -= 1;
   }
 
+  console.log(`Calculated function coordinates: (${x}, ${y})`);
   return { x, y };
 }
 
