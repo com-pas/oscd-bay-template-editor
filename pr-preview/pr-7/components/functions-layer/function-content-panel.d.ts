@@ -4,10 +4,6 @@ import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 declare const FunctionContentPanel_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
-/**
- * Displays the structure of a Function element: SubFunctions and LNodes.
- * Usage: <function-content-panel .functionElement=${Element}>
- */
 export declare class FunctionContentPanel extends FunctionContentPanel_base {
     static get scopedElements(): {
         'oscd-list': typeof OscdList;
