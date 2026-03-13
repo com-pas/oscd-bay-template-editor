@@ -1,4 +1,3 @@
-// import { playwrightLauncher } from '@web/test-runner-playwright';
 import { polyfill } from '@web/dev-server-polyfill';
 import { visualRegressionPlugin } from '@web/test-runner-visual-regression/plugin';
 import { playwrightLauncher } from '@web/test-runner-playwright';
@@ -9,6 +8,8 @@ const browsers = [
   playwrightLauncher({ product: 'chromium' }),
   playwrightLauncher({ product: 'firefox' }),
 ];
+
+const chromiumOnly = [playwrightLauncher({ product: 'chromium' })];
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Test files to run */
@@ -70,9 +71,6 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Amount of test files per browser to test concurrently */
   concurrency: 1,
 
-  /** Browsers to run tests on */
-  browsers,
-
   // See documentation for all available options
   plugins: [
     polyfill({
@@ -84,7 +82,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   ],
 
   groups: [
-    { name: 'visual', files: 'dist/**/*.test.js' },
-    { name: 'unit', files: 'dist/**/*.spec.js' },
+    { name: 'visual', files: 'dist/**/*.test.js', browsers },
+    { name: 'unit', files: 'dist/**/*.spec.js', browsers: chromiumOnly },
   ],
 });

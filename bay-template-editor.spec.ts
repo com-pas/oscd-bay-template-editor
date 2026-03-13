@@ -26,6 +26,135 @@ describe('Bay Template Editor Plugin', () => {
     await element.updateComplete;
   });
 
+  describe('createFunction', () => {
+    function setupElementWithDoc(xml: string) {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      element.doc = doc;
+      return doc;
+    }
+
+    function triggerAndCapture(selected: Element, name = 'F1') {
+      const dispatchSpy = spy(element, 'dispatchEvent');
+      element.selectedElement = selected;
+      element.createFunction({
+        detail: { name, description: 'desc', type: 'type' },
+      } as any);
+      const editCall = dispatchSpy.args.find(
+        args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
+      );
+      expect(editCall, 'oscd-edit-v2 event was dispatched').to.exist;
+      const { edit } = (editCall![0] as CustomEvent).detail;
+      const { parent, node } = edit;
+      dispatchSpy.restore();
+      return { parent: parent as Element, fn: node as Element };
+    }
+
+    it('adds Function to Bay', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const { parent, fn } = triggerAndCapture(bay, 'Fbay');
+      expect(parent).to.equal(bay);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fbay');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to VoltageLevel', async () => {
+      const doc = setupElementWithDoc(docWithVoltageLevel);
+      const vl = doc.querySelector('VoltageLevel')!;
+      const { parent, fn } = triggerAndCapture(vl, 'Fvl');
+      expect(parent).to.equal(vl);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fvl');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to Substation', async () => {
+      const doc = setupElementWithDoc(docWithSubstation);
+      const sub = doc.querySelector('Substation')!;
+      const { parent, fn } = triggerAndCapture(sub, 'Fsub');
+      expect(parent).to.equal(sub);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fsub');
+      expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function to parent Bay for ConductingEquipment, with PowerSystemRelation', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const ce = doc.createElement('ConductingEquipment');
+      ce.setAttribute('name', 'CE1');
+      bay.appendChild(ce);
+      const { parent, fn } = triggerAndCapture(ce, 'Fce');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Fce');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('CE1');
+    });
+
+    it('adds Function to parent Bay for PowerTransformer, with PowerSystemRelation', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const pt = doc.createElement('PowerTransformer');
+      pt.setAttribute('name', 'PTR1');
+      bay.appendChild(pt);
+      const { parent, fn } = triggerAndCapture(pt, 'Fptr');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Fptr');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('PTR1');
+    });
+
+    it('adds Function to parent Bay for TransformerWinding, with PowerSystemRelation from PowerTransformer', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const pt = doc.createElement('PowerTransformer');
+      pt.setAttribute('name', 'PTR1');
+      const tw = doc.createElement('TransformerWinding');
+      tw.setAttribute('name', 'TW1');
+      pt.appendChild(tw);
+      bay.appendChild(pt);
+      const { parent, fn } = triggerAndCapture(tw, 'Ftw');
+      expect(parent).to.equal(bay);
+      expect(fn.getAttribute('name')).to.equal('Ftw');
+      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
+      expect(priv).to.exist;
+      const psr = priv!.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelations'
+      )[0];
+      expect(psr).to.exist;
+      const rel = psr.getElementsByTagNameNS(
+        'http://www.iec.ch/61850/2019/SCL/6-100',
+        'PowerSystemRelation'
+      )[0];
+      expect(rel).to.exist;
+      expect(rel.getAttribute('relation')).to.include('PTR1');
+    });
+  });
+
   afterEach(() => {
     sinon.restore();
   });
@@ -40,23 +169,13 @@ describe('Bay Template Editor Plugin', () => {
     it('does not render sld-editor', async () => {
       expect(element.shadowRoot?.querySelector('sld-editor')).to.not.exist;
     });
-
-    it('shows only substation button', async () => {
-      const outlinedButtons =
-        element.shadowRoot?.querySelectorAll('oscd-icon-button');
-      const filledButtons = element.shadowRoot?.querySelectorAll(
-        'oscd-filled-icon-button'
-      );
-      expect(outlinedButtons?.length).to.equal(0);
-      expect(filledButtons?.length).to.equal(1);
-      expect(filledButtons?.[0].getAttribute('label')).to.equal(
-        'Add Substation'
-      );
-    });
   });
 
   describe('substation button', () => {
-    it('is always visible', async () => {
+    it('is always visible when a doc is present', async () => {
+      const doc = new DOMParser().parseFromString(emptyDoc, 'application/xml');
+      element.doc = doc;
+      await element.updateComplete;
       const button = element.shadowRoot?.querySelector(
         'oscd-filled-icon-button[label="Add Substation"]'
       );
@@ -80,6 +199,12 @@ describe('Bay Template Editor Plugin', () => {
     });
 
     it('is disabled when functions layer is active', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithSubstation,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
       element.showFunctions = true;
       await element.updateComplete;
 
@@ -533,7 +658,8 @@ describe('Bay Template Editor Plugin', () => {
 
   describe('reset method', () => {
     it('sets inAction to false', async () => {
-      element.inAction = true;
+      element.sldEditorInAction = true;
+      expect(element.inAction).to.be.true;
       element.reset();
       expect(element.inAction).to.be.false;
     });
@@ -706,35 +832,29 @@ describe('Bay Template Editor Plugin', () => {
   describe('function layer state management', () => {
     it('updates inAction when functionsInAction changes', async () => {
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.false;
     });
 
     it('sets inAction when either sldEditor or functions are in action', async () => {
       element.sldEditorInAction = true;
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.sldEditorInAction = false;
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
 
       element.sldEditorInAction = true;
       element.functionsInAction = true;
-      element.updateInAction();
       expect(element.inAction).to.be.true;
     });
 
     it('clears inAction when both states are false', async () => {
       element.sldEditorInAction = false;
       element.functionsInAction = false;
-      element.updateInAction();
       expect(element.inAction).to.be.false;
     });
   });
@@ -788,7 +908,6 @@ describe('Bay Template Editor Plugin', () => {
 
       expect(element.placingFunction).to.exist;
 
-      // Disconnect the element
       element.disconnectedCallback();
 
       // Keydown event should not affect the element after disconnection

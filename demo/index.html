@@ -37,12 +37,6 @@
 
   const editor = document.querySelector('open-scd');
   editor.plugins = plugins;
-
-  const sample = await fetch('sample.scd').then(r => r.text());
-  editor.docs = {
-    'sample.scd': new DOMParser().parseFromString(sample, 'application/xml'),
-  };
-  editor.docName = 'sample.scd';
 </script>
 
 <style>

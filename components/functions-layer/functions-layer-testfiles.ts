@@ -20,6 +20,7 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
             <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
           </Private>
         </Function>
+        <ConductingEquipment name="CE1" />
       </Bay>
     </VoltageLevel>
   </Substation>

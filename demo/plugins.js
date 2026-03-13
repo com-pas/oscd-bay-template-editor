@@ -19,7 +19,7 @@ export const plugins = {
     {
       name: 'Wizarding',
       icon: 'edit',
-      active: true,
+      active: false,
       src: 'https://openenergytools.github.io/scl-editor/plugins/scl-wizarding/scl-wizarding.js',
     },
   ],
