@@ -16,3 +16,5 @@ export declare function equipmentPath(equipmentType: string | null): TemplateRes
 export declare function equipmentGraphic(equipmentType: string | null): TemplateResult<1>;
 export declare function equipmentIcon(equipmentType: string): TemplateResult<1>;
 export declare const symbols: TemplateResult<2>;
+export declare const functionPath: TemplateResult<2>;
+export declare const functionAddIcon: TemplateResult<1>;
