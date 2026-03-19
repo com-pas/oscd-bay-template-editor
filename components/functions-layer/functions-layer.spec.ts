@@ -3,6 +3,7 @@ import { html } from 'lit';
 import sinon, { spy } from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
 import { FunctionsLayer } from './functions-layer.js';
+import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 import {
   docWithBayAndFunctions,
   docWithoutFunctions,
@@ -456,6 +457,83 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
 
       expect(element.nsp).to.equal('customnsp');
+    });
+  });
+
+  describe('hover interaction', () => {
+    beforeEach(async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBayAndFunctions,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+    });
+
+    it('calls onHoverFunction with function element on mouseenter', async () => {
+      const onHoverFunctionSpy = spy();
+      element.onHoverFunction = onHoverFunctionSpy;
+
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('mouseenter', { bubbles: false })
+      );
+      await element.updateComplete;
+
+      expect(onHoverFunctionSpy.calledOnce).to.be.true;
+      const calledWith = onHoverFunctionSpy.firstCall.args[0] as Element;
+      expect(calledWith).to.not.be.null;
+      expect(calledWith.tagName).to.equal('Function');
+    });
+
+    it('calls onHoverFunction with null on mouseleave', async () => {
+      const onHoverFunctionSpy = spy();
+      element.onHoverFunction = onHoverFunctionSpy;
+
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('mouseenter', { bubbles: false })
+      );
+      await element.updateComplete;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('mouseleave', { bubbles: false })
+      );
+      await element.updateComplete;
+
+      expect(onHoverFunctionSpy.calledTwice).to.be.true;
+      expect(onHoverFunctionSpy.secondCall.args[0]).to.be.null;
+    });
+
+    it('applies highlight styles on hover', async () => {
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('mouseenter', { bubbles: false })
+      );
+      await element.updateComplete;
+
+      const rect = functionGroup.querySelector('rect');
+      expect(rect?.getAttribute('fill')).to.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.fill
+      );
+      expect(rect?.getAttribute('stroke')).to.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.stroke
+      );
+      expect(rect?.getAttribute('fill')).to.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.fill
+      );
     });
   });
 });

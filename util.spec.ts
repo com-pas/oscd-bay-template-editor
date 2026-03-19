@@ -27,11 +27,11 @@ describe('utils', () => {
   });
 
   describe('getFunctionCoordinates', () => {
-    it('centers for Bay parent', () => {
+    it('returns top left +1 for Bay parent', () => {
       const bay = doc.querySelector('Bay[name="B1"]');
       const coords = getFunctionCoordinates(doc, bay!);
-      expect(coords.x).equal(15);
-      expect(coords.y).equal(13);
+      expect(coords.x).equal(6);
+      expect(coords.y).equal(6);
     });
 
     it('places below parent with coordinates', () => {
@@ -39,8 +39,8 @@ describe('utils', () => {
       setSLDAttributes(parent, 'eosld', { x: '10', y: '20' });
       doc.documentElement.firstElementChild!.appendChild(parent);
       const coords = getFunctionCoordinates(doc, parent);
-      expect(coords.x).equal(10);
-      expect(coords.y).equal(22);
+      expect(coords.x).equal(11);
+      expect(coords.y).equal(21);
     });
 
     it('places below child with coordinates if parent has none', () => {
@@ -56,20 +56,24 @@ describe('utils', () => {
 
     it('avoids stacking by offsetting', () => {
       const parent = doc.createElement('ConductingEquipment');
-      setSLDAttributes(parent, 'eosld', { x: '1', y: '1' });
+      setSLDAttributes(parent, 'eosld', { x: '1', y: '9' });
       doc.documentElement.firstElementChild!.appendChild(parent);
       const fn1 = doc.createElement('Function');
-      setSLDAttributes(fn1, 'eosld', { x: '1', y: '3' });
+      setSLDAttributes(fn1, 'eosld', { x: '2', y: '10' });
       doc.documentElement.appendChild(fn1);
       const fn2 = doc.createElement('Function');
-      setSLDAttributes(fn2, 'eosld', { x: '2', y: '4' });
+      setSLDAttributes(fn2, 'eosld', { x: '3', y: '11' });
       doc.documentElement.appendChild(fn2);
-      // Next function should avoid (1,3) and (2,4)
+      // Next function should avoid (1,9) (2,10) (3,11)
       const coords = getFunctionCoordinates(doc, parent);
       expect(coords.x).not.equal(1);
-      expect(coords.y).not.equal(3);
+      expect(coords.y).not.equal(9);
       expect(coords.x).not.equal(2);
-      expect(coords.y).not.equal(4);
+      expect(coords.y).not.equal(10);
+      expect(coords.x).not.equal(3);
+      expect(coords.y).not.equal(11);
+      expect(coords.x).equal(4);
+      expect(coords.y).equal(12);
     });
   });
 
