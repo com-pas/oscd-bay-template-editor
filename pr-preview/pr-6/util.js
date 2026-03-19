@@ -197,7 +197,6 @@ export function getFunctionCoordinates(doc, parent) {
         y += 1;
         offsetTries -= 1;
     }
-    console.log(`Calculated function coordinates: (${x}, ${y})`);
     return { x, y };
 }
 export function getProcessPath(element) {
