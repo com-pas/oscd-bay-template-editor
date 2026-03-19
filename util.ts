@@ -257,7 +257,6 @@ export function getFunctionCoordinates(
     offsetTries -= 1;
   }
 
-  console.log(`Calculated function coordinates: (${x}, ${y})`);
   return { x, y };
 }
 
