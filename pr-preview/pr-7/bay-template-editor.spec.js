@@ -588,5 +588,34 @@ describe('Bay Template Editor Plugin', () => {
             expect(element.placingFunction).to.exist;
         });
     });
+    describe('Cancel button', () => {
+        it('resets state when clicked', async () => {
+            const doc = new DOMParser().parseFromString(docWithBay, 'application/xml');
+            element.doc = doc;
+            element.sldEditorInAction = true;
+            await element.updateComplete;
+            const cancelBtn = element.shadowRoot?.querySelector('oscd-icon-button[label="Cancel"]');
+            cancelBtn.click();
+            await element.updateComplete;
+            expect(element.sldEditorInAction).to.be.false;
+            expect(element.functionsInAction).to.be.false;
+            expect(element.inAction).to.be.false;
+        });
+        it('toggles function layer visibility when adding function', async () => {
+            const doc = new DOMParser().parseFromString(docWithBay, 'application/xml');
+            element.doc = doc;
+            await element.updateComplete;
+            const addFunctionButton = element.shadowRoot?.querySelector('oscd-icon-button[label="Add Function"]');
+            addFunctionButton.click();
+            await element.updateComplete;
+            expect(element.addingFunction).to.be.true;
+            expect(element.showFunctions).to.be.true;
+            const cancelBtn = element.shadowRoot?.querySelector('oscd-icon-button[label="Cancel"]');
+            cancelBtn.click();
+            await element.updateComplete;
+            expect(element.addingFunction).to.be.false;
+            expect(element.showFunctions).to.be.false;
+        });
+    });
 });
 //# sourceMappingURL=bay-template-editor.spec.js.map

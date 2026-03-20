@@ -12,6 +12,7 @@ import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { getSLDAttributes, updateSLDAttributes, getSldSvgs, } from '../../util.js';
 import { FunctionContentPanel } from './function-content-panel.js';
+import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
@@ -43,6 +44,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         this.mouseY = 0;
         this.sldOffsetTop = 0;
         this.sldOffsetLeft = 0;
+        this.hoveredFunction = null;
         this.coordinatesRef = createRef();
         this.contextMenuRef = createRef();
     }
@@ -198,6 +200,16 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             }
         }
     }
+    handleFunctionMouseEnter(fn) {
+        if (!this.placing) {
+            this.hoveredFunction = fn.element;
+            this.onHoverFunction?.(fn.element);
+        }
+    }
+    handleFunctionMouseLeave() {
+        this.hoveredFunction = null;
+        this.onHoverFunction?.(null);
+    }
     renderFunction(fn, preview = false) {
         if (this.placing === fn.element && !preview) {
             return nothing;
@@ -218,9 +230,30 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             classAttr += ' preview';
         if (isPlacing)
             classAttr += ' placing';
+        const isHovered = this.hoveredFunction === fn.element;
+        let fill;
+        let stroke;
+        let strokeWidth;
+        if (isHovered) {
+            fill = SELECTED_PSR_HIGHLIGHT_STYLE.fill;
+            stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
+            strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
+        }
+        else if (preview) {
+            fill = PREVIEW_FILL;
+            stroke = PREVIEW_STROKE;
+            strokeWidth = STROKE_WIDTH;
+        }
+        else {
+            fill = NORMAL_FILL;
+            stroke = STROKE;
+            strokeWidth = STROKE_WIDTH;
+        }
         const centerY = rectY + HEIGHT / 2;
         return svg `<g class="${classAttr}"
          @click=${(e) => this.handleFunctionClick(fn, e)}
+         @mouseenter=${() => this.handleFunctionMouseEnter(fn)}
+         @mouseleave=${() => this.handleFunctionMouseLeave()}
          @contextmenu=${(e) => this.handleFunctionContextMenu(fn, e)}
          tabindex="0">
         <rect
@@ -228,9 +261,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           y="${rectY}"
           width="${boxWidth}"
           height="${HEIGHT}"
-          fill="${preview ? PREVIEW_FILL : NORMAL_FILL}"
-          stroke="${preview ? PREVIEW_STROKE : STROKE}"
-          stroke-width="${STROKE_WIDTH}"
+          fill="${fill}"
+          stroke="${stroke}"
+          stroke-width="${strokeWidth}"
           rx="${BORDER_RADIUS}"
           id="${fn.name}"
         />
@@ -384,6 +417,7 @@ FunctionsLayer.styles = css `
       right: 0;
       bottom: 0;
       pointer-events: none;
+      z-index: 2;
     }
 
     svg {
@@ -469,6 +503,9 @@ __decorate([
     property({ attribute: false })
 ], FunctionsLayer.prototype, "onStartPlaceFunction", void 0);
 __decorate([
+    property({ attribute: false })
+], FunctionsLayer.prototype, "onHoverFunction", void 0);
+__decorate([
     state()
 ], FunctionsLayer.prototype, "functions", void 0);
 __decorate([
@@ -483,6 +520,9 @@ __decorate([
 __decorate([
     state()
 ], FunctionsLayer.prototype, "sldOffsetLeft", void 0);
+__decorate([
+    state()
+], FunctionsLayer.prototype, "hoveredFunction", void 0);
 __decorate([
     query('svg')
 ], FunctionsLayer.prototype, "svg", void 0);

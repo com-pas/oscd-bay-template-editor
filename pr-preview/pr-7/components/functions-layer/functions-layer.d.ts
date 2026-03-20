@@ -33,11 +33,13 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     placing?: Element;
     placingOffset: Point;
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
+    onHoverFunction?: (funcElement: Element | null) => void;
     functions: FunctionData[];
     mouseX: number;
     mouseY: number;
     sldOffsetTop: number;
     sldOffsetLeft: number;
+    private hoveredFunction;
     svg: SVGSVGElement;
     private menuAnchor;
     coordinatesRef: Ref<HTMLElement>;
@@ -56,6 +58,8 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private handleFunctionContextMenu;
     private closeContextMenu;
     private handleContainerClick;
+    private handleFunctionMouseEnter;
+    private handleFunctionMouseLeave;
     private renderFunction;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult;

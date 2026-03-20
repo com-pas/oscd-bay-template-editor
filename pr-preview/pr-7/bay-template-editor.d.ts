@@ -37,6 +37,11 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         id: string;
         style: HighlightStyle;
     }[];
+    functionHoverHighlight: {
+        id: string;
+        style: HighlightStyle;
+    }[];
+    private hoveredSubstation?;
     selectedElement?: Element;
     private sldBounds;
     private readonly onResize;
@@ -45,6 +50,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     disconnectedCallback(): void;
     private handleKeydown;
     handleStartPlaceFunction: (element: Element, offset: [number, number]) => void;
+    handleFunctionHover: (funcElement: Element | null) => void;
+    private getElementFromProcessPath;
     get inAction(): boolean;
     private preprocessEdits;
     handleSldSelected: (event: CustomEvent<{
