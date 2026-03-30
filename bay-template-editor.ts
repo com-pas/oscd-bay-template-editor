@@ -883,13 +883,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         display: block;
         width: 100%;
         height: 600px;
-        border: 1px solid #ccc;
         margin-top: 24px;
       }
       sld-editor {
         position: relative;
         display: block;
-        width: 100%;
+        max-width: 100%;
         height: 100%;
       }
       .substation-highlight {

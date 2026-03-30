@@ -6,11 +6,15 @@ import { classMap } from 'lit/directives/class-map.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
+import { OscdMenu } from '@omicronenergy/oscd-ui/menu/OscdMenu.js';
+import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
+import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import {
   getSLDAttributes,
   updateSLDAttributes,
   getSldSvgs,
 } from '../../util.js';
+import { FunctionContentPanel } from './function-content-panel.js';
 import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 
 type Point = [number, number];
@@ -24,6 +28,21 @@ type FunctionData = {
 };
 
 export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
+  static get scopedElements() {
+    return {
+      'function-content-panel': FunctionContentPanel,
+      'oscd-menu': OscdMenu,
+      'oscd-menu-item': OscdMenuItem,
+      'oscd-icon': OscdIcon,
+    };
+  }
+
+  @state()
+  selectedFunctionElement?: Element;
+
+  @state()
+  private contextMenu?: { element: Element; x: number; y: number };
+
   private readonly FUNCTION_BOX = {
     HEIGHT: 1,
     ICON_SIZE: 0.8,
@@ -95,7 +114,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   @query('svg')
   svg!: SVGSVGElement;
 
+  @query('#functions-context-menu-anchor')
+  private menuAnchor!: HTMLSpanElement;
+
   coordinatesRef: Ref<HTMLElement> = createRef();
+
+  private contextMenuRef: Ref<any> = createRef();
 
   firstUpdated() {
     this.calculateSldOffset();
@@ -252,6 +276,21 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     this.onStartPlaceFunction?.(fn.element, offset);
   }
 
+  private handleFunctionContextMenu(fn: FunctionData, e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.contextMenu = { element: fn.element, x: e.clientX, y: e.clientY };
+    requestAnimationFrame(() => {
+      this.menuAnchor.style.left = `${e.clientX}px`;
+      this.menuAnchor.style.top = `${e.clientY}px`;
+      this.contextMenuRef.value?.show();
+    });
+  }
+
+  private closeContextMenu() {
+    this.contextMenu = undefined;
+  }
+
   private handleContainerClick(e: MouseEvent) {
     if (this.placing) {
       const placingFn = this.functions.find(fn => fn.element === this.placing);
@@ -322,6 +361,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
          @click=${(e: MouseEvent) => this.handleFunctionClick(fn, e)}
          @mouseenter=${() => this.handleFunctionMouseEnter(fn)}
          @mouseleave=${() => this.handleFunctionMouseLeave()}
+         @contextmenu=${(e: MouseEvent) =>
+           this.handleFunctionContextMenu(fn, e)}
          tabindex="0">
         <rect
           x="${rectX}"
@@ -367,7 +408,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       hideCoordinateTooltip = false;
       const x = this.mouseX - this.placingOffset[0];
       const y = this.mouseY - this.placingOffset[1];
-
       coordinates = html`${x},${y}`;
     }
 
@@ -394,54 +434,94 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                @click=${this.handleContainerClick} />`
       : nothing;
 
+    const contextMenuTemplate = html`
+      <div style="position:relative;pointer-events:auto;">
+        <span
+          id="functions-context-menu-anchor"
+          style="position:fixed;pointer-events:none;"
+        ></span>
+        <oscd-menu
+          ${ref(this.contextMenuRef)}
+          anchor="functions-context-menu-anchor"
+          positioning="fixed"
+          @closed=${() => this.closeContextMenu()}
+        >
+          <oscd-menu-item
+            @click=${() => {
+              this.selectedFunctionElement = this.contextMenu?.element;
+              this.closeContextMenu();
+            }}
+            ><span class="function-menu-item"
+              ><oscd-icon>function</oscd-icon> Function details</span
+            ></oscd-menu-item
+          >
+        </oscd-menu>
+      </div>
+    `;
+
     return html`
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 ${width} ${height}"
-        width="${width * this.gridSize}"
-        height="${height * this.gridSize}"
-        stroke-width="0.06"
-        fill="none"
-        style="position: absolute; top: ${this.sldOffsetTop}px; left: ${this
-          .sldOffsetLeft}px;"
-        @mousemove=${(e: MouseEvent) => this.handleMouseMove(e)}
-        class="${classMap({
-          placing: !!this.placing,
-          disabled: this.disabled,
-        })}"
-      >
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-          .function {
-            cursor: pointer;
-            pointer-events: ${this.disabled ? 'none' : 'all'};
-          }
-          .function.placing {
-            cursor: move;
-          }
-          .function.preview {
-            opacity: 0.7;
-          }
-          svg:not(:hover) .preview {
-            visibility: hidden;
-          }
-          .function:focus {
-            outline: none;
-          }
-          .function rect {
-            user-select: none;
-          }
-          .function text {
-            user-select: none;
-            pointer-events: none;
-          }
-        </style>
-        <rect width="100%" height="100%" fill="white" fill-opacity="0" />
-        ${gridPattern} ${placingTarget}
-        ${this.functions.map(fn => this.renderFunction(fn))}
-        ${placingFn ? this.renderFunction(placingFn, true) : nothing}
-      </svg>
-      ${coordinateTooltip}
+      <div style="display: flex; height: 100%;">
+        <div style="flex: 1; position: relative;">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 ${width} ${height}"
+            width="${width * this.gridSize}"
+            height="${height * this.gridSize}"
+            stroke-width="0.06"
+            fill="none"
+            style="position: absolute; top: ${this.sldOffsetTop}px; left: ${this
+              .sldOffsetLeft}px;"
+            @mousemove=${(e: MouseEvent) => this.handleMouseMove(e)}
+            class="${classMap({
+              placing: !!this.placing,
+              disabled: this.disabled,
+            })}"
+          >
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+              .function {
+                cursor: pointer;
+                pointer-events: ${this.disabled ? 'none' : 'all'};
+              }
+              .function.placing {
+                cursor: move;
+              }
+              .function.preview {
+                opacity: 0.7;
+              }
+              svg:not(:hover) .preview {
+                visibility: hidden;
+              }
+              .function:focus {
+                outline: none;
+              }
+              .function rect {
+                user-select: none;
+              }
+              .function text {
+                user-select: none;
+                pointer-events: none;
+              }
+            </style>
+            <rect width="100%" height="100%" fill="white" fill-opacity="0" />
+            ${gridPattern} ${placingTarget}
+            ${this.functions.map(fn => this.renderFunction(fn))}
+            ${placingFn ? this.renderFunction(placingFn, true) : nothing}
+          </svg>
+          ${coordinateTooltip}
+        </div>
+        ${contextMenuTemplate}
+        ${this.selectedFunctionElement
+          ? html`<div class="sidebar">
+              <function-content-panel
+                .functionElement=${this.selectedFunctionElement}
+                @close=${() => {
+                  this.selectedFunctionElement = undefined;
+                }}
+              ></function-content-panel>
+            </div>`
+          : nothing}
+      </div>
     `;
   }
 
@@ -482,6 +562,27 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     .coordinates.hidden {
       display: none;
+    }
+
+    .sidebar {
+      pointer-events: auto;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    oscd-menu {
+      --md-menu-container-color: var(--oscd-base3);
+    }
+
+    oscd-menu-item {
+      --md-menu-item-label-text-color: var(--oscd-base01);
+    }
+
+    .function-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   `;
 }

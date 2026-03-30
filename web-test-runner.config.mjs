@@ -1,4 +1,5 @@
 import { polyfill } from '@web/dev-server-polyfill';
+import { esbuildPlugin } from '@web/dev-server-esbuild';
 import { visualRegressionPlugin } from '@web/test-runner-visual-regression/plugin';
 import { playwrightLauncher } from '@web/test-runner-playwright';
 
@@ -13,7 +14,7 @@ const chromiumOnly = [playwrightLauncher({ product: 'chromium' })];
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   /** Test files to run */
-  files: 'dist/**/*.spec.js',
+  files: ['**/*.spec.ts', '!node_modules/**'],
 
   /** Setup to handle duplicate custom element registrations */
   testRunnerHtml: testFramework =>
@@ -73,6 +74,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
 
   // See documentation for all available options
   plugins: [
+    esbuildPlugin({ ts: true, tsconfig: './tsconfig.json' }),
     polyfill({
       scopedCustomElementRegistry: true,
     }),
@@ -82,7 +84,11 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   ],
 
   groups: [
-    { name: 'visual', files: 'dist/**/*.test.js', browsers },
-    { name: 'unit', files: 'dist/**/*.spec.js', browsers: chromiumOnly },
+    { name: 'visual', files: ['**/*.test.ts', '!node_modules/**'], browsers },
+    {
+      name: 'unit',
+      files: ['**/*.spec.ts', '!node_modules/**'],
+      browsers: chromiumOnly,
+    },
   ],
 });
