@@ -12,7 +12,7 @@ This project provides a plugin for OpenSCD to edit bay templates in SCL (IEC 618
    ```sh
    npm start
    ```
-3. Open `demo/index.html` in your browser to use the Bay Template Editor plugin within OpenSCD.
+3. Open `demo/index.html` in your browser to use the Bay Template Editor Plugin within OpenSCD.
 
 ## Development
 
