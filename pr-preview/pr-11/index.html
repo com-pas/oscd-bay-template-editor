@@ -1,30 +1,9 @@
-<title>Bay Template Editor demo</title>
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&family=Roboto:wght@300;400;500&display=swap"
-/>
-<link
-  rel="stylesheet"
-  href="https://fonts.googleapis.com/css?family=Material+Symbols+Outlined&display=block"
-/>
-<oscd-shell></oscd-shell>
+<html><head><title>Bay Template Editor demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&amp;family=Roboto:wght@300;400;500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Symbols+Outlined&amp;display=block">
+</head><body><oscd-shell></oscd-shell>
 
-<script type="module">
-  import '@webcomponents/scoped-custom-element-registry';
-  import '@omicronenergy/oscd-shell/oscd-shell.js';
-  import { plugins } from './plugins.js';
 
-  customElements.whenDefined('oscd-shell').then(async () => {
-    const editor = document.querySelector('oscd-shell');
-    await editor.updateComplete;
-    editor.plugins = plugins;
-
-    const params = new URL(document.location).searchParams;
-    for (const [name, value] of params) {
-      editor.setAttribute(name, value);
-    }
-  });
-</script>
 
 <style>
   * {
@@ -56,3 +35,4 @@
     border-bottom: none;
   }
 </style>
+<script type="module" src="./inline-module-34f578c9f0f31c215450a6b962d5c944.js"></script></body></html>
