@@ -164,28 +164,6 @@ export function makeBusBar(doc: XMLDocument, nsp: string) {
   return busBar;
 }
 
-export function uniqueName(element: Element, parent: Element): string {
-  const children = Array.from(parent.children);
-  const oldName = element.getAttribute('name');
-  if (
-    oldName &&
-    !children.find(child => child.getAttribute('name') === oldName)
-  )
-    return oldName;
-
-  const baseName =
-    element.getAttribute('name')?.replace(/[0-9]*$/, '') ??
-    element.getAttribute('type') ??
-    element.tagName.charAt(0);
-  let index = 1;
-  function hasName(child: Element) {
-    return child.getAttribute('name') === baseName + index.toString();
-  }
-  while (children.find(hasName)) index += 1;
-
-  return baseName + index.toString();
-}
-
 function getCenter(el: Element | null): { x: number; y: number } {
   const parentW = el ? parseFloat(getSLDAttributes(el, 'w') ?? '0') : 0;
   const parentH = el ? parseFloat(getSLDAttributes(el, 'h') ?? '0') : 0;

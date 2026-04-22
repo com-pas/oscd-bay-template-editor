@@ -4,7 +4,6 @@ import {
   getFunctionCoordinates,
   setSLDAttributes,
   getSLDAttributes,
-  uniqueName,
   isBusBar,
   makeBusBar,
   privType,
@@ -90,27 +89,6 @@ describe('utils', () => {
       setSLDAttributes(eq, 'eosld', { x: '7', y: '8' });
       expect(getSLDAttributes(eq, 'x')).equal('7');
       expect(getSLDAttributes(eq, 'y')).equal('8');
-    });
-  });
-
-  describe('uniqueName', () => {
-    it('returns existing unique name', () => {
-      const parent = doc.createElement('Bay');
-      const child = doc.createElement('Function');
-      parent.appendChild(child);
-      expect(uniqueName(child, parent)).equal('F1');
-    });
-
-    it('generates new name if duplicate', () => {
-      const parent = doc.createElement('Bay');
-      const child1 = doc.createElement('Function');
-      child1.setAttribute('name', 'F1');
-      parent.appendChild(child1);
-      const child2 = doc.createElement('Function');
-      child2.setAttribute('name', 'F1');
-      parent.appendChild(child2);
-      expect(uniqueName(child2, parent)).match(/^F\d+$/);
-      expect(uniqueName(child2, parent)).not.equal('F1');
     });
   });
 
