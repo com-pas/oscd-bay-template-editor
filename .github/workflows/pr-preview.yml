@@ -33,12 +33,6 @@ jobs:
       - name: Build (PR Preview)
         run: npm run build:preview
 
-      - name: Prepare preview directory
-        run: |
-          cp -r dist preview/
-          rsync -av --exclude='plugins.js' demo/ preview/
-          sed -i "s|../dist/bay-template-editor.js|./bay-template-editor.js|g" preview/plugins.js
-
       - name: Deploy preview
         uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 #v1
         with:

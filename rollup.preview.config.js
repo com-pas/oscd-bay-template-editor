@@ -1,21 +1,33 @@
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import typescript from '@rollup/plugin-typescript';
 import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
 import { terser } from 'rollup-plugin-terser';
+import { rollupPluginHTML as html } from '@web/rollup-plugin-html';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default {
-  input: {
-    'bay-template-editor': './bay-template-editor.ts',
-    plugins: './demo/plugins.js',
-  },
+  input: 'demo/index.html',
   output: {
     sourcemap: true,
     format: 'esm',
-    dir: 'dist',
+    dir: 'preview',
   },
   plugins: [
-    typescript(),
+    html(),
+    {
+      name: 'resolve-bay-template-editor-source',
+      resolveId(id) {
+        if (id === '../dist/bay-template-editor.js') {
+          return resolve(__dirname, 'bay-template-editor.ts');
+        }
+        return null;
+      },
+    },
+    typescript({ outDir: 'preview' }),
     nodeResolve({
       browser: true,
       exportConditions: ['browser', 'development'],
