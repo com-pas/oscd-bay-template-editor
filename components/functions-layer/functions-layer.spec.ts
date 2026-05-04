@@ -189,7 +189,6 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
 
       const rect = functionGroup.querySelector('rect');
-      // After Escape, should no longer use the highlight fill
       expect(rect?.getAttribute('fill')).to.not.equal(
         SELECTED_PSR_HIGHLIGHT_STYLE.fill
       );

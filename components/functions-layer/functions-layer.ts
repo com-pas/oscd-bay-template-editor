@@ -295,9 +295,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    if (e.ctrlKey) {
-      const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
-      this.onStartPlaceFunction?.(fn.element, offset);
+    // Ctrl/Cmd + click to start placing, regular click to select
+    if (e.ctrlKey || e.metaKey) {
+      this.startPlacingFunction(fn);
     } else {
       this.selectedFunctionElement = fn.element;
     }
@@ -316,6 +316,20 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   private closeContextMenu() {
     this.contextMenu = undefined;
+  }
+
+  private startPlacingFunction(fn: FunctionData) {
+    const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
+    this.onStartPlaceFunction?.(fn.element, offset);
+  }
+
+  private handleMoveFunction() {
+    const el = this.contextMenu?.element;
+    if (!el) return;
+    const fn = this.functions.find(f => f.element === el);
+    if (!fn) return;
+    this.startPlacingFunction(fn);
+    this.closeContextMenu();
   }
 
   private handleContainerClick(e: MouseEvent) {
@@ -484,16 +498,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               ><oscd-icon>function</oscd-icon> Function details</span
             ></oscd-menu-item
           >
-          <oscd-menu-item
-            @click=${() => {
-              const el = this.contextMenu?.element;
-              if (!el) return;
-              const fn = this.functions.find(f => f.element === el);
-              if (!fn) return;
-              const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
-              this.onStartPlaceFunction?.(el, offset);
-              this.closeContextMenu();
-            }}
+          <oscd-menu-item @click=${() => this.handleMoveFunction()}
             ><span class="function-menu-item"
               ><oscd-icon>open_with</oscd-icon> Move function</span
             ></oscd-menu-item
