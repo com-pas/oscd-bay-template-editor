@@ -34,6 +34,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     placingOffset: Point;
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
     onHoverFunction?: (funcElement: Element | null) => void;
+    onSelectFunction?: (element: Element | null) => void;
     functions: FunctionData[];
     mouseX: number;
     mouseY: number;
@@ -41,9 +42,12 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     sldOffsetLeft: number;
     private hoveredFunction;
     svg: SVGSVGElement;
-    private menuAnchor;
+    private readonly menuAnchor;
     coordinatesRef: Ref<HTMLElement>;
     private contextMenuRef;
+    private readonly handleKeyDown;
+    connectedCallback(): void;
+    disconnectedCallback(): void;
     firstUpdated(): void;
     updated(changedProperties: Map<string, any>): void;
     private calculateSldOffset;
@@ -57,6 +61,8 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private handleFunctionClick;
     private handleFunctionContextMenu;
     private closeContextMenu;
+    private startPlacingFunction;
+    private handleMoveFunction;
     private handleContainerClick;
     private handleFunctionMouseEnter;
     private handleFunctionMouseLeave;
