@@ -61,6 +61,8 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private handleFunctionClick;
     private handleFunctionContextMenu;
     private closeContextMenu;
+    private startPlacingFunction;
+    private handleMoveFunction;
     private handleContainerClick;
     private handleFunctionMouseEnter;
     private handleFunctionMouseLeave;
