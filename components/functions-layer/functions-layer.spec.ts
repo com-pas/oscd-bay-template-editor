@@ -108,7 +108,7 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
     });
 
-    it('handles function click when not disabled', async () => {
+    it('opens details panel on plain click', async () => {
       const functions = element.shadowRoot?.querySelector(
         'g.function'
       ) as SVGGElement;
@@ -120,7 +120,78 @@ describe('FunctionsLayer', () => {
       functions.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await element.updateComplete;
 
+      expect(onStartPlaceFunctionSpy.called).to.be.false;
+      expect(element.selectedFunctionElement).to.exist;
+    });
+
+    it('starts move on ctrl+click', async () => {
+      const functions = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functions).to.exist;
+
+      const onStartPlaceFunctionSpy = spy();
+      element.onStartPlaceFunction = onStartPlaceFunctionSpy;
+
+      functions.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, ctrlKey: true })
+      );
+      await element.updateComplete;
+
       expect(onStartPlaceFunctionSpy.calledOnce).to.be.true;
+      expect(element.selectedFunctionElement).to.be.undefined;
+    });
+
+    it('clears selectedFunctionElement on Escape key', async () => {
+      const functions = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functions).to.exist;
+
+      functions.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+      expect(element.selectedFunctionElement).to.exist;
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await element.updateComplete;
+
+      expect(element.selectedFunctionElement).to.be.undefined;
+    });
+
+    it('applies highlight style to clicked function', async () => {
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      const rect = functionGroup.querySelector('rect');
+      expect(rect?.getAttribute('fill')).to.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.fill
+      );
+      expect(rect?.getAttribute('stroke')).to.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.stroke
+      );
+    });
+
+    it('removes highlight after Escape key', async () => {
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      await element.updateComplete;
+
+      const rect = functionGroup.querySelector('rect');
+      expect(rect?.getAttribute('fill')).to.not.equal(
+        SELECTED_PSR_HIGHLIGHT_STYLE.fill
+      );
     });
 
     it('does not handle function click when disabled', async () => {
@@ -457,6 +528,90 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
 
       expect(element.nsp).to.equal('customnsp');
+    });
+  });
+
+  describe('context menu', () => {
+    beforeEach(async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBayAndFunctions,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+    });
+
+    it('"Function details" menu item opens the details panel', async () => {
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('contextmenu', { bubbles: true })
+      );
+      await element.updateComplete;
+
+      const menuItems = element.shadowRoot?.querySelectorAll('oscd-menu-item');
+      expect(menuItems?.length).to.be.greaterThanOrEqual(2);
+
+      const detailsItem = Array.from(menuItems || []).find(item =>
+        item.textContent?.includes('Function details')
+      ) as HTMLElement | undefined;
+      expect(detailsItem).to.exist;
+
+      detailsItem!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      expect(element.selectedFunctionElement).to.exist;
+    });
+
+    it('"Move function" menu item starts the move flow', async () => {
+      const onStartPlaceFunctionSpy = spy();
+      element.onStartPlaceFunction = onStartPlaceFunctionSpy;
+
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('contextmenu', { bubbles: true })
+      );
+      await element.updateComplete;
+
+      const menuItems = element.shadowRoot?.querySelectorAll('oscd-menu-item');
+      const moveItem = Array.from(menuItems || []).find(item =>
+        item.textContent?.includes('Move function')
+      ) as HTMLElement | undefined;
+      expect(moveItem).to.exist;
+
+      moveItem!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      expect(onStartPlaceFunctionSpy.calledOnce).to.be.true;
+      expect(element.selectedFunctionElement).to.be.undefined;
+    });
+
+    it('context menu contains both "Function details" and "Move function" items', async () => {
+      const functionGroup = element.shadowRoot?.querySelector(
+        'g.function'
+      ) as SVGGElement;
+      expect(functionGroup).to.exist;
+
+      functionGroup.dispatchEvent(
+        new MouseEvent('contextmenu', { bubbles: true })
+      );
+      await element.updateComplete;
+
+      const menuItems = element.shadowRoot?.querySelectorAll('oscd-menu-item');
+      const labels = Array.from(menuItems || []).map(item =>
+        item.textContent?.trim()
+      );
+      const hasDetails = labels.some(l => l?.includes('Function details'));
+      const hasMove = labels.some(l => l?.includes('Move function'));
+      expect(hasDetails).to.be.true;
+      expect(hasMove).to.be.true;
     });
   });
 

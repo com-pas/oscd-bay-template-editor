@@ -93,6 +93,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   @property({ attribute: false })
   onHoverFunction?: (funcElement: Element | null) => void;
 
+  @property({ attribute: false })
+  onSelectFunction?: (element: Element | null) => void;
+
   @state()
   functions: FunctionData[] = [];
 
@@ -115,11 +118,27 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   svg!: SVGSVGElement;
 
   @query('#functions-context-menu-anchor')
-  private menuAnchor!: HTMLSpanElement;
+  private readonly menuAnchor!: HTMLSpanElement;
 
   coordinatesRef: Ref<HTMLElement> = createRef();
 
   private contextMenuRef: Ref<any> = createRef();
+
+  private readonly handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this.selectedFunctionElement) {
+      this.selectedFunctionElement = undefined;
+    }
+  };
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('keydown', this.handleKeyDown);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener('keydown', this.handleKeyDown);
+  }
 
   firstUpdated() {
     this.calculateSldOffset();
@@ -128,6 +147,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   updated(changedProperties: Map<string, any>) {
     super.updated(changedProperties);
+
+    if (changedProperties.has('selectedFunctionElement')) {
+      this.onSelectFunction?.(this.selectedFunctionElement ?? null);
+    }
 
     if (
       changedProperties.has('doc') ||
@@ -204,8 +227,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
       if (!xAttr || !yAttr) return;
 
-      const x = parseFloat(xAttr);
-      const y = parseFloat(yAttr);
+      const x = Number.parseFloat(xAttr);
+      const y = Number.parseFloat(yAttr);
 
       if (Number.isNaN(x) || Number.isNaN(y)) return;
 
@@ -225,10 +248,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     const substation =
       this.substation ?? this.doc?.querySelector(':root > Substation');
     const w = substation
-      ? parseFloat(getSLDAttributes(substation, 'w') ?? '0')
+      ? Number.parseFloat(getSLDAttributes(substation, 'w') ?? '0')
       : 0;
     const h = substation
-      ? parseFloat(getSLDAttributes(substation, 'h') ?? '0')
+      ? Number.parseFloat(getSLDAttributes(substation, 'h') ?? '0')
       : 0;
     return {
       width: Math.max(1, w),
@@ -272,8 +295,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
-    this.onStartPlaceFunction?.(fn.element, offset);
+    // Ctrl/Cmd + click to start placing, regular click to select
+    if (e.ctrlKey || e.metaKey) {
+      this.startPlacingFunction(fn);
+    } else {
+      this.selectedFunctionElement = fn.element;
+    }
   }
 
   private handleFunctionContextMenu(fn: FunctionData, e: MouseEvent) {
@@ -289,6 +316,20 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   private closeContextMenu() {
     this.contextMenu = undefined;
+  }
+
+  private startPlacingFunction(fn: FunctionData) {
+    const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
+    this.onStartPlaceFunction?.(fn.element, offset);
+  }
+
+  private handleMoveFunction() {
+    const el = this.contextMenu?.element;
+    if (!el) return;
+    const fn = this.functions.find(f => f.element === el);
+    if (!fn) return;
+    this.startPlacingFunction(fn);
+    this.closeContextMenu();
   }
 
   private handleContainerClick(e: MouseEvent) {
@@ -338,11 +379,13 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
     const isHovered = this.hoveredFunction === fn.element;
+    const isSelected = this.selectedFunctionElement === fn.element;
+    if (isSelected) classAttr += ' selected';
 
     let fill: string;
     let stroke: string;
     let strokeWidth: number;
-    if (isHovered) {
+    if (isSelected || isHovered) {
       fill = SELECTED_PSR_HIGHLIGHT_STYLE.fill;
       stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
       strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
@@ -453,6 +496,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             }}
             ><span class="function-menu-item"
               ><oscd-icon>function</oscd-icon> Function details</span
+            ></oscd-menu-item
+          >
+          <oscd-menu-item @click=${() => this.handleMoveFunction()}
+            ><span class="function-menu-item"
+              ><oscd-icon>open_with</oscd-icon> Move function</span
             ></oscd-menu-item
           >
         </oscd-menu>
