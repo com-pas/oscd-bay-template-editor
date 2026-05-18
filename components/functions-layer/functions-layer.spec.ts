@@ -4,6 +4,7 @@ import sinon, { spy } from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
 import { FunctionsLayer } from './functions-layer.js';
 import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
+import { DocumentProcessor } from '../../document-processor.js';
 import {
   docWithBayAndFunctions,
   docWithoutFunctions,
@@ -47,6 +48,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
 
@@ -77,6 +79,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const functions = element.shadowRoot?.querySelectorAll('g.function');
@@ -91,6 +94,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
 
@@ -220,6 +224,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
 
@@ -286,6 +291,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
 
       const functionElement = doc.querySelector('Function[name="F1"]');
       expect(functionElement).to.exist;
@@ -317,6 +323,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const functionElement = doc.querySelector('Function[name="F1"]');
@@ -340,6 +347,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       // Should not render functions without valid bay parent
@@ -355,6 +363,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       element.disabled = true;
       await element.updateComplete;
     });
@@ -393,6 +402,7 @@ describe('FunctionsLayer', () => {
       );
 
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
     it('updates rendering when gridSize changes', async () => {
@@ -416,6 +426,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       element.editCount = 0;
       await element.updateComplete;
 
@@ -434,6 +445,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const svg = element.shadowRoot?.querySelector('svg');
@@ -457,6 +469,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const svg = element.shadowRoot?.querySelector('svg');
@@ -471,6 +484,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const rects = element.shadowRoot?.querySelectorAll('rect');
@@ -510,6 +524,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
 
       const rects = element.shadowRoot?.querySelectorAll('rect');
@@ -524,6 +539,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       element.nsp = 'customnsp';
       await element.updateComplete;
 
@@ -538,6 +554,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
 
@@ -622,6 +639,7 @@ describe('FunctionsLayer', () => {
         'application/xml'
       );
       element.doc = doc;
+      element.processedDoc = DocumentProcessor.process(doc);
       await element.updateComplete;
     });
 

@@ -23,7 +23,6 @@ import {
 } from './icons.js';
 import {
   eqTypes,
-  isBusBar,
   makeBusBar,
   setSLDAttributes,
   sldNs,
@@ -32,12 +31,14 @@ import {
   getProcessPath,
   createPowerSystemRelationPrivate,
   getSldSvgs,
-  eTr6100Ns,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import {
-  PSR_TAGS,
+  DocumentProcessor,
+  type ProcessedDocument,
+} from './document-processor.js';
+import {
   PSR_HIGHLIGHT_STYLE,
   SELECTED_PSR_HIGHLIGHT_STYLE,
   type HighlightStyle,
@@ -117,6 +118,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     height: number;
   }[] = [];
 
+  @state()
+  processedDoc?: ProcessedDocument;
+
   private readonly onResize = () => this.calculateSldBounds();
 
   get showLabels(): boolean {
@@ -165,16 +169,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    // If the Function has a PowerSystemRelation Private, resolve the referenced
-    // element and highlight that instead of the DOM parent.
-    const psrRelationEl = funcElement.getElementsByTagNameNS(
-      eTr6100Ns,
-      'PowerSystemRelation'
-    )[0];
-    const relation = psrRelationEl?.getAttribute('relation');
-    const target = relation
-      ? this.getElementFromProcessPath(relation)
-      : funcElement.parentElement;
+    const processedFunction =
+      this.processedDoc?.functionsByElement.get(funcElement);
+    const target =
+      processedFunction?.referencedElement ?? funcElement.parentElement;
 
     if (!target) {
       this.functionHoverHighlight = [];
@@ -197,24 +195,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     ];
   };
 
-  private getElementFromProcessPath(path: string): Element | null {
-    if (!this.doc) return null;
-    const parts = path.split('/');
-    if (!parts.length || !parts[0]) return null;
-
-    let current: Element | null = this.doc.querySelector(
-      `:root > Substation[name="${parts[0]}"]`
-    );
-    for (let i = 1; i < parts.length && current; i += 1) {
-      const name = parts[i];
-      current =
-        Array.from(current.children).find(
-          child => child.getAttribute('name') === name
-        ) ?? null;
-    }
-    return current;
-  }
-
   get inAction(): boolean {
     return (
       this.sldEditorInAction || this.functionsInAction || this.addingFunction
@@ -235,6 +215,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       this.createFunctionDialog.show();
     }
   };
+
+  willUpdate(changedProperties: Map<PropertyKey, unknown>) {
+    if (
+      (changedProperties.has('doc') || changedProperties.has('editCount')) &&
+      this.doc
+    ) {
+      this.processedDoc = DocumentProcessor.process(this.doc);
+    }
+  }
 
   updated(changedProperties: Map<PropertyKey, unknown>) {
     if (
@@ -580,8 +569,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   private renderFunctionButtons() {
-    if (!this.doc) return nothing;
-    return html`${this.doc.querySelector('VoltageLevel, PowerTransformer')
+    if (!this.doc || !this.processedDoc) return nothing;
+    return html`${this.processedDoc.hasVoltageLevelOrTransformer
       ? html`<oscd-icon-button
           id="labels"
           label="Toggle Labels"
@@ -593,20 +582,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           <oscd-icon slot="selected">font_download_off</oscd-icon>
         </oscd-icon-button>`
       : nothing}
-    ${Array.from(this.doc.documentElement.children).find(
-      c => c.tagName === 'Substation'
-    )
+    ${this.processedDoc.hasSubstation
       ? html`<oscd-icon-button
           ?disabled=${this.showFunctions}
           id="function"
           label="Add Function"
           title="Add Function"
           @click=${() => {
-            if (!this.doc) return;
-            const elements = PSR_TAGS.flatMap(tag =>
-              Array.from(this.doc!.querySelectorAll(tag))
-            );
-            this.highlight = elements.map(el => ({
+            if (!this.processedDoc) return;
+            this.highlight = this.processedDoc.psrElements.map(el => ({
               id: identity(el).toString(),
               style: PSR_HIGHLIGHT_STYLE,
             }));
@@ -616,7 +600,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         >
           ${functionAddIcon}
         </oscd-icon-button>`
-      : nothing}${this.doc.querySelector('Function')
+      : nothing}${this.processedDoc.hasFunctions
       ? html`<oscd-icon-button
           id="functions"
           ?selected=${this.showFunctions}
@@ -629,7 +613,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           ${functionsOffIcon}
           <span slot="selected">${functionsIcon}</span>
         </oscd-icon-button>`
-      : nothing}${this.doc.querySelector('Substation')
+      : nothing}${this.processedDoc.hasSubstation
       ? html`<oscd-icon-button
             label="Zoom In"
             title="Zoom In (${Math.round((100 * (this.gridSize + 3)) / 32)}%)"
@@ -661,14 +645,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    return this.doc
+    return this.doc && this.processedDoc
       ? html`
           <nav>
-            ${Array.from(
-              this.doc.querySelectorAll(
-                ':root > Substation > VoltageLevel > Bay'
-              )
-            ).find(bay => !isBusBar(bay))
+            ${this.processedDoc.hasNonBusBarBays
               ? eqTypes.map(
                   eqType => html`<oscd-icon-button
                     ?disabled=${this.showFunctions}
@@ -683,9 +663,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     >${equipmentIcon(eqType)}</oscd-icon-button
                   >`
                 )
-              : nothing}${this.doc.querySelector(
-              ':root > Substation > VoltageLevel'
-            )
+              : nothing}${this.processedDoc.hasVoltageLevel
               ? html`<oscd-icon-button
                     ?disabled=${this.showFunctions}
                     @click=${() => {
@@ -754,11 +732,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               @oscd-sld-selected=${this.handleSldSelected}
             ></sld-editor>
             ${this.renderSubstationHighlight()}
-            ${this.showFunctions
-              ? Array.from(this.doc.querySelectorAll(':root > Substation')).map(
+            ${this.showFunctions && this.processedDoc
+              ? this.processedDoc.substations.map(
                   substation => html`<functions-layer
                     .doc=${this.doc}
                     .substation=${substation}
+                    .processedDoc=${this.processedDoc}
                     .editCount=${this.editCount}
                     .gridSize=${this.gridSize}
                     .nsp=${this.nsp}

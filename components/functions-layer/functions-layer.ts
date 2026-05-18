@@ -16,16 +16,12 @@ import {
 } from '../../util.js';
 import { FunctionContentPanel } from './function-content-panel.js';
 import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
+import {
+  type ProcessedDocument,
+  type ProcessedFunction,
+} from '../../document-processor.js';
 
 type Point = [number, number];
-
-type FunctionData = {
-  element: Element;
-  name: string;
-  x: number;
-  y: number;
-  parent?: Element | null;
-};
 
 export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
@@ -69,6 +65,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   @property({ attribute: false })
   substation?: Element;
 
+  @property({ attribute: false })
+  processedDoc?: ProcessedDocument;
+
   @property({ type: Number })
   editCount: number = -1;
 
@@ -100,7 +99,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onSelectFunction?: (element: Element | null) => void;
 
   @state()
-  functions: FunctionData[] = [];
+  functions: ProcessedFunction[] = [];
 
   @state()
   mouseX = 0;
@@ -156,12 +155,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
 
     if (
-      changedProperties.has('doc') ||
+      changedProperties.has('processedDoc') ||
       changedProperties.has('substation') ||
-      changedProperties.has('gridSize') ||
+      changedProperties.has('doc') ||
       changedProperties.has('editCount')
     ) {
-      this.functions = this.extractFunctions();
+      this.functions = this.getFunctions();
     }
 
     if (
@@ -217,34 +216,16 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private extractFunctions(): FunctionData[] {
-    if (!this.doc) return [];
+  private getFunctions(): ProcessedFunction[] {
+    if (!this.processedDoc) return [];
 
-    const scope: Element | Document = this.substation ?? this.doc;
-    const functions = Array.from(scope.querySelectorAll('Function'));
-    const result: FunctionData[] = [];
+    if (this.substation) {
+      return this.processedDoc.allFunctions.filter(
+        fn => fn.element.closest('Substation') === this.substation
+      );
+    }
 
-    functions.forEach(fn => {
-      const xAttr = getSLDAttributes(fn, 'x');
-      const yAttr = getSLDAttributes(fn, 'y');
-
-      if (!xAttr || !yAttr) return;
-
-      const x = Number.parseFloat(xAttr);
-      const y = Number.parseFloat(yAttr);
-
-      if (Number.isNaN(x) || Number.isNaN(y)) return;
-
-      result.push({
-        element: fn,
-        name: fn.getAttribute('name') || 'Unknown',
-        x,
-        y,
-        parent: fn.parentElement || null,
-      });
-    });
-
-    return result;
+    return this.processedDoc.allFunctions;
   }
 
   private getSvgDimensions(): { width: number; height: number } {
@@ -269,7 +250,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     return Math.max(MIN_WIDTH, ICON_WIDTH + SPACING + textWidth + PADDING);
   }
 
-  private finalizeFunctionPlacement(fn: FunctionData): void {
+  private finalizeFunctionPlacement(fn: ProcessedFunction): void {
     const x = this.mouseX - this.placingOffset[0];
     const y = this.mouseY - this.placingOffset[1];
 
@@ -289,7 +270,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     this.positionCoordinates(e);
   }
 
-  private handleFunctionClick(fn: FunctionData, e: MouseEvent) {
+  private handleFunctionClick(fn: ProcessedFunction, e: MouseEvent) {
     if (this.disabled) return;
 
     e.stopPropagation();
@@ -307,7 +288,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private handleFunctionContextMenu(fn: FunctionData, e: MouseEvent) {
+  private handleFunctionContextMenu(fn: ProcessedFunction, e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     this.contextMenu = { element: fn.element, x: e.clientX, y: e.clientY };
@@ -322,7 +303,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     this.contextMenu = undefined;
   }
 
-  private startPlacingFunction(fn: FunctionData) {
+  private startPlacingFunction(fn: ProcessedFunction) {
     const offset: Point = [this.mouseX - fn.x, this.mouseY - fn.y];
     this.onStartPlaceFunction?.(fn.element, offset);
   }
@@ -345,7 +326,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private handleFunctionMouseEnter(fn: FunctionData) {
+  private handleFunctionMouseEnter(fn: ProcessedFunction) {
     if (!this.placing) {
       this.hoveredFunction = fn.element;
       this.onHoverFunction?.(fn.element);
@@ -357,7 +338,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     this.onHoverFunction?.(null);
   }
 
-  private renderFunction(fn: FunctionData, preview = false) {
+  private renderFunction(fn: ProcessedFunction, preview = false) {
     if (this.placing === fn.element && !preview) {
       return nothing;
     }

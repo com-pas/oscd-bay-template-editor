@@ -4,6 +4,7 @@ import { visualDiff } from '@web/test-runner-visual-regression';
 
 import { FunctionsLayer } from './functions-layer.js';
 import { docWithBayAndFunctions } from './functions-layer-testfiles.js';
+import { DocumentProcessor } from '../../document-processor.js';
 
 window.customElements.define('functions-layer', FunctionsLayer);
 
@@ -28,6 +29,7 @@ describe('FunctionsLayer component', () => {
         docWithBayAndFunctions,
         'application/xml'
       );
+      const processedDoc = DocumentProcessor.process(doc);
       const props = {
         doc,
         editCount: -1,
@@ -40,6 +42,7 @@ describe('FunctionsLayer component', () => {
       editor = await fixture(
         html`<functions-layer
           .doc=${props.doc}
+          .processedDoc=${processedDoc}
           .editCount=${props.editCount}
           .gridSize=${props.gridSize}
           .nsp=${props.nsp}
