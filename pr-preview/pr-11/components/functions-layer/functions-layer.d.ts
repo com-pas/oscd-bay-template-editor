@@ -4,14 +4,8 @@ import { OscdMenu } from '@omicronenergy/oscd-ui/menu/OscdMenu.js';
 import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { FunctionContentPanel } from './function-content-panel.js';
+import { type ProcessedDocument, type ProcessedFunction } from '../../document-processor.js';
 type Point = [number, number];
-type FunctionData = {
-    element: Element;
-    name: string;
-    x: number;
-    y: number;
-    parent?: Element | null;
-};
 declare const FunctionsLayer_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 export declare class FunctionsLayer extends FunctionsLayer_base {
     static get scopedElements(): {
@@ -26,6 +20,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private readonly FUNCTION_COLORS;
     doc?: XMLDocument;
     substation?: Element;
+    processedDoc?: ProcessedDocument;
     editCount: number;
     gridSize: number;
     disabled: boolean;
@@ -36,7 +31,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     onDonePlaceFunction?: () => void;
     onHoverFunction?: (funcElement: Element | null) => void;
     onSelectFunction?: (element: Element | null) => void;
-    functions: FunctionData[];
+    functions: ProcessedFunction[];
     mouseX: number;
     mouseY: number;
     sldOffsetTop: number;
@@ -54,7 +49,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private calculateSldOffset;
     private svgCoordinates;
     positionCoordinates(e: MouseEvent): void;
-    private extractFunctions;
+    private getFunctions;
     private getSvgDimensions;
     private calculateFunctionBoxWidth;
     private finalizeFunctionPlacement;
