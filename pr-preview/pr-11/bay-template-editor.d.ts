@@ -58,6 +58,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     handleSldSelected: (event: CustomEvent<{
         element: Element;
     }>) => void;
+    willUpdate(changedProperties: Map<PropertyKey, unknown>): void;
     updated(changedProperties: Map<PropertyKey, unknown>): void;
     private calculateSldBounds;
     zoomIn(): void;
