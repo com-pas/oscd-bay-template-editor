@@ -105,6 +105,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   functionHoverHighlight: { id: string; style: HighlightStyle }[] = [];
 
   @state()
+  highlightBeforeAddingFunction: {
+    id: string;
+    style: HighlightStyle;
+  }[] = [];
+
+  @state()
   private hoveredSubstation?: Element;
 
   @state()
@@ -362,9 +368,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.placingFunctionOffset = [0, 0];
     this.selectedElement = undefined;
     this.highlight = [];
+    this.highlightBeforeAddingFunction = [];
 
     this.sldEditor?.resetWithOffset();
   }
+
+  handleCancelAddFunction = () => {
+    this.highlight = [...this.highlightBeforeAddingFunction];
+    this.addingFunction = true;
+    this.selectedElement = undefined;
+  };
 
   insertSubstation() {
     if (!this.doc) return;
@@ -664,6 +677,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               id: identity(el).toString(),
               style: PSR_HIGHLIGHT_STYLE,
             }));
+            this.highlightBeforeAddingFunction = [...this.highlight];
             this.addingFunction = true;
             this.showFunctions = true;
           }}
@@ -825,7 +839,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               : nothing}
           </div>
           <create-function-dialog
-            @cancel=${this.reset}
+            @cancel=${this.handleCancelAddFunction}
             @save=${this.createFunction}
           ></create-function-dialog>
         `
