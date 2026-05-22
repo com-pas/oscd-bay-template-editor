@@ -7187,7 +7187,7 @@ const IF=e=>e??oe;class gF extends(He(Ee)){constructor(){super(...arguments),thi
         border-radius: 2px;
         box-sizing: border-box;
         pointer-events: none;
-        z-index: 10;
+        z-index: 2;
       }
       .substation-chip {
         position: absolute;
