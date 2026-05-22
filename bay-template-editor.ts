@@ -911,7 +911,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         border-radius: 2px;
         box-sizing: border-box;
         pointer-events: none;
-        z-index: 10;
+        z-index: 2;
       }
       .substation-chip {
         position: absolute;
