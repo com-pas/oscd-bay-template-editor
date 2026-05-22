@@ -63,6 +63,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     }>) => void;
     updated(changedProperties: Map<PropertyKey, unknown>): void;
     private calculateSldBounds;
+    private applyBusbarHighlights;
     zoomIn(): void;
     zoomOut(): void;
     startPlacing(element: Element | undefined): void;
