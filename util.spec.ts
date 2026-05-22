@@ -13,6 +13,9 @@ import {
   getProcessPath,
   createPowerSystemRelationPrivate,
   getFunctions,
+  getSldSvgs,
+  highlightBusbars,
+  clearBusbarHighlights,
 } from './util.js';
 
 import { docWithBayAndFunctions } from './util-testfiles.js';
@@ -195,6 +198,257 @@ describe('utils', () => {
       expect(functions.length).equal(1);
       const names = functions.map(fn => fn.getAttribute('name'));
       expect(names).to.include.members(['CABFunction']);
+    });
+  });
+
+  describe('busbar highlighting', () => {
+    let sldEditor: HTMLElement;
+    let svg: SVGSVGElement;
+    let busbar: Element;
+
+    beforeEach(() => {
+      sldEditor = document.createElement('div');
+      const shadowRoot = sldEditor.attachShadow({ mode: 'open' });
+
+      const substationEditor = document.createElement('sld-substation-editor');
+      const substationShadow = substationEditor.attachShadow({ mode: 'open' });
+
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('id', 'sld');
+
+      const busbarGroup = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'g'
+      );
+      busbarGroup.setAttribute('data-name', 'BB1');
+
+      const line1 = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'line'
+      ) as any;
+      line1.setAttribute('x1', '0');
+      line1.setAttribute('y1', '10');
+      line1.setAttribute('x2', '50');
+      line1.setAttribute('y2', '10');
+      line1.getBBox = () => ({ x: 0, y: 10, width: 50, height: 0 });
+      busbarGroup.appendChild(line1);
+
+      const line2 = document.createElementNS(
+        'http://www.w3.org/2000/svg',
+        'line'
+      ) as any;
+      line2.setAttribute('x1', '50');
+      line2.setAttribute('y1', '10');
+      line2.setAttribute('x2', '100');
+      line2.setAttribute('y2', '10');
+      line2.getBBox = () => ({ x: 50, y: 10, width: 50, height: 0 });
+      busbarGroup.appendChild(line2);
+
+      svg.appendChild(busbarGroup);
+      substationShadow.appendChild(svg);
+      shadowRoot.appendChild(substationEditor);
+
+      busbar = makeBusBar(doc, 'eosld');
+      busbar.setAttribute('name', 'BB1');
+    });
+
+    describe('getSldSvgs', () => {
+      it('returns SVG elements from shadow DOM', () => {
+        const svgs = getSldSvgs(sldEditor);
+        expect(svgs.length).equal(1);
+        expect(svgs[0].tagName).equal('svg');
+        expect(svgs[0].getAttribute('id')).equal('sld');
+      });
+
+      it('returns empty array if no shadow root', () => {
+        const plainElement = document.createElement('div');
+        const svgs = getSldSvgs(plainElement);
+        expect(svgs.length).equal(0);
+      });
+
+      it('handles multiple substation editors', () => {
+        const shadowRoot = sldEditor.shadowRoot!;
+
+        const substationEditor2 = document.createElement(
+          'sld-substation-editor'
+        );
+        const substationShadow2 = substationEditor2.attachShadow({
+          mode: 'open',
+        });
+        const svg2 = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg'
+        );
+        svg2.setAttribute('id', 'sld');
+        substationShadow2.appendChild(svg2);
+        shadowRoot.appendChild(substationEditor2);
+
+        const svgs = getSldSvgs(sldEditor);
+        expect(svgs.length).equal(2);
+      });
+    });
+
+    describe('highlightBusbars', () => {
+      it('creates highlight rectangle for busbar', () => {
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+          opacity: 1,
+        };
+
+        highlightBusbars(sldEditor, [busbar], highlightStyle);
+
+        const highlightRect = svg.querySelector('.busbar-highlight-workaround');
+        expect(highlightRect).not.equal(null);
+        expect(highlightRect!.tagName).equal('rect');
+        expect(highlightRect!.getAttribute('fill')).equal(
+          'rgba(216,180,254,0.3)'
+        );
+        expect(highlightRect!.getAttribute('stroke')).equal('#9333ea');
+      });
+
+      it('does nothing when busbars array is empty', () => {
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [], highlightStyle);
+
+        const highlightRect = svg.querySelector('.busbar-highlight-workaround');
+        expect(highlightRect).equal(null);
+      });
+
+      it('creates multiple highlights for multiple busbars', () => {
+        const busbar2 = makeBusBar(doc, 'eosld');
+        busbar2.setAttribute('name', 'BB2');
+
+        const busbarGroup2 = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'g'
+        );
+        busbarGroup2.setAttribute('data-name', 'BB2');
+        const line = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'line'
+        ) as any;
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '20');
+        line.setAttribute('x2', '100');
+        line.setAttribute('y2', '20');
+        line.getBBox = () => ({ x: 0, y: 20, width: 100, height: 0 });
+        busbarGroup2.appendChild(line);
+        svg.appendChild(busbarGroup2);
+
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [busbar, busbar2], highlightStyle);
+
+        const highlights = svg.querySelectorAll('.busbar-highlight-workaround');
+        expect(highlights.length).equal(2);
+      });
+
+      it('makes highlight rectangles clickable', () => {
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [busbar], highlightStyle);
+
+        const highlightRect = svg.querySelector(
+          '.busbar-highlight-workaround'
+        ) as SVGRectElement;
+        expect(highlightRect!.getAttribute('pointer-events')).equal('all');
+      });
+
+      it('handles busbar without name gracefully', () => {
+        const busbarNoName = makeBusBar(doc, 'eosld');
+        busbarNoName.removeAttribute('name');
+
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [busbarNoName], highlightStyle);
+
+        const highlightRect = svg.querySelector('.busbar-highlight-workaround');
+        expect(highlightRect).equal(null);
+      });
+    });
+
+    describe('clearBusbarHighlights', () => {
+      it('removes all busbar highlights', () => {
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [busbar], highlightStyle);
+
+        let highlightRect = svg.querySelector('.busbar-highlight-workaround');
+        expect(highlightRect).not.equal(null);
+
+        clearBusbarHighlights(sldEditor);
+
+        highlightRect = svg.querySelector('.busbar-highlight-workaround');
+        expect(highlightRect).equal(null);
+      });
+
+      it('removes multiple highlights', () => {
+        const busbar2 = makeBusBar(doc, 'eosld');
+        busbar2.setAttribute('name', 'BB2');
+
+        const busbarGroup2 = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'g'
+        );
+        busbarGroup2.setAttribute('data-name', 'BB2');
+        const line = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'line'
+        ) as any;
+        line.setAttribute('x1', '0');
+        line.setAttribute('y1', '20');
+        line.setAttribute('x2', '100');
+        line.setAttribute('y2', '20');
+        line.getBBox = () => ({ x: 0, y: 20, width: 100, height: 0 });
+        busbarGroup2.appendChild(line);
+        svg.appendChild(busbarGroup2);
+
+        const highlightStyle = {
+          stroke: '#9333ea',
+          strokeWidth: 0.2,
+          fill: 'rgba(216,180,254,0.3)',
+        };
+
+        highlightBusbars(sldEditor, [busbar, busbar2], highlightStyle);
+
+        let highlights = svg.querySelectorAll('.busbar-highlight-workaround');
+        expect(highlights.length).equal(2);
+
+        clearBusbarHighlights(sldEditor);
+
+        highlights = svg.querySelectorAll('.busbar-highlight-workaround');
+        expect(highlights.length).equal(0);
+      });
+
+      it('does nothing if no highlights exist', () => {
+        clearBusbarHighlights(sldEditor);
+
+        const highlights = svg.querySelectorAll('.busbar-highlight-workaround');
+        expect(highlights.length).equal(0);
+      });
     });
   });
 });
