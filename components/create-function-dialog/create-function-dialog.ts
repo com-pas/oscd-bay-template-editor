@@ -157,6 +157,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   private handleSave() {
     this.dispatchEvent(
       new CustomEvent('save', {
+        bubbles: true,
+        composed: true,
         detail: {
           name: this.name,
           description: this.description,
