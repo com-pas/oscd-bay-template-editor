@@ -43,7 +43,7 @@
   "dependencies": {
     "@compas-oscd/forms": "^0.0.1",
     "@compas-oscd/xml": "^0.0.1",
-    "@omicronenergy/oscd-ui": "^0.0.11",
+    "@omicronenergy/oscd-ui": "^0.0.12",
     "@open-wc/scoped-elements": "^3.0.6",
     "@openscd/oscd-api": "^0.1.5",
     "@openscd/scl-lib": "^2.0.0",

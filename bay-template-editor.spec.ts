@@ -1009,13 +1009,7 @@ describe('Bay Template Editor Plugin', () => {
       ) as any;
       expect(dialog).to.exist;
 
-      await dialog.updateComplete;
-
-      const closeButton = dialog.shadowRoot?.querySelector(
-        'oscd-filled-button[type="button"]'
-      ) as HTMLElement;
-      expect(closeButton, 'Close button should exist').to.exist;
-      closeButton.click();
+      dialog.handleClosed();
       await element.updateComplete;
 
       expect(element.highlight.length).to.equal(initialHighlightCount);

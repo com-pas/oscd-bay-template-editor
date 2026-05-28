@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { fixture, expect, html } from '@open-wc/testing';
+import { fixture, expect, html, waitUntil } from '@open-wc/testing';
 import sinon, { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { CreateFunctionDialog } from './create-function-dialog.js';
@@ -84,11 +84,19 @@ describe('CreateFunctionDialog', () => {
     element.type = null;
     element.show();
     await element.updateComplete;
-    const form = element.shadowRoot?.querySelector('form')!;
-    form.dispatchEvent(
-      new Event('submit', { bubbles: true, cancelable: true })
-    );
+    const nextBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="next-button"]'
+    ) as HTMLElement;
+    nextBtn.click();
     await element.updateComplete;
+    await waitUntil(() => element.step === 2, 'Step did not advance to 2');
+
+    const saveBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="save-button"]'
+    ) as HTMLElement;
+    saveBtn.click();
+    await element.updateComplete;
+
     expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'save'))).to.be
       .true;
     const saveEvent = dispatchSpy
@@ -105,10 +113,7 @@ describe('CreateFunctionDialog', () => {
     const dispatchSpy = spy(element, 'dispatchEvent');
     element.show();
     await element.updateComplete;
-    const closeBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[type="button"]'
-    ) as HTMLElement | null;
-    closeBtn?.click();
+    (element as any).handleClosed();
     await element.updateComplete;
     expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'cancel'))).to.be
       .true;
@@ -118,7 +123,7 @@ describe('CreateFunctionDialog', () => {
     element.name = 'F3';
     element.description = null;
     element.type = null;
-    element.close();
+    (element as any).handleClosed();
     await element.updateComplete;
     expect(element.name).to.equal('');
     expect(element.description).to.equal(null);
