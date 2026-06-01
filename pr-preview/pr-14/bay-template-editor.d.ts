@@ -50,6 +50,10 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         id: string;
         style: HighlightStyle;
     }[];
+    highlightBeforeAddingFunction: {
+        id: string;
+        style: HighlightStyle;
+    }[];
     private hoveredSubstation?;
     selectedElement?: Element;
     private sldBounds;
@@ -68,10 +72,12 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     }>) => void;
     updated(changedProperties: Map<PropertyKey, unknown>): void;
     private calculateSldBounds;
+    private applyBusbarHighlights;
     zoomIn(): void;
     zoomOut(): void;
     startPlacing(element: Element | undefined): void;
     reset(): void;
+    handleCancelAddFunction: () => void;
     insertSubstation(): void;
     private getFunctionParent;
     openFunctionContentDialog(e: CustomEvent<{

@@ -49,3 +49,23 @@ export declare function getFunctions(element: Element): Element[];
  * WORKAROUND: relies on internal shadow DOM structure.
  */
 export declare function getSldSvgs(sldEditor: Element): SVGSVGElement[];
+/**
+ * Highlights busbars in the SLD editor by directly manipulating the SVG DOM.
+ * WORKAROUND: The sld-editor doesn't properly highlight busbars.
+ *
+ * @param sldEditor The sld-editor element
+ * @param busbars Array of Bay elements that are busbars
+ * @param highlightStyle The style to apply to busbar highlights
+ */
+export declare function highlightBusbars(sldEditor: Element, busbars: Element[], highlightStyle: {
+    stroke: string;
+    strokeWidth: number;
+    fill: string;
+    opacity?: number;
+}): void;
+/**
+ * Removes busbar highlights applied by highlightBusbars.
+ *
+ * @param sldEditor The sld-editor element
+ */
+export declare function clearBusbarHighlights(sldEditor: Element): void;
