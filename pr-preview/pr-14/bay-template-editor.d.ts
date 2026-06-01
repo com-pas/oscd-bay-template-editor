@@ -6,7 +6,6 @@ import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
-import { FunctionContentDialog } from './components/function-content-dialog/function-content-dialog.js';
 import { type HighlightStyle } from './const.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
@@ -18,7 +17,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         'functions-layer': typeof FunctionsLayer;
         'sld-editor': CustomElementConstructor;
         'create-function-dialog': typeof CreateFunctionDialog;
-        'function-content-dialog': typeof FunctionContentDialog;
     };
     doc?: XMLDocument;
     editCount: number;
@@ -27,13 +25,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     editorContainer?: HTMLElement;
     labelToggle?: OscdOutlinedIconButton;
     createFunctionDialog?: CreateFunctionDialog;
-    functionContentDialog?: FunctionContentDialog;
-    pendingFunctionData: {
-        name: string;
-        description: string | null;
-        type: string | null;
-        selectedElement: Element;
-    } | null;
     sldEditorInAction: boolean;
     functionsInAction: boolean;
     addingFunction: boolean;
@@ -80,11 +71,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     handleCancelAddFunction: () => void;
     insertSubstation(): void;
     private getFunctionParent;
-    openFunctionContentDialog(e: CustomEvent<{
-        name: string;
-        description: string | null;
-        type: string | null;
-    }>): void;
     createFunction(e: CustomEvent<{
         name: string;
         description: string | null;
