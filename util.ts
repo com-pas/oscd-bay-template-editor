@@ -530,27 +530,20 @@ export function highlightBusbars(
       const bayName = busbar.getAttribute('name');
       if (!bayName) return;
 
-      const selectors = [
-        `[data-name="${bayName}"]`,
-        `[data-bay-name="${bayName}"]`,
-        `[id*="${bayName}"]`,
-        `g[data-type="bay"][data-name="${bayName}"]`,
-        `g.bay[data-name="${bayName}"]`,
-      ];
+      const selectors =
+        `[data-name="${bayName}"], ` +
+        `[data-bay-name="${bayName}"], ` +
+        `[id*="${bayName}"], ` +
+        `g[data-type="bay"][data-name="${bayName}"], ` +
+        `g.bay[data-name="${bayName}"]`;
 
       let svgElements: SVGElement[] = [];
-      for (const selector of selectors) {
-        try {
-          const elements = Array.from(
-            svg.querySelectorAll(selector)
-          ) as SVGElement[];
-          if (elements.length > 0) {
-            svgElements = elements;
-            break;
-          }
-        } catch {
-          console.warn(`Invalid selector "${selector}" for bay "${bayName}"`);
-        }
+      try {
+        svgElements = Array.from(
+          svg.querySelectorAll(selectors)
+        ) as SVGElement[];
+      } catch {
+        console.warn(`Invalid selectors for bay "${bayName}": ${selectors}`);
       }
 
       if (svgElements.length === 0) return;
