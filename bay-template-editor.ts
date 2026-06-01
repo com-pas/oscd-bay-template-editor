@@ -33,6 +33,8 @@ import {
   getProcessPath,
   createPowerSystemRelationPrivate,
   getSldSvgs,
+  highlightBusbars,
+  clearBusbarHighlights,
   eTr6100Ns,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
@@ -105,6 +107,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   functionHoverHighlight: { id: string; style: HighlightStyle }[] = [];
 
   @state()
+  highlightBeforeAddingFunction: {
+    id: string;
+    style: HighlightStyle;
+  }[] = [];
+
+  @state()
   private hoveredSubstation?: Element;
 
   @state()
@@ -141,6 +149,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     });
     window.removeEventListener('keydown', this.handleKeydown);
     window.removeEventListener('resize', this.onResize);
+
+    if (this.sldEditor) {
+      clearBusbarHighlights(this.sldEditor);
+    }
   }
 
   private handleKeydown = (event: KeyboardEvent) => {
@@ -300,6 +312,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       requestAnimationFrame(() => this.calculateSldBounds());
     }
 
+    if (
+      changedProperties.has('highlight') ||
+      changedProperties.has('functionHoverHighlight') ||
+      changedProperties.has('selectedElement') ||
+      changedProperties.has('addingFunction') ||
+      changedProperties.has('editCount')
+    ) {
+      requestAnimationFrame(() => this.applyBusbarHighlights());
+    }
+
     if (!changedProperties.has('doc') || !this.doc) return;
     const sldNsPrefix = this.doc.documentElement.lookupPrefix(sldNs);
     if (sldNsPrefix) this.nsp = sldNsPrefix;
@@ -340,6 +362,42 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     });
   }
 
+  private applyBusbarHighlights() {
+    if (!this.sldEditor || !this.doc) return;
+
+    const selectedBusbar =
+      this.selectedElement && isBusBar(this.selectedElement);
+    const shouldHighlight =
+      this.addingFunction ||
+      this.functionHoverHighlight.length > 0 ||
+      selectedBusbar;
+
+    clearBusbarHighlights(this.sldEditor);
+
+    if (!shouldHighlight) {
+      return;
+    }
+
+    const allHighlights = [...this.highlight, ...this.functionHoverHighlight];
+    if (allHighlights.length === 0) return;
+
+    const busbars = Array.from(this.doc.querySelectorAll('Bay')).filter(
+      bay =>
+        isBusBar(bay) &&
+        allHighlights.some(h => h.id === identity(bay).toString())
+    );
+
+    if (busbars.length === 0) return;
+
+    // Get the highlight style from the first matching busbar, or use default
+    const highlightStyle =
+      allHighlights.find(h =>
+        busbars.some(bb => identity(bb).toString() === h.id)
+      )?.style ?? PSR_HIGHLIGHT_STYLE;
+
+    highlightBusbars(this.sldEditor, busbars, highlightStyle);
+  }
+
   zoomIn() {
     this.gridSize += 3;
   }
@@ -362,9 +420,19 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.placingFunctionOffset = [0, 0];
     this.selectedElement = undefined;
     this.highlight = [];
+    this.highlightBeforeAddingFunction = [];
 
-    this.sldEditor?.resetWithOffset();
+    if (this.sldEditor) {
+      clearBusbarHighlights(this.sldEditor);
+      this.sldEditor.resetWithOffset();
+    }
   }
+
+  handleCancelAddFunction = () => {
+    this.highlight = [...this.highlightBeforeAddingFunction];
+    this.addingFunction = true;
+    this.selectedElement = undefined;
+  };
 
   insertSubstation() {
     if (!this.doc) return;
@@ -664,6 +732,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               id: identity(el).toString(),
               style: PSR_HIGHLIGHT_STYLE,
             }));
+            this.highlightBeforeAddingFunction = [...this.highlight];
             this.addingFunction = true;
             this.showFunctions = true;
           }}
@@ -825,7 +894,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               : nothing}
           </div>
           <create-function-dialog
-            @cancel=${this.reset}
+            @cancel=${this.handleCancelAddFunction}
             @save=${this.createFunction}
           ></create-function-dialog>
         `
@@ -897,7 +966,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         border-radius: 2px;
         box-sizing: border-box;
         pointer-events: none;
-        z-index: 10;
+        z-index: 2;
       }
       .substation-chip {
         position: absolute;

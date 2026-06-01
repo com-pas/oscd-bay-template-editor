@@ -358,3 +358,242 @@ export function getSldSvgs(sldEditor: Element): SVGSVGElement[] {
     return svg ? [svg] : [];
   });
 }
+
+/**
+ * Extracts shape elements (line, path, rect, polyline) from SVG elements.
+ */
+function extractShapeElements(elements: SVGElement[]): SVGElement[] {
+  const shapeElements: SVGElement[] = [];
+  const shapeSelectors = 'line, path, rect, polyline';
+
+  elements.forEach(el => {
+    if (el.tagName === 'g') {
+      const children = Array.from(
+        el.querySelectorAll(shapeSelectors)
+      ) as SVGElement[];
+      shapeElements.push(...children);
+    } else if (['line', 'path', 'rect', 'polyline'].includes(el.tagName)) {
+      shapeElements.push(el);
+    }
+  });
+
+  return shapeElements;
+}
+
+/**
+ * Finds horizontal elements by filtering based on aspect ratio and minimum width.
+ */
+function findHorizontalElements(
+  elements: SVGElement[],
+  minAspectRatio: number,
+  minWidth: number
+): Array<{ element: SVGElement; bbox: DOMRect }> {
+  const elementBoxes = elements.map(el => ({
+    element: el,
+    bbox: (el as SVGGraphicsElement).getBBox(),
+  }));
+
+  return elementBoxes.filter(
+    eb =>
+      eb.bbox.width > eb.bbox.height * minAspectRatio &&
+      eb.bbox.width > minWidth
+  );
+}
+
+/**
+ * Adds click handlers to busbar line elements to dispatch selection events.
+ */
+function addClickHandlers(
+  elements: Array<{ element: SVGElement; bbox: DOMRect }>,
+  busbar: Element,
+  sldEditor: Element
+): void {
+  elements.forEach(({ element }) => {
+    element.addEventListener('click', (e: Event) => {
+      e.stopPropagation();
+      sldEditor.dispatchEvent(
+        new CustomEvent('oscd-sld-selected', {
+          detail: { element: busbar },
+          bubbles: true,
+          composed: true,
+        })
+      );
+    });
+  });
+}
+
+/**
+ * Calculates the combined bounding box for multiple elements.
+ */
+function calculateCombinedBoundingBox(
+  elements: Array<{ element: SVGElement; bbox: DOMRect }>
+): { x: number; y: number; width: number; height: number } {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  elements.forEach(({ bbox }) => {
+    minX = Math.min(minX, bbox.x);
+    minY = Math.min(minY, bbox.y);
+    maxX = Math.max(maxX, bbox.x + bbox.width);
+    maxY = Math.max(maxY, bbox.y + bbox.height);
+  });
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+}
+
+/**
+ * Creates an SVG rectangle element with the specified styling.
+ */
+function createHighlightRectangle(
+  bbox: { x: number; y: number; width: number; height: number },
+  padding: number,
+  style: {
+    stroke: string;
+    strokeWidth: number;
+    fill: string;
+    opacity?: number;
+  }
+): SVGRectElement {
+  const rect = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'rect'
+  ) as SVGRectElement;
+
+  rect.setAttribute('x', `${bbox.x - padding}`);
+  rect.setAttribute('y', `${bbox.y - padding}`);
+  rect.setAttribute('width', `${bbox.width + padding * 2}`);
+  rect.setAttribute('height', `${bbox.height + padding * 2}`);
+  rect.setAttribute('fill', style.fill);
+  rect.setAttribute('stroke', style.stroke);
+  rect.setAttribute('stroke-width', `${style.strokeWidth}`);
+  if (style.opacity !== undefined) {
+    rect.setAttribute('opacity', `${style.opacity}`);
+  }
+  rect.setAttribute('pointer-events', 'all');
+
+  return rect;
+}
+
+/**
+ * Adds a click handler to an element to dispatch a selection event.
+ */
+function addClickHandler(
+  element: SVGElement,
+  busbar: Element,
+  sldEditor: Element
+): void {
+  element.addEventListener('click', () => {
+    sldEditor.dispatchEvent(
+      new CustomEvent('oscd-sld-selected', {
+        detail: { element: busbar },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  });
+}
+
+/**
+ * Highlights busbars in the SLD editor by directly manipulating the SVG DOM.
+ * WORKAROUND: The sld-editor doesn't properly highlight busbars.
+ *
+ * @param sldEditor The sld-editor element
+ * @param busbars Array of Bay elements that are busbars
+ * @param highlightStyle The style to apply to busbar highlights
+ */
+export function highlightBusbars(
+  sldEditor: Element,
+  busbars: Element[],
+  highlightStyle: {
+    stroke: string;
+    strokeWidth: number;
+    fill: string;
+    opacity?: number;
+  }
+): void {
+  if (busbars.length === 0) return;
+
+  const svgs = getSldSvgs(sldEditor);
+  const PADDING = 0.15;
+  const MIN_ASPECT_RATIO = 2;
+  const MIN_WIDTH = 0.5;
+
+  svgs.forEach(svg => {
+    busbars.forEach(busbar => {
+      const bayName = busbar.getAttribute('name');
+      if (!bayName) return;
+
+      const selectors =
+        `[data-name="${bayName}"], ` +
+        `[data-bay-name="${bayName}"], ` +
+        `[id*="${bayName}"], ` +
+        `g[data-type="bay"][data-name="${bayName}"], ` +
+        `g.bay[data-name="${bayName}"]`;
+
+      let svgElements: SVGElement[] = [];
+      try {
+        svgElements = Array.from(
+          svg.querySelectorAll(selectors)
+        ) as SVGElement[];
+      } catch {
+        console.warn(`Invalid selectors for bay "${bayName}": ${selectors}`);
+      }
+
+      if (svgElements.length === 0) return;
+
+      try {
+        const shapeElements = extractShapeElements(svgElements);
+        if (shapeElements.length === 0) return;
+
+        const horizontalElements = findHorizontalElements(
+          shapeElements,
+          MIN_ASPECT_RATIO,
+          MIN_WIDTH
+        );
+        if (horizontalElements.length === 0) return;
+
+        addClickHandlers(horizontalElements, busbar, sldEditor);
+
+        const bbox = calculateCombinedBoundingBox(horizontalElements);
+
+        const highlightRect = createHighlightRectangle(
+          bbox,
+          PADDING,
+          highlightStyle
+        );
+        addClickHandler(highlightRect, busbar, sldEditor);
+        highlightRect.classList.add('busbar-highlight-workaround');
+
+        svgElements[0].parentElement?.insertBefore(
+          highlightRect,
+          svgElements[0]
+        );
+      } catch {
+        console.warn(`Failed to highlight busbar "${bayName}"`);
+      }
+    });
+  });
+}
+
+/**
+ * Removes busbar highlights applied by highlightBusbars.
+ *
+ * @param sldEditor The sld-editor element
+ */
+export function clearBusbarHighlights(sldEditor: Element): void {
+  const svgs = getSldSvgs(sldEditor);
+
+  svgs.forEach(svg => {
+    const highlightElements = svg.querySelectorAll(
+      '.busbar-highlight-workaround'
+    );
+    highlightElements.forEach(el => el.remove());
+  });
+}

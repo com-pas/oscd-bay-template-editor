@@ -9,6 +9,7 @@ import {
   docWithVoltageLevel,
   docWithBay,
   docWithBusBarBay,
+  docWithElements,
 } from './bay-template-editor.testfiles.js';
 import { eqTypes } from './util.js';
 
@@ -967,6 +968,59 @@ describe('Bay Template Editor Plugin', () => {
       await element.updateComplete;
       expect(element.addingFunction).to.be.false;
       expect(element.showFunctions).to.be.false;
+    });
+  });
+
+  describe('cancel add function dialog', () => {
+    it('restores highlight state when dialog is canceled', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithElements,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const addFunctionButton = element.shadowRoot?.querySelector(
+        'oscd-icon-button[label="Add Function"]'
+      ) as HTMLElement;
+      addFunctionButton.click();
+      await element.updateComplete;
+
+      expect(element.addingFunction).to.be.true;
+      expect(element.highlight.length).to.be.greaterThan(0);
+      const initialHighlightCount = element.highlight.length;
+
+      expect(element.highlightBeforeAddingFunction.length).to.equal(
+        initialHighlightCount
+      );
+
+      const bay = doc.querySelector('Bay')!;
+      element.handleSldSelected({
+        detail: { element: bay },
+      } as CustomEvent<{ element: Element }>);
+      await element.updateComplete;
+
+      expect(element.highlight.length).to.equal(1);
+      expect(element.selectedElement).to.equal(bay);
+      expect(element.addingFunction).to.be.false;
+
+      const dialog = element.shadowRoot?.querySelector(
+        'create-function-dialog'
+      ) as any;
+      expect(dialog).to.exist;
+
+      await dialog.updateComplete;
+
+      const closeButton = dialog.shadowRoot?.querySelector(
+        'oscd-filled-button[type="button"]'
+      ) as HTMLElement;
+      expect(closeButton, 'Close button should exist').to.exist;
+      closeButton.click();
+      await element.updateComplete;
+
+      expect(element.highlight.length).to.equal(initialHighlightCount);
+      expect(element.addingFunction).to.be.true;
+      expect(element.selectedElement).to.be.undefined;
     });
   });
 });
