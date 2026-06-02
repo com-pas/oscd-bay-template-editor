@@ -7452,7 +7452,96 @@ const NF=e=>e??oe;class PF extends(Ke(Ee)){constructor(){super(...arguments),thi
     oscd-icon-button {
       --md-icon-button-icon-size: 48px;
     }
-  `,e([xe({type:Boolean})],PF.prototype,"nullable",void 0),e([we()],PF.prototype,"textFieldValue",void 0),e([xe({type:String})],PF.prototype,"value",null),e([xe({type:Boolean})],PF.prototype,"disabled",void 0),e([xe({type:String})],PF.prototype,"label",void 0),e([xe({type:Boolean})],PF.prototype,"required",void 0),e([xe({type:String})],PF.prototype,"supportingText",void 0),e([xe({type:Boolean})],PF.prototype,"error",void 0),e([xe({type:String})],PF.prototype,"errorText",void 0),e([xe({type:String})],PF.prototype,"suffixText",void 0),e([xe({type:String})],PF.prototype,"placeholder",void 0),e([xe({type:String})],PF.prototype,"type",void 0),e([xe({type:String})],PF.prototype,"pattern",void 0),e([xe({type:String})],PF.prototype,"max",void 0),e([xe({type:String})],PF.prototype,"min",void 0),e([xe({type:Number})],PF.prototype,"maxLength",void 0),e([xe({type:Number})],PF.prototype,"minLength",void 0),e([xe({type:String})],PF.prototype,"unit",void 0),e([xe({type:Array})],PF.prototype,"multipliers",void 0),e([xe({type:String})],PF.prototype,"multiplier",null),e([we()],PF.prototype,"isNull",void 0),e([we()],PF.prototype,"null",null),e([Fe(".nullswitch.element")],PF.prototype,"nullSwitch",void 0),e([Fe(".multipliers")],PF.prototype,"multiplierMenu",void 0),e([Fe(".input.element")],PF.prototype,"textField",void 0);const TF=e=>(t,n)=>"number"==typeof t?isNaN(t)?e:null:t?null:e,xF=TF;class wF{get errors(){return this._errors}constructor(e){this._errors={},this.form=e}validate(){const e=this.getFormValue();let t=!1;for(const[n,s]of Object.entries(this.form)){const r=this.toArray(s.validators),i=e[n],a=r.map((t=>t(i,e))).filter((e=>null!==e));this.errors[n]=a,a.length>0?(s.formField.error=!0,s.formField.errorText=a[0],t=!0):(s.formField.error=!1,s.formField.errorText=null)}return!t}getFormValue(){const e={};return Object.keys(this.form).forEach((t=>e[t]=this.form[t].formField.value)),e}toArray(e){return e?Array.isArray(e)?e:[e]:[]}}class MF extends(Ke(Ee)){constructor(){super(...arguments),this.parent=null,this.selectedElementName="",this.selectedElementType="",this.name="",this.description=null,this.type=null,this.step=1,this.formGroup=null,this.shouldEmitCancel=!0,this.nameTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();if(!this.parent)return null;const n=function(e){const{tagName:t}=e;if("Bay"===t||"VoltageLevel"===t||"Substation"===t)return Array.from(e.querySelectorAll(`:scope > Function:not(:has(> Private[type="${bM}"]))`));if("ConductingEquipment"===t||"PowerTransformer"===t){const t=SM(e),n=e.ownerDocument;return Array.from(n.querySelectorAll(`Function:has(> Private[type="${bM}"] > PowerSystemRelations > PowerSystemRelation[relation="${t}"])`))}return[]}(this.parent),s=n.find((e=>e.getAttribute("name")?.trim()===t));return s?`A Function with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":MV,"oscd-filled-button":HV,"oscd-filled-text-field":fF,"oscd-scl-text-field":PF,"oscd-icon":jn,"oscd-icon-button":DV,"oscd-divider":SV,"oscd-list":mV,"oscd-list-item":bV}}show(){this.step=1,this.formGroup=new wF({name:{formField:this.nameField,validators:[xF("Name is required"),this.nameTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.dialog.close()}reset(){this.step=1,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){const e=this.shouldEmitCancel;this.shouldEmitCancel=!0,this.reset(),e&&this.dispatchEvent(new CustomEvent("cancel",{bubbles:!0,composed:!0}))}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=2)}handleSave(){this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type}})),this.shouldEmitCancel=!1,this.dialog.close()}render(){return re`
+  `,e([xe({type:Boolean})],PF.prototype,"nullable",void 0),e([we()],PF.prototype,"textFieldValue",void 0),e([xe({type:String})],PF.prototype,"value",null),e([xe({type:Boolean})],PF.prototype,"disabled",void 0),e([xe({type:String})],PF.prototype,"label",void 0),e([xe({type:Boolean})],PF.prototype,"required",void 0),e([xe({type:String})],PF.prototype,"supportingText",void 0),e([xe({type:Boolean})],PF.prototype,"error",void 0),e([xe({type:String})],PF.prototype,"errorText",void 0),e([xe({type:String})],PF.prototype,"suffixText",void 0),e([xe({type:String})],PF.prototype,"placeholder",void 0),e([xe({type:String})],PF.prototype,"type",void 0),e([xe({type:String})],PF.prototype,"pattern",void 0),e([xe({type:String})],PF.prototype,"max",void 0),e([xe({type:String})],PF.prototype,"min",void 0),e([xe({type:Number})],PF.prototype,"maxLength",void 0),e([xe({type:Number})],PF.prototype,"minLength",void 0),e([xe({type:String})],PF.prototype,"unit",void 0),e([xe({type:Array})],PF.prototype,"multipliers",void 0),e([xe({type:String})],PF.prototype,"multiplier",null),e([we()],PF.prototype,"isNull",void 0),e([we()],PF.prototype,"null",null),e([Fe(".nullswitch.element")],PF.prototype,"nullSwitch",void 0),e([Fe(".multipliers")],PF.prototype,"multiplierMenu",void 0),e([Fe(".input.element")],PF.prototype,"textField",void 0);const TF=e=>(t,n)=>"number"==typeof t?isNaN(t)?e:null:t?null:e,xF=TF;class wF{get errors(){return this._errors}constructor(e){this._errors={},this.form=e}validate(){const e=this.getFormValue();let t=!1;for(const[n,s]of Object.entries(this.form)){const r=this.toArray(s.validators),i=e[n],a=r.map((t=>t(i,e))).filter((e=>null!==e));this.errors[n]=a,a.length>0?(s.formField.error=!0,s.formField.errorText=a[0],t=!0):(s.formField.error=!1,s.formField.errorText=null)}return!t}getFormValue(){const e={};return Object.keys(this.form).forEach((t=>e[t]=this.form[t].formField.value)),e}toArray(e){return e?Array.isArray(e)?e:[e]:[]}}class MF extends(Ke(Ee)){constructor(){super(...arguments),this.parent=null,this.selectedElementName="",this.selectedElementType="",this.name="",this.description=null,this.type=null,this.step=1,this.formGroup=null,this.shouldEmitCancel=!0,this.nameTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();if(!this.parent)return null;const n=function(e){const{tagName:t}=e;if("Bay"===t||"VoltageLevel"===t||"Substation"===t)return Array.from(e.querySelectorAll(`:scope > Function:not(:has(> Private[type="${bM}"]))`));if("ConductingEquipment"===t||"PowerTransformer"===t){const t=SM(e),n=e.ownerDocument;return Array.from(n.querySelectorAll(`Function:has(> Private[type="${bM}"] > PowerSystemRelations > PowerSystemRelation[relation="${t}"])`))}return[]}(this.parent),s=n.find((e=>e.getAttribute("name")?.trim()===t));return s?`A Function with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":MV,"oscd-filled-button":HV,"oscd-filled-text-field":fF,"oscd-scl-text-field":PF,"oscd-icon":jn,"oscd-icon-button":DV,"oscd-divider":SV,"oscd-list":mV,"oscd-list-item":bV}}show(){this.step=1,this.formGroup=new wF({name:{formField:this.nameField,validators:[xF("Name is required"),this.nameTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.dialog.close()}reset(){this.step=1,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){const e=this.shouldEmitCancel;this.shouldEmitCancel=!0,this.reset(),e&&this.dispatchEvent(new CustomEvent("cancel",{bubbles:!0,composed:!0}))}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=2)}handleSave(){this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type}})),this.shouldEmitCancel=!1,this.dialog.close()}renderStep1(){return re`
+      <form
+        slot="content"
+        novalidate
+        @submit=${this.handleNext}
+        autocomplete="off"
+      >
+        <oscd-filled-text-field
+          label="Name"
+          required
+          name="name"
+          .value=${this.name}
+          @input=${e=>{this.name=e.target.value}}
+        ></oscd-filled-text-field>
+        <oscd-scl-text-field
+          nullable
+          label="Description"
+          name="description"
+          .value=${this.description}
+          @input=${e=>{this.description=e.target.value}}
+        ></oscd-scl-text-field>
+        <oscd-scl-text-field
+          nullable
+          label="Type"
+          name="type"
+          .value=${this.type}
+          @input=${e=>{this.type=e.target.value}}
+        ></oscd-scl-text-field>
+        <div slot="actions">
+          <oscd-filled-button type="button" @click=${this.close}
+            >Close</oscd-filled-button
+          >
+          <oscd-filled-button type="submit">Next</oscd-filled-button>
+        </div>
+      </form>
+    `}renderStep2(){return re`<div slot="content" class="content">
+        ${this.selectedElementName?re`
+              <span class="secondary-text"
+                >${this.selectedElementType} ${this.selectedElementName}</span
+              >
+              <oscd-divider></oscd-divider>
+            `:oe}
+
+        <div class="section">
+          <div class="section-header">
+            <h4>Subfunctions</h4>
+            <oscd-icon-button title="Add Subfunction">
+              <oscd-icon>add</oscd-icon>
+            </oscd-icon-button>
+          </div>
+          <oscd-list>
+            <oscd-list-item type="text">
+              <oscd-icon slot="start">info</oscd-icon>
+              <span slot="headline"
+                >Click the add button to create a new subfunction</span
+              >
+            </oscd-list-item>
+          </oscd-list>
+        </div>
+
+        <oscd-divider></oscd-divider>
+
+        <div class="section">
+          <div class="section-header">
+            <h4>LNodes</h4>
+            <oscd-icon-button title="Add LNode">
+              <oscd-icon>add</oscd-icon>
+            </oscd-icon-button>
+          </div>
+          <oscd-list>
+            <oscd-list-item type="text">
+              <oscd-icon slot="start">info</oscd-icon>
+              <span slot="headline"
+                >Click the add button to create a new LNode</span
+              >
+            </oscd-list-item>
+          </oscd-list>
+        </div>
+      </div>
+
+      <div slot="actions">
+        <oscd-filled-button
+          type="button"
+          @click=${()=>{this.step=1}}
+          >Back</oscd-filled-button
+        >
+        <oscd-filled-button type="button" @click=${this.handleSave}
+          >Save</oscd-filled-button
+        >
+      </div>`}render(){return re`
       <oscd-dialog @closed=${this.handleClosed}>
         <div slot="headline">
           ${1===this.step?re`Add Function`:re`<div class="dialog-title">
@@ -7461,112 +7550,7 @@ const NF=e=>e??oe;class PF extends(Ke(Ee)){constructor(){super(...arguments),thi
               </div>`}
         </div>
 
-        ${1===this.step?re`
-              <form
-                slot="content"
-                novalidate
-                @submit=${this.handleNext}
-                autocomplete="off"
-              >
-                <oscd-filled-text-field
-                  label="Name"
-                  required
-                  name="name"
-                  .value=${this.name}
-                  @input=${e=>{this.name=e.target.value}}
-                ></oscd-filled-text-field>
-                <oscd-scl-text-field
-                  nullable
-                  label="Description"
-                  name="description"
-                  .value=${this.description}
-                  @input=${e=>{this.description=e.target.value}}
-                ></oscd-scl-text-field>
-                <oscd-scl-text-field
-                  nullable
-                  label="Type"
-                  name="type"
-                  .value=${this.type}
-                  @input=${e=>{this.type=e.target.value}}
-                ></oscd-scl-text-field>
-                <div slot="actions">
-                  <oscd-filled-button type="button" @click=${this.close}
-                    >Close</oscd-filled-button
-                  >
-                  <oscd-filled-button type="submit">Next</oscd-filled-button>
-                </div>
-              </form>
-            `:re`
-              <div slot="content" class="content">
-                ${this.selectedElementName?re`
-                      <span class="secondary-text"
-                        >${this.selectedElementType}
-                        ${this.selectedElementName}</span
-                      >
-                      <oscd-divider></oscd-divider>
-                    `:oe}
-                ${this.description||this.type?re`
-                      <div class="info-section">
-                        ${this.description?re`<div class="info-item">
-                              <span class="label">Description:</span>
-                              <span class="value">${this.description}</span>
-                            </div>`:oe}
-                        ${this.type?re`<div class="info-item">
-                              <span class="label">Type:</span>
-                              <span class="value">${this.type}</span>
-                            </div>`:oe}
-                      </div>
-                      <oscd-divider></oscd-divider>
-                    `:oe}
-
-                <div class="section">
-                  <div class="section-header">
-                    <h4>Subfunctions</h4>
-                    <oscd-icon-button title="Add Subfunction">
-                      <oscd-icon>add</oscd-icon>
-                    </oscd-icon-button>
-                  </div>
-                  <oscd-list>
-                    <oscd-list-item type="text">
-                      <oscd-icon slot="start">info</oscd-icon>
-                      <span slot="headline"
-                        >Click the add button to create a new subfunction</span
-                      >
-                    </oscd-list-item>
-                  </oscd-list>
-                </div>
-
-                <oscd-divider></oscd-divider>
-
-                <div class="section">
-                  <div class="section-header">
-                    <h4>LNodes</h4>
-                    <oscd-icon-button title="Add LNode">
-                      <oscd-icon>add</oscd-icon>
-                    </oscd-icon-button>
-                  </div>
-                  <oscd-list>
-                    <oscd-list-item type="text">
-                      <oscd-icon slot="start">info</oscd-icon>
-                      <span slot="headline"
-                        >Click the add button to create a new LNode</span
-                      >
-                    </oscd-list-item>
-                  </oscd-list>
-                </div>
-              </div>
-
-              <div slot="actions">
-                <oscd-filled-button
-                  type="button"
-                  @click=${()=>{this.step=1}}
-                  >Back</oscd-filled-button
-                >
-                <oscd-filled-button type="button" @click=${this.handleSave}
-                  >Save</oscd-filled-button
-                >
-              </div>
-            `}
+        ${1===this.step?this.renderStep1():this.renderStep2()}
       </oscd-dialog>
     `}}MF.styles=c`
     oscd-dialog {
@@ -7596,12 +7580,6 @@ const NF=e=>e??oe;class PF extends(Ke(Ee)){constructor(){super(...arguments),thi
     .secondary-text {
       color: var(--md-sys-color-on-surface-variant, #49454f);
       opacity: 0.8;
-    }
-
-    .info-section {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
     }
 
     .info-item {

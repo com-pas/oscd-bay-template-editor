@@ -41,6 +41,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private readonly nameTakenValidator;
     private handleNext;
     private handleSave;
+    renderStep1(): import("lit-html").TemplateResult<1>;
+    renderStep2(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;
 }
