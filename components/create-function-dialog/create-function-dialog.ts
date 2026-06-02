@@ -17,7 +17,8 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
-import { getFunctions } from '../../util.js';
+import { getFunctions, type SubfunctionData } from '../../util.js';
+import { AddSubfunctionDialog } from '../add-subfunction-dialog/add-subfunction-dialog.js';
 
 export enum CreateFunctionDialogStep {
   FunctionAttributes = 'function-attributes',
@@ -36,6 +37,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-divider': OscdDivider,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
+      'add-subfunction-dialog': AddSubfunctionDialog,
     };
   }
 
@@ -60,6 +62,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-scl-text-field[name="type"]')
   typeField!: OscdSclTextField;
 
+  @query('add-subfunction-dialog')
+  addSubfunctionDialog!: AddSubfunctionDialog;
+
   @state()
   name = '';
 
@@ -72,12 +77,20 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   step: CreateFunctionDialogStep = CreateFunctionDialogStep.FunctionAttributes;
 
+  @state()
+  tempSubfunctions: SubfunctionData[] = [];
+
+  @state()
+  selectedSubfunction: number | null = null;
+
   private formGroup: FormGroup | null = null;
 
   private shouldEmitCancel = true;
 
   show() {
     this.step = CreateFunctionDialogStep.FunctionAttributes;
+    this.tempSubfunctions = [];
+    this.selectedSubfunction = null;
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -163,6 +176,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
           name: this.name,
           description: this.description,
           type: this.type,
+          subfunctions: this.tempSubfunctions,
         },
       })
     );
@@ -171,14 +185,39 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.dialog.close();
   }
 
+  private handleAddSubfunction() {
+    this.addSubfunctionDialog.subfunctions = this.tempSubfunctions;
+    this.addSubfunctionDialog.show();
+  }
+
+  private handleSaveSubfunction(e: CustomEvent<SubfunctionData>) {
+    this.tempSubfunctions = [...this.tempSubfunctions, e.detail];
+    this.selectedSubfunction = null;
+  }
+
+  private handleDeleteSubfunction() {
+    if (this.selectedSubfunction === null) return;
+
+    const subfunctionName =
+      this.tempSubfunctions[this.selectedSubfunction].name;
+
+    if (window.confirm(`Delete subfunction "${subfunctionName}"?`)) {
+      this.tempSubfunctions = this.tempSubfunctions.filter(
+        (_, index) => index !== this.selectedSubfunction
+      );
+      this.selectedSubfunction = null;
+    }
+  }
+
+  private handleSubfunctionClick(index: number) {
+    this.selectedSubfunction =
+      this.selectedSubfunction === index ? null : index;
+  }
+
   renderFunctionAttrs() {
     return html`
-      <form
-        slot="content"
-        novalidate
-        @submit=${this.handleNext}
-        autocomplete="off"
-      >
+      <div slot="headline">Add Function</div>
+      <form slot="content" novalidate autocomplete="off">
         <oscd-filled-text-field
           label="Name"
           required
@@ -206,46 +245,81 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             this.type = (e.target as OscdSclTextField).value;
           }}
         ></oscd-scl-text-field>
-        <div slot="actions">
-          <oscd-filled-button
-            type="button"
-            data-testid="cancel-button-step1"
-            @click=${this.close}
-            >Cancel</oscd-filled-button
-          >
-          <oscd-filled-button type="submit" data-testid="next-button"
-            >Next</oscd-filled-button
-          >
-        </div>
       </form>
+      <div slot="actions">
+        <oscd-filled-button
+          type="button"
+          data-testid="cancel-button-step1"
+          @click=${this.close}
+          >Cancel</oscd-filled-button
+        >
+        <oscd-filled-button data-testid="next-button" @click=${this.handleNext}
+          >Next</oscd-filled-button
+        >
+      </div>
     `;
   }
 
   renderFunctionContent() {
-    return html`<div slot="content" class="content">
-        ${this.selectedElementName
-          ? html`
-              <span class="secondary-text"
-                >${this.selectedElementType} ${this.selectedElementName}</span
-              >
-              <oscd-divider></oscd-divider>
-            `
-          : nothing}
-
+    return html` <div slot="headline">
+        <div>
+          <div class="dialog-title">
+            <oscd-icon>function</oscd-icon>
+            <span>${this.name}</span>
+          </div>
+          ${this.selectedElementName
+            ? html`
+                <span class="secondary-text"
+                  >${this.selectedElementType} ${this.selectedElementName}</span
+                >
+              `
+            : nothing}
+        </div>
+      </div>
+      <div slot="content" class="content">
         <div class="section">
           <div class="section-header">
             <h4>Subfunctions</h4>
-            <oscd-icon-button title="Add Subfunction">
-              <oscd-icon>add</oscd-icon>
-            </oscd-icon-button>
+            <div class="button-group">
+              <oscd-icon-button
+                title="Delete Subfunction"
+                ?disabled=${this.selectedSubfunction === null}
+                @click=${this.handleDeleteSubfunction}
+              >
+                <oscd-icon>remove</oscd-icon>
+              </oscd-icon-button>
+              <oscd-icon-button
+                title="Add Subfunction"
+                @click=${this.handleAddSubfunction}
+              >
+                <oscd-icon>add</oscd-icon>
+              </oscd-icon-button>
+            </div>
           </div>
           <oscd-list>
-            <oscd-list-item type="text">
-              <oscd-icon slot="start">info</oscd-icon>
-              <span slot="headline"
-                >Click the add button to create a new subfunction</span
-              >
-            </oscd-list-item>
+            ${this.tempSubfunctions.length === 0
+              ? html`<oscd-list-item type="text">
+                  <oscd-icon slot="start">info</oscd-icon>
+                  <span slot="headline"
+                    >Click the add button to create a new subfunction</span
+                  >
+                </oscd-list-item>`
+              : this.tempSubfunctions.map(
+                  (sf, index) => html`
+                    <oscd-list-item
+                      type="button"
+                      class="${this.selectedSubfunction === index
+                        ? 'selected'
+                        : ''}"
+                      @click=${() => this.handleSubfunctionClick(index)}
+                    >
+                      ${sf.name}
+                      ${this.selectedSubfunction === index
+                        ? html`<oscd-icon slot="end">check</oscd-icon>`
+                        : nothing}
+                    </oscd-list-item>
+                  `
+                )}
           </oscd-list>
         </div>
 
@@ -288,26 +362,21 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   render() {
     return html`
       <oscd-dialog @closed=${this.handleClosed}>
-        <div slot="headline">
-          ${this.step === CreateFunctionDialogStep.FunctionAttributes
-            ? html`Add Function`
-            : html`<div class="dialog-title">
-                <oscd-icon>function</oscd-icon>
-                <span>${this.name}</span>
-              </div>`}
-        </div>
-
         ${this.step === CreateFunctionDialogStep.FunctionAttributes
           ? this.renderFunctionAttrs()
           : this.renderFunctionContent()}
       </oscd-dialog>
+
+      <add-subfunction-dialog
+        @save-subfunction=${this.handleSaveSubfunction}
+      ></add-subfunction-dialog>
     `;
   }
 
   static readonly styles = css`
     oscd-dialog {
-      --md-dialog-container-min-width: 500px;
-      --md-dialog-container-max-height: 80vh;
+      height: 80vh;
+      width: 500px;
     }
 
     form {
@@ -330,6 +399,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     }
 
     .secondary-text {
+      font-size: 14px;
       color: var(--md-sys-color-on-surface-variant, #49454f);
       opacity: 0.8;
     }
@@ -352,7 +422,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     .section {
       display: flex;
       flex-direction: column;
-      gap: 12px;
     }
 
     .section-header {
@@ -368,14 +437,29 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       color: var(--md-sys-color-on-surface, #1d1b20);
     }
 
+    .button-group {
+      display: flex;
+      gap: 4px;
+    }
+
     oscd-list {
       --md-list-container-color: transparent;
     }
 
     oscd-list-item {
+      --md-list-item-one-line-container-height: 40px;
+      --md-list-item-two-line-container-height: 52px;
       --md-list-item-label-text-color: var(
         --md-sys-color-on-surface-variant,
         #49454f
+      );
+      cursor: pointer;
+    }
+
+    oscd-list-item.selected {
+      background-color: var(
+        --md-sys-color-secondary-container,
+        rgba(103, 80, 164, 0.12)
       );
     }
 
