@@ -308,6 +308,12 @@ export function createPowerSystemRelationPrivate(
   return priv;
 }
 
+export interface SubfunctionData {
+  name: string;
+  description: string | null;
+  type: string | null;
+}
+
 /**
  * Returns Function elements associated with a given SCL element.
  *
