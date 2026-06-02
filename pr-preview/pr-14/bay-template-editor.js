@@ -7482,7 +7482,7 @@ const NF=e=>e??oe;class PF extends(Ke(Ee)){constructor(){super(...arguments),thi
         ></oscd-scl-text-field>
         <div slot="actions">
           <oscd-filled-button type="button" @click=${this.close}
-            >Close</oscd-filled-button
+            >Cancel</oscd-filled-button
           >
           <oscd-filled-button type="submit">Next</oscd-filled-button>
         </div>
@@ -7533,10 +7533,8 @@ const NF=e=>e??oe;class PF extends(Ke(Ee)){constructor(){super(...arguments),thi
       </div>
 
       <div slot="actions">
-        <oscd-filled-button
-          type="button"
-          @click=${()=>{this.step=1}}
-          >Back</oscd-filled-button
+        <oscd-filled-button type="button" @click=${this.close}
+          >Cancel</oscd-filled-button
         >
         <oscd-filled-button type="button" @click=${this.handleSave}
           >Save</oscd-filled-button
