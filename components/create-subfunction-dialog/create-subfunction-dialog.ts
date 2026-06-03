@@ -17,7 +17,7 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
-import { SubfunctionData } from '../../util.js';
+import type { SubfunctionData } from '../../util.js';
 
 export enum CreateSubfunctionDialogStep {
   SubfunctionAttributes = 'subfunction-attributes',
@@ -159,7 +159,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderSubfunctionAttrs() {
     return html`
-      <div slot="headline">Add Subfunction</div>
+      <div slot="headline">Add SubFunction</div>
       <form
         slot="content"
         novalidate
