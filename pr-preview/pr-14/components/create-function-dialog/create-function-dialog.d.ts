@@ -8,6 +8,10 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
+export declare enum CreateFunctionDialogStep {
+    FunctionAttributes = "function-attributes",
+    FunctionContent = "function-content"
+}
 declare const CreateFunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     static get scopedElements(): {
@@ -31,7 +35,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     name: string;
     description: string | null;
     type: string | null;
-    step: 1 | 2;
+    step: CreateFunctionDialogStep;
     private formGroup;
     private shouldEmitCancel;
     show(): void;
@@ -41,8 +45,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private readonly nameTakenValidator;
     private handleNext;
     private handleSave;
-    renderStep1(): import("lit-html").TemplateResult<1>;
-    renderStep2(): import("lit-html").TemplateResult<1>;
+    renderFunctionAttrs(): import("lit-html").TemplateResult<1>;
+    renderFunctionContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;
 }
