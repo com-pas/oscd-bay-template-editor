@@ -11,7 +11,7 @@ import {
   docWithBusBarBay,
   docWithElements,
 } from './bay-template-editor.testfiles.js';
-import { eqTypes } from './util.js';
+import { eqTypes, SubfunctionData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
   customElements.define('oscd-editor-bay-template', BayTemplatePlugin);
@@ -34,11 +34,15 @@ describe('Bay Template Editor Plugin', () => {
       return doc;
     }
 
-    function triggerAndCapture(selected: Element, name = 'F1') {
+    function triggerAndCapture(
+      selected: Element,
+      name = 'F1',
+      subfunctions: SubfunctionData[] = []
+    ) {
       const dispatchSpy = spy(element, 'dispatchEvent');
       element.selectedElement = selected;
       element.createFunction({
-        detail: { name, description: 'desc', type: 'type' },
+        detail: { name, description: 'desc', type: 'type', subfunctions },
       } as any);
       const editCall = dispatchSpy.args.find(
         args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
@@ -58,6 +62,23 @@ describe('Bay Template Editor Plugin', () => {
       expect(fn.tagName).to.equal('Function');
       expect(fn.getAttribute('name')).to.equal('Fbay');
       expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
+    });
+
+    it('adds Function and Subfunctions to Bay', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const subfunctions = [
+        { name: 'Sub1', description: 'desc', type: 'type' },
+        { name: 'Sub2', description: 'desc', type: 'type' },
+      ];
+      const { parent, fn } = triggerAndCapture(bay, 'Fbay', subfunctions);
+      expect(parent).to.equal(bay);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fbay');
+      const subFnElements = fn.querySelectorAll('SubFunction');
+      expect(subFnElements.length).to.equal(2);
+      expect(subFnElements[0].getAttribute('name')).to.equal('Sub1');
+      expect(subFnElements[1].getAttribute('name')).to.equal('Sub2');
     });
 
     it('adds Function to VoltageLevel', async () => {

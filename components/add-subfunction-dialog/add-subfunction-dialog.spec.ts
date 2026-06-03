@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import { fixture, expect, html } from '@open-wc/testing';
-import sinon, { spy } from 'sinon';
+import { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { AddSubfunctionDialog } from './add-subfunction-dialog.js';
 
@@ -77,39 +77,28 @@ describe('AddSubfunctionDialog', () => {
     );
   });
 
-  it('dispatches next event with correct details', async () => {
-    const dispatchSpy = spy(element, 'dispatchEvent');
+  it('shows next step on valid input and button click', async () => {
     element.name = 'SF2';
-    element.description = 'Test description';
-    element.type = 'TestType';
     element.show();
     await element.updateComplete;
-    const nextBtn = Array.from(
-      element.shadowRoot?.querySelectorAll('oscd-filled-button') ?? []
-    ).find(btn => btn.textContent?.trim() === 'Next') as HTMLElement;
+    const nextBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="next-button"]'
+    ) as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
-
-    expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'next'))).to.be
-      .true;
-    const nextEvent = dispatchSpy
-      .getCalls()
-      .find(call => call.args[0].type === 'next')?.args[0] as CustomEvent;
-    expect(nextEvent?.detail).to.deep.equal({
-      name: 'SF2',
-      description: 'Test description',
-      type: 'TestType',
-    });
+    expect(element.step).to.equal(2);
   });
 
-  it('dispatches cancel event on close', async () => {
-    const dispatchSpy = spy(element, 'dispatchEvent');
+  it('closes dialog on Cancel', async () => {
     element.show();
     await element.updateComplete;
-    (element as any).handleClosed();
+    const cancelBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="cancel-button"]'
+    ) as HTMLElement;
+    cancelBtn.click();
     await element.updateComplete;
-    expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'cancel'))).to.be
-      .true;
+    const dialog = element.shadowRoot?.querySelector('oscd-dialog') as any;
+    expect(dialog.open).to.be.false;
   });
 
   it('resets fields on close', async () => {

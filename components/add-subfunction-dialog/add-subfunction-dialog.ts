@@ -190,10 +190,16 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       </form>
 
       <div slot="actions">
-        <oscd-filled-button type="button" @click=${this.close}
+        <oscd-filled-button
+          data-testid="cancel-button"
+          type="button"
+          @click=${this.close}
           >Cancel</oscd-filled-button
         >
-        <oscd-filled-button type="button" @click=${this.handleNext}
+        <oscd-filled-button
+          data-testid="next-button"
+          type="button"
+          @click=${this.handleNext}
           >Next</oscd-filled-button
         >
       </div>

@@ -44,10 +44,10 @@ describe('CreateFunctionDialog', () => {
   it('shows error if name is empty on submit', async () => {
     element.show();
     await element.updateComplete;
-    const form = element.shadowRoot?.querySelector('form')!;
-    form.dispatchEvent(
-      new Event('submit', { bubbles: true, cancelable: true })
-    );
+    const nextBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="next-button"]'
+    ) as HTMLElement;
+    nextBtn.click();
     await element.updateComplete;
     const nameField = element.shadowRoot?.querySelector(
       'oscd-filled-text-field[name="name"]'
@@ -66,10 +66,10 @@ describe('CreateFunctionDialog', () => {
     await element.updateComplete;
     element.show();
     await element.updateComplete;
-    const form = element.shadowRoot?.querySelector('form')!;
-    form.dispatchEvent(
-      new Event('submit', { bubbles: true, cancelable: true })
-    );
+    const nextBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="next-button"]'
+    ) as HTMLElement;
+    nextBtn.click();
     await element.updateComplete;
     const nameField = element.shadowRoot?.querySelector(
       'oscd-filled-text-field[name="name"]'
@@ -112,6 +112,7 @@ describe('CreateFunctionDialog', () => {
       name: 'F2',
       description: null,
       type: null,
+      subfunctions: [],
     });
   });
 
