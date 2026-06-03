@@ -45,6 +45,12 @@ export const singleTerminal = new Set([
   'VTR',
 ]);
 
+export interface SubfunctionData {
+  name: string;
+  description: string | null;
+  type: string | null;
+}
+
 function sections(element: Element): Element[] {
   return Array.from(
     element.querySelectorAll(`:scope Private[type="${privType}"] > Section`)
@@ -306,12 +312,6 @@ export function createPowerSystemRelationPrivate(
   relations.appendChild(relation);
   priv.appendChild(relations);
   return priv;
-}
-
-export interface SubfunctionData {
-  name: string;
-  description: string | null;
-  type: string | null;
 }
 
 /**

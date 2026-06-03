@@ -2,14 +2,17 @@
 import { fixture, expect, html } from '@open-wc/testing';
 import { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
-import { AddSubfunctionDialog } from './add-subfunction-dialog.js';
+import {
+  CreateSubfunctionDialog,
+  CreateSubfunctionDialogStep,
+} from './create-subfunction-dialog.js';
 
 if (!customElements.get('add-subfunction-dialog')) {
-  customElements.define('add-subfunction-dialog', AddSubfunctionDialog);
+  customElements.define('add-subfunction-dialog', CreateSubfunctionDialog);
 }
 
-describe('AddSubfunctionDialog', () => {
-  let element: AddSubfunctionDialog;
+describe('CreateSubfunctionDialog', () => {
+  let element: CreateSubfunctionDialog;
   let doc: XMLDocument;
 
   beforeEach(async () => {
@@ -86,7 +89,9 @@ describe('AddSubfunctionDialog', () => {
     ) as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
-    expect(element.step).to.equal(2);
+    expect(element.step).to.equal(
+      CreateSubfunctionDialogStep.SubfunctionContent
+    );
   });
 
   it('closes dialog on Cancel', async () => {

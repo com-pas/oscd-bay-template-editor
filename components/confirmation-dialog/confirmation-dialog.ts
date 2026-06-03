@@ -57,25 +57,22 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
         composed: true,
       })
     );
-    this.dialog.close();
+    this.close();
   }
 
-  private handleClosed() {
+  private handleCancel() {
     this.dispatchEvent(
       new CustomEvent('confirm-dialog-cancel', {
         bubbles: true,
         composed: true,
       })
     );
-  }
-
-  private handleCancelClick() {
-    this.dialog.close();
+    this.close();
   }
 
   render() {
     return html`
-      <oscd-dialog @closed=${this.handleClosed}>
+      <oscd-dialog @cancel=${this.handleCancel}>
         <div slot="headline" class="headline">
           ${this.icon
             ? html`<oscd-icon class="headline-icon variant-${this.variant}"
@@ -91,12 +88,17 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
         </div>
 
         <div slot="actions">
-          <oscd-filled-button type="button" @click=${this.handleCancelClick}>
+          <oscd-filled-button
+            type="button"
+            data-testid="cancel-button"
+            @click=${this.handleCancel}
+          >
             ${this.cancelLabel}
           </oscd-filled-button>
           <oscd-filled-button
             type="button"
             class="confirm-button variant-${this.variant}"
+            data-testid="confirm-button"
             @click=${this.handleConfirm}
           >
             ${this.confirmLabel}
