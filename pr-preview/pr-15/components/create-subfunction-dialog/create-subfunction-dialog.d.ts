@@ -8,7 +8,7 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-import { SubfunctionData } from '../../util.js';
+import type { SubfunctionData } from '../../util.js';
 export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
     SubfunctionContent = "subfunction-content"

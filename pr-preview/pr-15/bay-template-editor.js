@@ -7452,7 +7452,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
       --md-icon-button-icon-size: 48px;
     }
   `,e([xe({type:Boolean})],TF.prototype,"nullable",void 0),e([we()],TF.prototype,"textFieldValue",void 0),e([xe({type:String})],TF.prototype,"value",null),e([xe({type:Boolean})],TF.prototype,"disabled",void 0),e([xe({type:String})],TF.prototype,"label",void 0),e([xe({type:Boolean})],TF.prototype,"required",void 0),e([xe({type:String})],TF.prototype,"supportingText",void 0),e([xe({type:Boolean})],TF.prototype,"error",void 0),e([xe({type:String})],TF.prototype,"errorText",void 0),e([xe({type:String})],TF.prototype,"suffixText",void 0),e([xe({type:String})],TF.prototype,"placeholder",void 0),e([xe({type:String})],TF.prototype,"type",void 0),e([xe({type:String})],TF.prototype,"pattern",void 0),e([xe({type:String})],TF.prototype,"max",void 0),e([xe({type:String})],TF.prototype,"min",void 0),e([xe({type:Number})],TF.prototype,"maxLength",void 0),e([xe({type:Number})],TF.prototype,"minLength",void 0),e([xe({type:String})],TF.prototype,"unit",void 0),e([xe({type:Array})],TF.prototype,"multipliers",void 0),e([xe({type:String})],TF.prototype,"multiplier",null),e([we()],TF.prototype,"isNull",void 0),e([we()],TF.prototype,"null",null),e([Fe(".nullswitch.element")],TF.prototype,"nullSwitch",void 0),e([Fe(".multipliers")],TF.prototype,"multiplierMenu",void 0),e([Fe(".input.element")],TF.prototype,"textField",void 0);const xF=e=>(t,n)=>"number"==typeof t?isNaN(t)?e:null:t?null:e,wF=xF;class MF{get errors(){return this._errors}constructor(e){this._errors={},this.form=e}validate(){const e=this.getFormValue();let t=!1;for(const[n,s]of Object.entries(this.form)){const r=this.toArray(s.validators),i=e[n],a=r.map((t=>t(i,e))).filter((e=>null!==e));this.errors[n]=a,a.length>0?(s.formField.error=!0,s.formField.errorText=a[0],t=!0):(s.formField.error=!1,s.formField.errorText=null)}return!t}getFormValue(){const e={};return Object.keys(this.form).forEach((t=>e[t]=this.form[t].formField.value)),e}toArray(e){return e?Array.isArray(e)?e:[e]:[]}}var RF,VF;!function(e){e.SubfunctionAttributes="subfunction-attributes",e.SubfunctionContent="subfunction-content"}(RF||(RF={}));class FF extends(Ke(Ee)){constructor(){super(...arguments),this.subfunctions=[],this.name="",this.description=null,this.type=null,this.step=RF.SubfunctionAttributes,this.formGroup=null,this.nameNotTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();return this.subfunctions.find((e=>e.name.trim()===t))?`A SubFunction with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-filled-text-field":vF,"oscd-scl-text-field":TF,"oscd-icon":Bn,"oscd-icon-button":IV,"oscd-divider":OV,"oscd-list":uV,"oscd-list-item":_V}}show(){this.step=RF.SubfunctionAttributes,this.formGroup=new MF({name:{formField:this.nameField,validators:[wF("Name is required"),this.nameNotTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.dialog.close()}reset(){this.step=RF.SubfunctionAttributes,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){this.reset()}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=RF.SubfunctionContent)}handleBack(){this.step=RF.SubfunctionAttributes}handleSave(){this.dispatchEvent(new CustomEvent("save-subfunction",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type}})),this.dialog.close()}renderSubfunctionAttrs(){return re`
-      <div slot="headline">Add Subfunction</div>
+      <div slot="headline">Add SubFunction</div>
       <form
         slot="content"
         novalidate
@@ -7767,17 +7767,17 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
       <div slot="content" class="content">
         <div class="section">
           <div class="section-header">
-            <h4>Subfunctions</h4>
+            <h4>SubFunctions</h4>
             <div class="button-group">
               <oscd-icon-button
-                title="Delete Subfunction"
+                title="Delete SubFunction"
                 ?disabled=${null===this.selectedSubfunction}
                 @click=${this.handleDeleteSubfunction}
               >
                 <oscd-icon>remove</oscd-icon>
               </oscd-icon-button>
               <oscd-icon-button
-                title="Add Subfunction"
+                title="Add SubFunction"
                 @click=${this.handleAddSubfunction}
               >
                 <oscd-icon>add</oscd-icon>
@@ -7788,7 +7788,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
             ${0===this.tempSubfunctions.length?re`<oscd-list-item type="text">
                   <oscd-icon slot="start">info</oscd-icon>
                   <span slot="headline"
-                    >Click the add button to create a new subfunction</span
+                    >Click the add button to create a new SubFunction</span
                   >
                 </oscd-list-item>`:this.tempSubfunctions.map(((e,t)=>re`
                     <oscd-list-item
