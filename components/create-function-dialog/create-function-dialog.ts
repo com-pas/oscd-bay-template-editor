@@ -19,6 +19,7 @@ import {
 } from '@compas-oscd/forms';
 import { getFunctions, type SubfunctionData } from '../../util.js';
 import { AddSubfunctionDialog } from '../add-subfunction-dialog/add-subfunction-dialog.js';
+import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 
 export enum CreateFunctionDialogStep {
   FunctionAttributes = 'function-attributes',
@@ -38,6 +39,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
       'add-subfunction-dialog': AddSubfunctionDialog,
+      'confirm-dialog': ConfirmDialog,
     };
   }
 
@@ -64,6 +66,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   @query('add-subfunction-dialog')
   addSubfunctionDialog!: AddSubfunctionDialog;
+
+  @query('confirm-dialog')
+  confirmDialog!: ConfirmDialog;
 
   @state()
   name = '';
@@ -201,12 +206,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     const subfunctionName =
       this.tempSubfunctions[this.selectedSubfunction].name;
 
-    if (window.confirm(`Delete subfunction "${subfunctionName}"?`)) {
-      this.tempSubfunctions = this.tempSubfunctions.filter(
-        (_, index) => index !== this.selectedSubfunction
-      );
-      this.selectedSubfunction = null;
-    }
+    this.confirmDialog.description = `Are you sure you want to delete "${subfunctionName}"? This action cannot be undone.`;
+    this.confirmDialog.show();
   }
 
   private handleSubfunctionClick(index: number) {
@@ -370,6 +371,23 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       <add-subfunction-dialog
         @save-subfunction=${this.handleSaveSubfunction}
       ></add-subfunction-dialog>
+
+      <confirm-dialog
+        headline="Delete subfunction?"
+        description='Are you sure you want to delete "MySubfunction"? This action cannot be undone.'
+        confirm-label="Delete"
+        cancel-label="Cancel"
+        icon="delete"
+        variant="danger"
+        @confirm-dialog-confirm=${() => {
+          if (this.selectedSubfunction === null) return;
+          this.tempSubfunctions = this.tempSubfunctions.filter(
+            (_, index) => index !== this.selectedSubfunction
+          );
+          this.selectedSubfunction = null;
+        }}
+        @confirm-dialog-cancel=${() => this.confirmDialog.close()}
+      ></confirm-dialog>
     `;
   }
 
