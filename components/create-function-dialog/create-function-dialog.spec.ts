@@ -2,7 +2,10 @@
 import { fixture, expect, html, waitUntil } from '@open-wc/testing';
 import sinon, { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
-import { CreateFunctionDialog } from './create-function-dialog.js';
+import {
+  CreateFunctionDialog,
+  CreateFunctionDialogStep,
+} from './create-function-dialog.js';
 
 if (!customElements.get('create-function-dialog')) {
   customElements.define('create-function-dialog', CreateFunctionDialog);
@@ -89,7 +92,10 @@ describe('CreateFunctionDialog', () => {
     ) as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
-    await waitUntil(() => element.step === 2, 'Step did not advance to 2');
+    await waitUntil(
+      () => element.step === CreateFunctionDialogStep.FunctionContent,
+      'Step did not advance to Function Content'
+    );
 
     const saveBtn = element.shadowRoot?.querySelector(
       'oscd-filled-button[data-testid="save-button"]'

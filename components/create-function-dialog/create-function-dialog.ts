@@ -19,6 +19,11 @@ import {
 } from '@compas-oscd/forms';
 import { getFunctions } from '../../util.js';
 
+export enum CreateFunctionDialogStep {
+  FunctionAttributes = 'function-attributes',
+  FunctionContent = 'function-content',
+}
+
 export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
@@ -65,14 +70,14 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   type: string | null = null;
 
   @state()
-  step: 1 | 2 = 1;
+  step: CreateFunctionDialogStep = CreateFunctionDialogStep.FunctionAttributes;
 
   private formGroup: FormGroup | null = null;
 
   private shouldEmitCancel = true;
 
   show() {
-    this.step = 1;
+    this.step = CreateFunctionDialogStep.FunctionAttributes;
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -98,7 +103,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   reset() {
-    this.step = 1;
+    this.step = CreateFunctionDialogStep.FunctionAttributes;
     this.name = '';
     this.description = null;
     this.type = null;
@@ -146,7 +151,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    this.step = 2;
+    this.step = CreateFunctionDialogStep.FunctionContent;
   }
 
   private handleSave() {
@@ -164,7 +169,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.dialog.close();
   }
 
-  renderStep1() {
+  renderFunctionAttrs() {
     return html`
       <form
         slot="content"
@@ -214,7 +219,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     `;
   }
 
-  renderStep2() {
+  renderFunctionContent() {
     return html`<div slot="content" class="content">
         ${this.selectedElementName
           ? html`
@@ -282,7 +287,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     return html`
       <oscd-dialog @closed=${this.handleClosed}>
         <div slot="headline">
-          ${this.step === 1
+          ${this.step === CreateFunctionDialogStep.FunctionAttributes
             ? html`Add Function`
             : html`<div class="dialog-title">
                 <oscd-icon>function</oscd-icon>
@@ -290,7 +295,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
               </div>`}
         </div>
 
-        ${this.step === 1 ? this.renderStep1() : this.renderStep2()}
+        ${this.step === CreateFunctionDialogStep.FunctionAttributes
+          ? this.renderFunctionAttrs()
+          : this.renderFunctionContent()}
       </oscd-dialog>
     `;
   }
