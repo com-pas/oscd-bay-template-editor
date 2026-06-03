@@ -141,4 +141,40 @@ describe('CreateFunctionDialog', () => {
     expect(nameField?.error).to.be.false;
     expect(nameField?.errorText).to.equal('');
   });
+
+  it('deletes selected subfunction', async () => {
+    element.name = 'F4';
+    element.show();
+    await element.updateComplete;
+
+    element.tempSubfunctions = [
+      { name: 'SF1', description: null, type: null },
+      { name: 'SF2', description: null, type: null },
+    ];
+    element.selectedSubfunction = 0;
+    const nextBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="next-button"]'
+    ) as HTMLElement;
+    nextBtn.click();
+    await element.updateComplete;
+    await waitUntil(
+      () => element.step === CreateFunctionDialogStep.FunctionContent,
+      'Step did not advance to Function Content'
+    );
+
+    const deleteBtn = element.shadowRoot?.querySelector(
+      'oscd-icon-button[data-testid="delete-subfunction-button"]'
+    ) as HTMLElement;
+    deleteBtn.click();
+    await element.updateComplete;
+
+    const confirmBtn = element.confirmDialog.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="confirm-button"]'
+    ) as HTMLElement;
+    confirmBtn.click();
+    await element.updateComplete;
+    expect(element.tempSubfunctions).to.deep.equal([
+      { name: 'SF2', description: null, type: null },
+    ]);
+  });
 });

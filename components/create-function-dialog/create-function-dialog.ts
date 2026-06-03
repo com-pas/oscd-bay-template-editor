@@ -217,9 +217,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   private handleConfirmDeleteSubfunction() {
     if (this.selectedSubfunction === null) return;
-    this.tempSubfunctions = this.tempSubfunctions.filter(
-      (_, index) => index !== this.selectedSubfunction
-    );
+    this.tempSubfunctions.splice(this.selectedSubfunction, 1);
     this.selectedSubfunction = null;
   }
 
@@ -288,17 +286,18 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       <div slot="content" class="content">
         <div class="section">
           <div class="section-header">
-            <h4>Subfunctions</h4>
+            <h4>SubFunctions</h4>
             <div class="button-group">
               <oscd-icon-button
-                title="Delete Subfunction"
+                title="Delete SubFunction"
                 ?disabled=${this.selectedSubfunction === null}
+                data-testid="delete-subfunction-button"
                 @click=${this.handleDeleteSubfunction}
               >
                 <oscd-icon>remove</oscd-icon>
               </oscd-icon-button>
               <oscd-icon-button
-                title="Add Subfunction"
+                title="Add SubFunction"
                 @click=${this.handleAddSubfunction}
               >
                 <oscd-icon>add</oscd-icon>
@@ -310,7 +309,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
               ? html`<oscd-list-item type="text">
                   <oscd-icon slot="start">info</oscd-icon>
                   <span slot="headline"
-                    >Click the add button to create a new subfunction</span
+                    >Click the add button to create a new SubFunction</span
                   >
                 </oscd-list-item>`
               : this.tempSubfunctions.map(
