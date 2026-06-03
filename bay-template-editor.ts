@@ -298,6 +298,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     ];
     if (this.doc && this.createFunctionDialog) {
       this.createFunctionDialog.parent = this.selectedElement;
+      this.createFunctionDialog.selectedElementName =
+        this.selectedElement.getAttribute('name') || '';
+      this.createFunctionDialog.selectedElementType =
+        this.selectedElement.tagName;
       this.createFunctionDialog.show();
     }
   };
@@ -477,9 +481,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     }>
   ) {
     const { name, description, type } = e.detail;
-    if (!this.doc || !this.selectedElement) return;
+    if (!this.doc) return;
 
     const selected = this.selectedElement;
+    if (!selected) return;
+
     const { tagName } = selected;
     const functionParent = this.getFunctionParent(selected);
     if (!functionParent) return;
@@ -518,7 +524,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     this.reset();
     this.showFunctions = true;
-    this.createFunctionDialog?.close();
   }
 
   private renderTransformerButtons() {
