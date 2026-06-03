@@ -18,7 +18,7 @@ import {
   type Value,
 } from '@compas-oscd/forms';
 import { getFunctions, type SubfunctionData } from '../../util.js';
-import { AddSubfunctionDialog } from '../add-subfunction-dialog/add-subfunction-dialog.js';
+import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 
 export enum CreateFunctionDialogStep {
@@ -38,7 +38,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-divider': OscdDivider,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
-      'add-subfunction-dialog': AddSubfunctionDialog,
+      'add-subfunction-dialog': CreateSubfunctionDialog,
       'confirm-dialog': ConfirmDialog,
     };
   }
@@ -65,7 +65,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   typeField!: OscdSclTextField;
 
   @query('add-subfunction-dialog')
-  addSubfunctionDialog!: AddSubfunctionDialog;
+  createSubfunctionDialog!: CreateSubfunctionDialog;
 
   @query('confirm-dialog')
   confirmDialog!: ConfirmDialog;
@@ -191,8 +191,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleAddSubfunction() {
-    this.addSubfunctionDialog.subfunctions = this.tempSubfunctions;
-    this.addSubfunctionDialog.show();
+    this.createSubfunctionDialog.subfunctions = this.tempSubfunctions;
+    this.createSubfunctionDialog.show();
   }
 
   private handleSaveSubfunction(e: CustomEvent<SubfunctionData>) {
@@ -213,6 +213,14 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   private handleSubfunctionClick(index: number) {
     this.selectedSubfunction =
       this.selectedSubfunction === index ? null : index;
+  }
+
+  private handleConfirmDeleteSubfunction() {
+    if (this.selectedSubfunction === null) return;
+    this.tempSubfunctions = this.tempSubfunctions.filter(
+      (_, index) => index !== this.selectedSubfunction
+    );
+    this.selectedSubfunction = null;
   }
 
   renderFunctionAttrs() {
@@ -373,20 +381,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       ></add-subfunction-dialog>
 
       <confirm-dialog
-        headline="Delete subfunction?"
-        description='Are you sure you want to delete "MySubfunction"? This action cannot be undone.'
+        headline="Delete SubFunction?"
         confirm-label="Delete"
         cancel-label="Cancel"
         icon="delete"
         variant="danger"
-        @confirm-dialog-confirm=${() => {
-          if (this.selectedSubfunction === null) return;
-          this.tempSubfunctions = this.tempSubfunctions.filter(
-            (_, index) => index !== this.selectedSubfunction
-          );
-          this.selectedSubfunction = null;
-        }}
-        @confirm-dialog-cancel=${() => this.confirmDialog.close()}
+        @confirm-dialog-confirm=${this.handleConfirmDeleteSubfunction}
       ></confirm-dialog>
     `;
   }

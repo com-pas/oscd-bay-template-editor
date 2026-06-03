@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
@@ -19,7 +19,12 @@ import {
 } from '@compas-oscd/forms';
 import { SubfunctionData } from '../../util.js';
 
-export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
+export enum CreateSubfunctionDialogStep {
+  SubfunctionAttributes = 'subfunction-attributes',
+  SubfunctionContent = 'subfunction-content',
+}
+
+export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       'oscd-dialog': OscdDialog,
@@ -59,12 +64,13 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   type: string | null = null;
 
   @state()
-  step: 1 | 2 = 1;
+  step: CreateSubfunctionDialogStep =
+    CreateSubfunctionDialogStep.SubfunctionAttributes;
 
   private formGroup: FormGroup | null = null;
 
   show() {
-    this.step = 1;
+    this.step = CreateSubfunctionDialogStep.SubfunctionAttributes;
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -90,7 +96,7 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   reset() {
-    this.step = 1;
+    this.step = CreateSubfunctionDialogStep.SubfunctionAttributes;
     this.name = '';
     this.description = null;
     this.type = null;
@@ -128,11 +134,11 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    this.step = 2;
+    this.step = CreateSubfunctionDialogStep.SubfunctionContent;
   }
 
   private handleBack() {
-    this.step = 1;
+    this.step = CreateSubfunctionDialogStep.SubfunctionAttributes;
   }
 
   private handleSave() {
@@ -151,7 +157,7 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.dialog.close();
   }
 
-  private renderStep1() {
+  renderSubfunctionAttrs() {
     return html`
       <div slot="headline">Add Subfunction</div>
       <form
@@ -206,38 +212,16 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     `;
   }
 
-  private renderStep2() {
+  renderSubfunctionContent() {
     return html`
-      <div slot="headline">Subfunction content</div>
-        <div class="headline-container">
+      <div slot="headline">
+        <div class="dialog-title">
           <oscd-icon>account_tree</oscd-icon>
           <span>${this.name}</span>
         </div>
       </div>
 
-      <div slot="content" class="step2-content">
-        ${
-          this.description || this.type
-            ? html`
-                <div class="info-section">
-                  ${this.description
-                    ? html`<div class="info-item">
-                        <span class="label">Description:</span>
-                        <span class="value">${this.description}</span>
-                      </div>`
-                    : nothing}
-                  ${this.type
-                    ? html`<div class="info-item">
-                        <span class="label">Type:</span>
-                        <span class="value">${this.type}</span>
-                      </div>`
-                    : nothing}
-                </div>
-                <oscd-divider></oscd-divider>
-              `
-            : nothing
-        }
-
+      <div slot="content">
         <div class="section">
           <div class="section-header">
             <h4>LNodes</h4>
@@ -249,7 +233,7 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
             <oscd-list-item type="text">
               <oscd-icon slot="start">info</oscd-icon>
               <span slot="headline"
-                >LNode management coming in future story</span
+                >Click the add button to create a new LNode</span
               >
             </oscd-list-item>
           </oscd-list>
@@ -257,10 +241,16 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       </div>
 
       <div slot="actions">
-        <oscd-filled-button type="button" @click=${this.handleBack}
+        <oscd-filled-button
+          type="button"
+          data-testid="back-button"
+          @click=${this.handleBack}
           >Back</oscd-filled-button
         >
-        <oscd-filled-button type="button" @click=${this.handleSave}
+        <oscd-filled-button
+          type="button"
+          data-testid="save-button"
+          @click=${this.handleSave}
           >Save</oscd-filled-button
         >
       </div>
@@ -270,7 +260,9 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   render() {
     return html`
       <oscd-dialog @closed=${this.handleClosed}>
-        ${this.step === 1 ? this.renderStep1() : this.renderStep2()}
+        ${this.step === CreateSubfunctionDialogStep.SubfunctionAttributes
+          ? this.renderSubfunctionAttrs()
+          : this.renderSubfunctionContent()}
       </oscd-dialog>
     `;
   }
@@ -292,17 +284,10 @@ export class AddSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       display: block;
     }
 
-    .headline-container {
+    .dialog-title {
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .step2-content {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      min-height: 300px;
     }
 
     oscd-divider {
