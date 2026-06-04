@@ -60,7 +60,12 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
     this.close();
   }
 
-  private handleCancel() {
+  // eslint-disable-next-line class-methods-use-this
+  private handleCancel(e: Event) {
+    e.preventDefault();
+  }
+
+  private handleCancelClick() {
     this.dispatchEvent(
       new CustomEvent('confirm-dialog-cancel', {
         bubbles: true,
@@ -72,7 +77,10 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-      <oscd-dialog @cancel=${this.handleCancel}>
+      <oscd-dialog
+        @cancel=${this.handleCancel}
+        id=${`confirm-dialog-${this.variant}`}
+      >
         <div slot="headline" class="headline">
           ${this.icon
             ? html`<oscd-icon class="headline-icon variant-${this.variant}"
@@ -91,7 +99,7 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
           <oscd-filled-button
             type="button"
             data-testid="cancel-button"
-            @click=${this.handleCancel}
+            @click=${this.handleCancelClick}
           >
             ${this.cancelLabel}
           </oscd-filled-button>

@@ -88,6 +88,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   selectedSubfunction: number | null = null;
 
+  @state()
+  confirmAction: 'cancel' | 'delete-subfunction' | null = null;
+
   private formGroup: FormGroup | null = null;
 
   private shouldEmitCancel = true;
@@ -121,6 +124,18 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   close() {
+    this.confirmAction = 'cancel';
+    this.confirmDialog.headline = 'Cancel without saving?';
+    this.confirmDialog.description =
+      'Are you sure you want to cancel? All changes will be lost.';
+    this.confirmDialog.icon = 'warning';
+    this.confirmDialog.variant = 'danger';
+    this.confirmDialog.confirmLabel = 'Yes, cancel';
+    this.confirmDialog.cancelLabel = 'No, go back';
+    this.confirmDialog.show();
+  }
+
+  private closeWithoutConfirm() {
     document.removeEventListener(
       'keydown',
       this.boundHandleDocumentKeydown,
@@ -201,8 +216,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   private handleSave() {
     this.dispatchEvent(
       new CustomEvent('save', {
-        bubbles: true,
-        composed: true,
         detail: {
           name: this.name,
           description: this.description,
@@ -232,7 +245,13 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     const subfunctionName =
       this.tempSubfunctions[this.selectedSubfunction].name;
 
+    this.confirmAction = 'delete-subfunction';
+    this.confirmDialog.headline = 'Delete SubFunction?';
     this.confirmDialog.description = `Are you sure you want to delete "${subfunctionName}"? This action cannot be undone.`;
+    this.confirmDialog.icon = 'delete';
+    this.confirmDialog.variant = 'danger';
+    this.confirmDialog.confirmLabel = 'Delete';
+    this.confirmDialog.cancelLabel = 'Cancel';
     this.confirmDialog.show();
   }
 
@@ -241,10 +260,15 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       this.selectedSubfunction === index ? null : index;
   }
 
-  private handleConfirmDeleteSubfunction() {
-    if (this.selectedSubfunction === null) return;
-    this.tempSubfunctions.splice(this.selectedSubfunction, 1);
-    this.selectedSubfunction = null;
+  private handleConfirm() {
+    if (this.confirmAction === 'cancel') {
+      this.closeWithoutConfirm();
+    } else if (this.confirmAction === 'delete-subfunction') {
+      if (this.selectedSubfunction === null) return;
+      this.tempSubfunctions.splice(this.selectedSubfunction, 1);
+      this.selectedSubfunction = null;
+    }
+    this.confirmAction = null;
   }
 
   renderFunctionAttrs() {
@@ -395,7 +419,11 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-      <oscd-dialog @cancel=${this.handleCancel} @closed=${this.handleClosed}>
+      <oscd-dialog
+        id="create-function-dialog"
+        @cancel=${this.handleCancel}
+        @closed=${this.handleClosed}
+      >
         ${this.step === CreateFunctionDialogStep.FunctionAttributes
           ? this.renderFunctionAttrs()
           : this.renderFunctionContent()}
@@ -406,12 +434,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       ></add-subfunction-dialog>
 
       <confirm-dialog
-        headline="Delete SubFunction?"
-        confirm-label="Delete"
+        headline="Confirmation"
+        confirm-label="Confirm"
         cancel-label="Cancel"
-        icon="delete"
-        variant="danger"
-        @confirm-dialog-confirm=${this.handleConfirmDeleteSubfunction}
+        icon="help"
+        variant="primary"
+        @confirm-dialog-confirm=${this.handleConfirm}
       ></confirm-dialog>
     `;
   }

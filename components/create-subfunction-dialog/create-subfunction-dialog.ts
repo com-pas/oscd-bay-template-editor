@@ -18,6 +18,7 @@ import {
   type Value,
 } from '@compas-oscd/forms';
 import type { SubfunctionData } from '../../util.js';
+import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 
 export enum CreateSubfunctionDialogStep {
   SubfunctionAttributes = 'subfunction-attributes',
@@ -36,6 +37,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-divider': OscdDivider,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
+      'confirm-dialog': ConfirmDialog,
     };
   }
 
@@ -54,6 +56,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-scl-text-field[name="type"]')
   typeField!: OscdSclTextField;
 
+  @query('confirm-dialog')
+  confirmDialog!: ConfirmDialog;
+
   @state()
   name = '';
 
@@ -67,9 +72,16 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   step: CreateSubfunctionDialogStep =
     CreateSubfunctionDialogStep.SubfunctionAttributes;
 
+  @state()
+  confirmAction: 'cancel' | null = null;
+
   private formGroup: FormGroup | null = null;
 
+  private readonly boundHandleDocumentKeydown =
+    this.handleDocumentKeydown.bind(this);
+
   show() {
+    document.addEventListener('keydown', this.boundHandleDocumentKeydown, true);
     this.step = CreateSubfunctionDialogStep.SubfunctionAttributes;
     this.formGroup = new FormGroup({
       name: {
@@ -92,6 +104,23 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   close() {
+    this.confirmAction = 'cancel';
+    this.confirmDialog.headline = 'Cancel without saving?';
+    this.confirmDialog.description =
+      'Are you sure you want to cancel? All changes will be lost.';
+    this.confirmDialog.icon = 'warning';
+    this.confirmDialog.variant = 'danger';
+    this.confirmDialog.confirmLabel = 'Yes, cancel';
+    this.confirmDialog.cancelLabel = 'No, go back';
+    this.confirmDialog.show();
+  }
+
+  private closeWithoutConfirm() {
+    document.removeEventListener(
+      'keydown',
+      this.boundHandleDocumentKeydown,
+      true
+    );
     this.dialog.close();
   }
 
@@ -115,6 +144,11 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleClosed() {
+    document.removeEventListener(
+      'keydown',
+      this.boundHandleDocumentKeydown,
+      true
+    );
     this.reset();
   }
 
@@ -123,9 +157,8 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     e.preventDefault();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
+  private handleDocumentKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && this.dialog?.open) {
       e.preventDefault();
       e.stopPropagation();
     }
@@ -168,6 +201,13 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     );
 
     this.dialog.close();
+  }
+
+  private handleConfirm() {
+    if (this.confirmAction === 'cancel') {
+      this.closeWithoutConfirm();
+    }
+    this.confirmAction = null;
   }
 
   renderSubfunctionAttrs() {
@@ -273,14 +313,23 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   render() {
     return html`
       <oscd-dialog
+        id="create-subfunction-dialog"
         @cancel=${this.handleCancel}
-        @keydown=${this.handleKeydown}
         @closed=${this.handleClosed}
       >
         ${this.step === CreateSubfunctionDialogStep.SubfunctionAttributes
           ? this.renderSubfunctionAttrs()
           : this.renderSubfunctionContent()}
       </oscd-dialog>
+
+      <confirm-dialog
+        headline="Confirmation"
+        confirm-label="Confirm"
+        cancel-label="Cancel"
+        icon="help"
+        variant="primary"
+        @confirm-dialog-confirm=${this.handleConfirm}
+      ></confirm-dialog>
     `;
   }
 

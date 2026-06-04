@@ -126,6 +126,41 @@ describe('CreateFunctionDialog', () => {
       .true;
   });
 
+  it('closes dialog on Cancel confirmation', async () => {
+    element.show();
+    await element.updateComplete;
+    const cancelBtn = element.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="cancel-button-step1"]'
+    ) as HTMLElement;
+    cancelBtn.click();
+    await element.updateComplete;
+
+    const confirmDialog = element.shadowRoot?.querySelector(
+      'confirm-dialog'
+    ) as any;
+    expect(confirmDialog).to.exist;
+
+    await confirmDialog.updateComplete;
+    expect(confirmDialog.headline).to.equal('Cancel without saving?');
+    expect(confirmDialog.variant).to.equal('danger');
+    expect(confirmDialog.confirmLabel).to.equal('Yes, cancel');
+
+    const confirmBtn = confirmDialog?.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="confirm-button"]'
+    ) as HTMLElement;
+    confirmBtn.click();
+    await element.updateComplete;
+
+    const mainDialog = element.shadowRoot?.querySelector(
+      'oscd-dialog[id="create-function-dialog"]'
+    ) as any;
+    await waitUntil(
+      () => !mainDialog.open,
+      'Main dialog did not close after cancellation'
+    );
+    expect(mainDialog.open).to.be.false;
+  });
+
   it('resets fields on close', async () => {
     element.name = 'F3';
     element.description = null;

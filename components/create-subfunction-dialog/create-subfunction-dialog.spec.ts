@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { fixture, expect, html } from '@open-wc/testing';
+import { fixture, expect, html, waitUntil } from '@open-wc/testing';
 import { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import {
@@ -94,7 +94,7 @@ describe('CreateSubfunctionDialog', () => {
     );
   });
 
-  it('closes dialog on Cancel', async () => {
+  it('closes dialog on Cancel confirmation', async () => {
     element.show();
     await element.updateComplete;
     const cancelBtn = element.shadowRoot?.querySelector(
@@ -102,8 +102,31 @@ describe('CreateSubfunctionDialog', () => {
     ) as HTMLElement;
     cancelBtn.click();
     await element.updateComplete;
-    const dialog = element.shadowRoot?.querySelector('oscd-dialog') as any;
-    expect(dialog.open).to.be.false;
+
+    const confirmDialog = element.shadowRoot?.querySelector(
+      'confirm-dialog'
+    ) as any;
+    expect(confirmDialog).to.exist;
+
+    await confirmDialog.updateComplete;
+    expect(confirmDialog.headline).to.equal('Cancel without saving?');
+    expect(confirmDialog.variant).to.equal('danger');
+    expect(confirmDialog.confirmLabel).to.equal('Yes, cancel');
+
+    const confirmBtn = confirmDialog?.shadowRoot?.querySelector(
+      'oscd-filled-button[data-testid="confirm-button"]'
+    ) as HTMLElement;
+    confirmBtn.click();
+    await element.updateComplete;
+
+    const mainDialog = element.shadowRoot?.querySelector(
+      'oscd-dialog[id="create-subfunction-dialog"]'
+    ) as any;
+    await waitUntil(
+      () => !mainDialog.open,
+      'Main dialog did not close after cancellation'
+    );
+    expect(mainDialog.open).to.be.false;
   });
 
   it('resets fields on close', async () => {
