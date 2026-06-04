@@ -7451,7 +7451,100 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
     oscd-icon-button {
       --md-icon-button-icon-size: 48px;
     }
-  `,e([xe({type:Boolean})],TF.prototype,"nullable",void 0),e([we()],TF.prototype,"textFieldValue",void 0),e([xe({type:String})],TF.prototype,"value",null),e([xe({type:Boolean})],TF.prototype,"disabled",void 0),e([xe({type:String})],TF.prototype,"label",void 0),e([xe({type:Boolean})],TF.prototype,"required",void 0),e([xe({type:String})],TF.prototype,"supportingText",void 0),e([xe({type:Boolean})],TF.prototype,"error",void 0),e([xe({type:String})],TF.prototype,"errorText",void 0),e([xe({type:String})],TF.prototype,"suffixText",void 0),e([xe({type:String})],TF.prototype,"placeholder",void 0),e([xe({type:String})],TF.prototype,"type",void 0),e([xe({type:String})],TF.prototype,"pattern",void 0),e([xe({type:String})],TF.prototype,"max",void 0),e([xe({type:String})],TF.prototype,"min",void 0),e([xe({type:Number})],TF.prototype,"maxLength",void 0),e([xe({type:Number})],TF.prototype,"minLength",void 0),e([xe({type:String})],TF.prototype,"unit",void 0),e([xe({type:Array})],TF.prototype,"multipliers",void 0),e([xe({type:String})],TF.prototype,"multiplier",null),e([we()],TF.prototype,"isNull",void 0),e([we()],TF.prototype,"null",null),e([Fe(".nullswitch.element")],TF.prototype,"nullSwitch",void 0),e([Fe(".multipliers")],TF.prototype,"multiplierMenu",void 0),e([Fe(".input.element")],TF.prototype,"textField",void 0);const xF=e=>(t,n)=>"number"==typeof t?isNaN(t)?e:null:t?null:e,wF=xF;class MF{get errors(){return this._errors}constructor(e){this._errors={},this.form=e}validate(){const e=this.getFormValue();let t=!1;for(const[n,s]of Object.entries(this.form)){const r=this.toArray(s.validators),i=e[n],a=r.map((t=>t(i,e))).filter((e=>null!==e));this.errors[n]=a,a.length>0?(s.formField.error=!0,s.formField.errorText=a[0],t=!0):(s.formField.error=!1,s.formField.errorText=null)}return!t}getFormValue(){const e={};return Object.keys(this.form).forEach((t=>e[t]=this.form[t].formField.value)),e}toArray(e){return e?Array.isArray(e)?e:[e]:[]}}var RF,VF;!function(e){e.SubfunctionAttributes="subfunction-attributes",e.SubfunctionContent="subfunction-content"}(RF||(RF={}));class FF extends(Ke(Ee)){constructor(){super(...arguments),this.subfunctions=[],this.name="",this.description=null,this.type=null,this.step=RF.SubfunctionAttributes,this.formGroup=null,this.nameNotTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();return this.subfunctions.find((e=>e.name.trim()===t))?`A SubFunction with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-filled-text-field":vF,"oscd-scl-text-field":TF,"oscd-icon":Bn,"oscd-icon-button":IV,"oscd-divider":OV,"oscd-list":uV,"oscd-list-item":_V}}show(){this.step=RF.SubfunctionAttributes,this.formGroup=new MF({name:{formField:this.nameField,validators:[wF("Name is required"),this.nameNotTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.dialog.close()}reset(){this.step=RF.SubfunctionAttributes,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){this.reset()}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=RF.SubfunctionContent)}handleBack(){this.step=RF.SubfunctionAttributes}handleSave(){this.dispatchEvent(new CustomEvent("save-subfunction",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type}})),this.dialog.close()}renderSubfunctionAttrs(){return re`
+  `,e([xe({type:Boolean})],TF.prototype,"nullable",void 0),e([we()],TF.prototype,"textFieldValue",void 0),e([xe({type:String})],TF.prototype,"value",null),e([xe({type:Boolean})],TF.prototype,"disabled",void 0),e([xe({type:String})],TF.prototype,"label",void 0),e([xe({type:Boolean})],TF.prototype,"required",void 0),e([xe({type:String})],TF.prototype,"supportingText",void 0),e([xe({type:Boolean})],TF.prototype,"error",void 0),e([xe({type:String})],TF.prototype,"errorText",void 0),e([xe({type:String})],TF.prototype,"suffixText",void 0),e([xe({type:String})],TF.prototype,"placeholder",void 0),e([xe({type:String})],TF.prototype,"type",void 0),e([xe({type:String})],TF.prototype,"pattern",void 0),e([xe({type:String})],TF.prototype,"max",void 0),e([xe({type:String})],TF.prototype,"min",void 0),e([xe({type:Number})],TF.prototype,"maxLength",void 0),e([xe({type:Number})],TF.prototype,"minLength",void 0),e([xe({type:String})],TF.prototype,"unit",void 0),e([xe({type:Array})],TF.prototype,"multipliers",void 0),e([xe({type:String})],TF.prototype,"multiplier",null),e([we()],TF.prototype,"isNull",void 0),e([we()],TF.prototype,"null",null),e([Fe(".nullswitch.element")],TF.prototype,"nullSwitch",void 0),e([Fe(".multipliers")],TF.prototype,"multiplierMenu",void 0),e([Fe(".input.element")],TF.prototype,"textField",void 0);const xF=e=>(t,n)=>"number"==typeof t?isNaN(t)?e:null:t?null:e,wF=xF;class MF{get errors(){return this._errors}constructor(e){this._errors={},this.form=e}validate(){const e=this.getFormValue();let t=!1;for(const[n,s]of Object.entries(this.form)){const r=this.toArray(s.validators),i=e[n],a=r.map((t=>t(i,e))).filter((e=>null!==e));this.errors[n]=a,a.length>0?(s.formField.error=!0,s.formField.errorText=a[0],t=!0):(s.formField.error=!1,s.formField.errorText=null)}return!t}getFormValue(){const e={};return Object.keys(this.form).forEach((t=>e[t]=this.form[t].formField.value)),e}toArray(e){return e?Array.isArray(e)?e:[e]:[]}}class RF extends(Ke(Ee)){constructor(){super(...arguments),this.headline="Are you sure?",this.description="",this.confirmLabel="Confirm",this.cancelLabel="Cancel",this.icon="",this.variant="danger"}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-icon":Bn}}show(){this.dialog.show()}close(){this.dialog.close()}handleConfirm(){this.dispatchEvent(new CustomEvent("confirm-dialog-confirm",{bubbles:!0,composed:!0})),this.close()}handleCancel(){this.dispatchEvent(new CustomEvent("confirm-dialog-cancel",{bubbles:!0,composed:!0})),this.close()}render(){return re`
+      <oscd-dialog
+        @cancel=${this.handleCancel}
+        id=${`confirm-dialog-${this.variant}`}
+      >
+        <div slot="headline" class="headline">
+          ${this.icon?re`<oscd-icon class="headline-icon variant-${this.variant}"
+                >${this.icon}</oscd-icon
+              >`:null}
+          <span>${this.headline}</span>
+        </div>
+
+        <div slot="content">
+          ${this.description}
+          <slot></slot>
+        </div>
+
+        <div slot="actions">
+          <oscd-filled-button
+            type="button"
+            data-testid="cancel-button"
+            @click=${this.handleCancel}
+          >
+            ${this.cancelLabel}
+          </oscd-filled-button>
+          <oscd-filled-button
+            type="button"
+            class="confirm-button variant-${this.variant}"
+            data-testid="confirm-button"
+            @click=${this.handleConfirm}
+          >
+            ${this.confirmLabel}
+          </oscd-filled-button>
+        </div>
+      </oscd-dialog>
+    `}}var VF,FF;RF.styles=c`
+    oscd-dialog {
+      width: 360px;
+    }
+
+    .headline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Icon colour variants */
+    .headline-icon.variant-danger {
+      color: var(--md-sys-color-error, #b3261e);
+    }
+
+    .headline-icon.variant-warning {
+      color: var(--md-sys-color-tertiary, #7d5260);
+    }
+
+    .headline-icon.variant-primary {
+      color: var(--md-sys-color-primary, #6750a4);
+    }
+
+    /* Confirm button colour variants */
+    .confirm-button.variant-danger {
+      --md-filled-button-container-color: var(--md-sys-color-error, #b3261e);
+      --md-filled-button-label-text-color: var(
+        --md-sys-color-on-error,
+        #ffffff
+      );
+      --md-filled-button-hover-container-color: var(
+        --md-sys-color-error,
+        #b3261e
+      );
+    }
+
+    .confirm-button.variant-warning {
+      --md-filled-button-container-color: var(--md-sys-color-tertiary, #7d5260);
+      --md-filled-button-label-text-color: var(
+        --md-sys-color-on-tertiary,
+        #ffffff
+      );
+    }
+
+    .confirm-button.variant-primary {
+      --md-filled-button-container-color: var(--md-sys-color-primary, #6750a4);
+      --md-filled-button-label-text-color: var(
+        --md-sys-color-on-primary,
+        #ffffff
+      );
+    }
+
+    [slot='actions'] {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+  `,e([xe({type:String})],RF.prototype,"headline",void 0),e([xe({type:String})],RF.prototype,"description",void 0),e([xe({type:String,attribute:"confirm-label"})],RF.prototype,"confirmLabel",void 0),e([xe({type:String,attribute:"cancel-label"})],RF.prototype,"cancelLabel",void 0),e([xe({type:String})],RF.prototype,"icon",void 0),e([xe({type:String})],RF.prototype,"variant",void 0),e([Fe("oscd-dialog")],RF.prototype,"dialog",void 0),function(e){e.SubfunctionAttributes="subfunction-attributes",e.SubfunctionContent="subfunction-content"}(VF||(VF={}));class GF extends(Ke(Ee)){constructor(){super(...arguments),this.subfunctions=[],this.name="",this.description=null,this.type=null,this.step=VF.SubfunctionAttributes,this.confirmAction=null,this.formGroup=null,this.boundHandleDocumentKeydown=this.handleDocumentKeydown.bind(this),this.nameNotTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();return this.subfunctions.find((e=>e.name.trim()===t))?`A SubFunction with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-filled-text-field":vF,"oscd-scl-text-field":TF,"oscd-icon":Bn,"oscd-icon-button":IV,"oscd-divider":OV,"oscd-list":uV,"oscd-list-item":_V,"confirm-dialog":RF}}show(){document.addEventListener("keydown",this.boundHandleDocumentKeydown,!0),this.step=VF.SubfunctionAttributes,this.formGroup=new MF({name:{formField:this.nameField,validators:[wF("Name is required"),this.nameNotTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.confirmAction="cancel",this.confirmDialog.headline="Cancel without saving?",this.confirmDialog.description="Are you sure you want to cancel? All changes will be lost.",this.confirmDialog.icon="warning",this.confirmDialog.variant="danger",this.confirmDialog.confirmLabel="Yes, cancel",this.confirmDialog.cancelLabel="No, go back",this.confirmDialog.show()}closeWithoutConfirm(){document.removeEventListener("keydown",this.boundHandleDocumentKeydown,!0),this.dialog.close()}reset(){this.step=VF.SubfunctionAttributes,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){document.removeEventListener("keydown",this.boundHandleDocumentKeydown,!0),this.reset()}handleCancel(e){e.preventDefault()}handleDocumentKeydown(e){"Escape"===e.key&&this.dialog?.open&&(e.preventDefault(),e.stopPropagation())}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=VF.SubfunctionContent)}handleBack(){this.step=VF.SubfunctionAttributes}handleSave(){this.dispatchEvent(new CustomEvent("save-subfunction",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type}})),this.dialog.close()}handleConfirm(){"cancel"===this.confirmAction&&this.closeWithoutConfirm(),this.confirmAction=null}renderSubfunctionAttrs(){return re`
       <div slot="headline">Add SubFunction</div>
       <form
         slot="content"
@@ -7538,10 +7631,23 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
         >
       </div>
     `}render(){return re`
-      <oscd-dialog @closed=${this.handleClosed}>
-        ${this.step===RF.SubfunctionAttributes?this.renderSubfunctionAttrs():this.renderSubfunctionContent()}
+      <oscd-dialog
+        id="create-subfunction-dialog"
+        @cancel=${this.handleCancel}
+        @closed=${this.handleClosed}
+      >
+        ${this.step===VF.SubfunctionAttributes?this.renderSubfunctionAttrs():this.renderSubfunctionContent()}
       </oscd-dialog>
-    `}}FF.styles=c`
+
+      <confirm-dialog
+        headline="Confirmation"
+        confirm-label="Confirm"
+        cancel-label="Cancel"
+        icon="help"
+        variant="primary"
+        @confirm-dialog-confirm=${this.handleConfirm}
+      ></confirm-dialog>
+    `}}GF.styles=c`
     oscd-dialog {
       height: 80vh;
       width: 500px;
@@ -7625,97 +7731,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
       gap: 8px;
       justify-content: flex-end;
     }
-  `,e([xe({type:Array})],FF.prototype,"subfunctions",void 0),e([Fe("oscd-dialog")],FF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],FF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],FF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],FF.prototype,"typeField",void 0),e([we()],FF.prototype,"name",void 0),e([we()],FF.prototype,"description",void 0),e([we()],FF.prototype,"type",void 0),e([we()],FF.prototype,"step",void 0);class GF extends(Ke(Ee)){constructor(){super(...arguments),this.headline="Are you sure?",this.description="",this.confirmLabel="Confirm",this.cancelLabel="Cancel",this.icon="",this.variant="danger"}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-icon":Bn}}show(){this.dialog.show()}close(){this.dialog.close()}handleConfirm(){this.dispatchEvent(new CustomEvent("confirm-dialog-confirm",{bubbles:!0,composed:!0})),this.close()}handleCancel(){this.dispatchEvent(new CustomEvent("confirm-dialog-cancel",{bubbles:!0,composed:!0})),this.close()}render(){return re`
-      <oscd-dialog @cancel=${this.handleCancel}>
-        <div slot="headline" class="headline">
-          ${this.icon?re`<oscd-icon class="headline-icon variant-${this.variant}"
-                >${this.icon}</oscd-icon
-              >`:null}
-          <span>${this.headline}</span>
-        </div>
-
-        <div slot="content">
-          ${this.description}
-          <slot></slot>
-        </div>
-
-        <div slot="actions">
-          <oscd-filled-button
-            type="button"
-            data-testid="cancel-button"
-            @click=${this.handleCancel}
-          >
-            ${this.cancelLabel}
-          </oscd-filled-button>
-          <oscd-filled-button
-            type="button"
-            class="confirm-button variant-${this.variant}"
-            data-testid="confirm-button"
-            @click=${this.handleConfirm}
-          >
-            ${this.confirmLabel}
-          </oscd-filled-button>
-        </div>
-      </oscd-dialog>
-    `}}GF.styles=c`
-    oscd-dialog {
-      width: 360px;
-    }
-
-    .headline {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* Icon colour variants */
-    .headline-icon.variant-danger {
-      color: var(--md-sys-color-error, #b3261e);
-    }
-
-    .headline-icon.variant-warning {
-      color: var(--md-sys-color-tertiary, #7d5260);
-    }
-
-    .headline-icon.variant-primary {
-      color: var(--md-sys-color-primary, #6750a4);
-    }
-
-    /* Confirm button colour variants */
-    .confirm-button.variant-danger {
-      --md-filled-button-container-color: var(--md-sys-color-error, #b3261e);
-      --md-filled-button-label-text-color: var(
-        --md-sys-color-on-error,
-        #ffffff
-      );
-      --md-filled-button-hover-container-color: var(
-        --md-sys-color-error,
-        #b3261e
-      );
-    }
-
-    .confirm-button.variant-warning {
-      --md-filled-button-container-color: var(--md-sys-color-tertiary, #7d5260);
-      --md-filled-button-label-text-color: var(
-        --md-sys-color-on-tertiary,
-        #ffffff
-      );
-    }
-
-    .confirm-button.variant-primary {
-      --md-filled-button-container-color: var(--md-sys-color-primary, #6750a4);
-      --md-filled-button-label-text-color: var(
-        --md-sys-color-on-primary,
-        #ffffff
-      );
-    }
-
-    [slot='actions'] {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-  `,e([xe({type:String})],GF.prototype,"headline",void 0),e([xe({type:String})],GF.prototype,"description",void 0),e([xe({type:String,attribute:"confirm-label"})],GF.prototype,"confirmLabel",void 0),e([xe({type:String,attribute:"cancel-label"})],GF.prototype,"cancelLabel",void 0),e([xe({type:String})],GF.prototype,"icon",void 0),e([xe({type:String})],GF.prototype,"variant",void 0),e([Fe("oscd-dialog")],GF.prototype,"dialog",void 0),function(e){e.FunctionAttributes="function-attributes",e.FunctionContent="function-content"}(VF||(VF={}));class kF extends(Ke(Ee)){constructor(){super(...arguments),this.parent=null,this.selectedElementName="",this.selectedElementType="",this.name="",this.description=null,this.type=null,this.step=VF.FunctionAttributes,this.tempSubfunctions=[],this.selectedSubfunction=null,this.formGroup=null,this.shouldEmitCancel=!0,this.nameTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();if(!this.parent)return null;const n=function(e){const{tagName:t}=e;if("Bay"===t||"VoltageLevel"===t||"Substation"===t)return Array.from(e.querySelectorAll(`:scope > Function:not(:has(> Private[type="${_M}"]))`));if("ConductingEquipment"===t||"PowerTransformer"===t){const t=OM(e),n=e.ownerDocument;return Array.from(n.querySelectorAll(`Function:has(> Private[type="${_M}"] > PowerSystemRelations > PowerSystemRelation[relation="${t}"])`))}return[]}(this.parent),s=n.find((e=>e.getAttribute("name")?.trim()===t));return s?`A Function with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-filled-text-field":vF,"oscd-scl-text-field":TF,"oscd-icon":Bn,"oscd-icon-button":IV,"oscd-divider":OV,"oscd-list":uV,"oscd-list-item":_V,"add-subfunction-dialog":FF,"confirm-dialog":GF}}show(){this.step=VF.FunctionAttributes,this.tempSubfunctions=[],this.selectedSubfunction=null,this.formGroup=new MF({name:{formField:this.nameField,validators:[wF("Name is required"),this.nameTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.dialog.close()}reset(){this.step=VF.FunctionAttributes,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){const e=this.shouldEmitCancel;this.shouldEmitCancel=!0,this.reset(),e&&this.dispatchEvent(new CustomEvent("cancel",{bubbles:!0,composed:!0}))}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=VF.FunctionContent)}handleSave(){this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type,subfunctions:this.tempSubfunctions}})),this.shouldEmitCancel=!1,this.dialog.close()}handleAddSubfunction(){this.createSubfunctionDialog.subfunctions=this.tempSubfunctions,this.createSubfunctionDialog.show()}handleSaveSubfunction(e){this.tempSubfunctions=[...this.tempSubfunctions,e.detail],this.selectedSubfunction=null}handleDeleteSubfunction(){if(null===this.selectedSubfunction)return;const e=this.tempSubfunctions[this.selectedSubfunction].name;this.confirmDialog.description=`Are you sure you want to delete "${e}"? This action cannot be undone.`,this.confirmDialog.show()}handleSubfunctionClick(e){this.selectedSubfunction=this.selectedSubfunction===e?null:e}handleConfirmDeleteSubfunction(){null!==this.selectedSubfunction&&(this.tempSubfunctions.splice(this.selectedSubfunction,1),this.selectedSubfunction=null)}renderFunctionAttrs(){return re`
+  `,e([xe({type:Array})],GF.prototype,"subfunctions",void 0),e([Fe("oscd-dialog")],GF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],GF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],GF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],GF.prototype,"typeField",void 0),e([Fe("confirm-dialog")],GF.prototype,"confirmDialog",void 0),e([we()],GF.prototype,"name",void 0),e([we()],GF.prototype,"description",void 0),e([we()],GF.prototype,"type",void 0),e([we()],GF.prototype,"step",void 0),e([we()],GF.prototype,"confirmAction",void 0),function(e){e.FunctionAttributes="function-attributes",e.FunctionContent="function-content"}(FF||(FF={}));class kF extends(Ke(Ee)){constructor(){super(...arguments),this.parent=null,this.selectedElementName="",this.selectedElementType="",this.name="",this.description=null,this.type=null,this.step=FF.FunctionAttributes,this.tempSubfunctions=[],this.selectedSubfunction=null,this.confirmAction=null,this.formGroup=null,this.shouldEmitCancel=!0,this.boundHandleDocumentKeydown=this.handleDocumentKeydown.bind(this),this.nameTakenValidator=e=>{if("string"!=typeof e)return null;const t=e.trim();if(!this.parent)return null;const n=function(e){const{tagName:t}=e;if("Bay"===t||"VoltageLevel"===t||"Substation"===t)return Array.from(e.querySelectorAll(`:scope > Function:not(:has(> Private[type="${_M}"]))`));if("ConductingEquipment"===t||"PowerTransformer"===t){const t=OM(e),n=e.ownerDocument;return Array.from(n.querySelectorAll(`Function:has(> Private[type="${_M}"] > PowerSystemRelations > PowerSystemRelation[relation="${t}"])`))}return[]}(this.parent),s=n.find((e=>e.getAttribute("name")?.trim()===t));return s?`A Function with the name "${t}" already exists`:null}}static get scopedElements(){return{"oscd-dialog":RV,"oscd-filled-button":KV,"oscd-filled-text-field":vF,"oscd-scl-text-field":TF,"oscd-icon":Bn,"oscd-icon-button":IV,"oscd-divider":OV,"oscd-list":uV,"oscd-list-item":_V,"add-subfunction-dialog":GF,"confirm-dialog":RF}}show(){document.addEventListener("keydown",this.boundHandleDocumentKeydown,!0),this.step=FF.FunctionAttributes,this.tempSubfunctions=[],this.selectedSubfunction=null,this.formGroup=new MF({name:{formField:this.nameField,validators:[wF("Name is required"),this.nameTakenValidator]},description:{formField:this.descriptionField,validators:[]},type:{formField:this.typeField,validators:[]}}),this.dialog.show()}close(){this.confirmAction="cancel",this.confirmDialog.headline="Cancel without saving?",this.confirmDialog.description="Are you sure you want to cancel? All changes will be lost.",this.confirmDialog.icon="warning",this.confirmDialog.variant="danger",this.confirmDialog.confirmLabel="Yes, cancel",this.confirmDialog.cancelLabel="No, go back",this.confirmDialog.show()}closeWithoutConfirm(){document.removeEventListener("keydown",this.boundHandleDocumentKeydown,!0),this.dialog.close()}reset(){this.step=FF.FunctionAttributes,this.name="",this.description=null,this.type=null,this.nameField&&(this.nameField.errorText="",this.nameField.error=!1,this.nameField.value=""),this.descriptionField&&(this.descriptionField.value=null),this.typeField&&(this.typeField.value=null),this.formGroup=null}handleClosed(){document.removeEventListener("keydown",this.boundHandleDocumentKeydown,!0);const e=this.shouldEmitCancel;this.shouldEmitCancel=!0,this.reset(),e&&this.dispatchEvent(new CustomEvent("cancel",{bubbles:!0,composed:!0}))}handleCancel(e){e.preventDefault()}handleDocumentKeydown(e){"Escape"===e.key&&this.dialog?.open&&(e.preventDefault(),e.stopPropagation())}handleNext(e){e.preventDefault(),this.formGroup?.validate()&&(this.step=FF.FunctionContent)}handleSave(){this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0,detail:{name:this.name,description:this.description,type:this.type,subfunctions:this.tempSubfunctions}})),this.shouldEmitCancel=!1,this.dialog.close()}handleAddSubfunction(){this.createSubfunctionDialog.subfunctions=this.tempSubfunctions,this.createSubfunctionDialog.show()}handleSaveSubfunction(e){this.tempSubfunctions=[...this.tempSubfunctions,e.detail],this.selectedSubfunction=null}handleDeleteSubfunction(){if(null===this.selectedSubfunction)return;const e=this.tempSubfunctions[this.selectedSubfunction].name;this.confirmAction="delete-subfunction",this.confirmDialog.headline="Delete SubFunction?",this.confirmDialog.description=`Are you sure you want to delete "${e}"? This action cannot be undone.`,this.confirmDialog.icon="delete",this.confirmDialog.variant="danger",this.confirmDialog.confirmLabel="Delete",this.confirmDialog.cancelLabel="Cancel",this.confirmDialog.show()}handleSubfunctionClick(e){this.selectedSubfunction=this.selectedSubfunction===e?null:e}handleConfirm(){if("cancel"===this.confirmAction)this.closeWithoutConfirm();else if("delete-subfunction"===this.confirmAction){if(null===this.selectedSubfunction)return;this.tempSubfunctions.splice(this.selectedSubfunction,1),this.selectedSubfunction=null}this.confirmAction=null}renderFunctionAttrs(){return re`
       <div slot="headline">Add Function</div>
       <form slot="content" novalidate autocomplete="off">
         <oscd-filled-text-field
@@ -7838,8 +7854,12 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
           >Save</oscd-filled-button
         >
       </div>`}render(){return re`
-      <oscd-dialog @closed=${this.handleClosed}>
-        ${this.step===VF.FunctionAttributes?this.renderFunctionAttrs():this.renderFunctionContent()}
+      <oscd-dialog
+        id="create-function-dialog"
+        @cancel=${this.handleCancel}
+        @closed=${this.handleClosed}
+      >
+        ${this.step===FF.FunctionAttributes?this.renderFunctionAttrs():this.renderFunctionContent()}
       </oscd-dialog>
 
       <add-subfunction-dialog
@@ -7847,12 +7867,12 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
       ></add-subfunction-dialog>
 
       <confirm-dialog
-        headline="Delete SubFunction?"
-        confirm-label="Delete"
+        headline="Confirmation"
+        confirm-label="Confirm"
         cancel-label="Cancel"
-        icon="delete"
-        variant="danger"
-        @confirm-dialog-confirm=${this.handleConfirmDeleteSubfunction}
+        icon="help"
+        variant="primary"
+        @confirm-dialog-confirm=${this.handleConfirm}
       ></confirm-dialog>
     `}}kF.styles=c`
     oscd-dialog {
@@ -7954,7 +7974,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
       gap: 8px;
       justify-content: flex-end;
     }
-  `,e([xe({type:Object})],kF.prototype,"parent",void 0),e([xe({type:String})],kF.prototype,"selectedElementName",void 0),e([xe({type:String})],kF.prototype,"selectedElementType",void 0),e([Fe("oscd-dialog")],kF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],kF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],kF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],kF.prototype,"typeField",void 0),e([Fe("add-subfunction-dialog")],kF.prototype,"createSubfunctionDialog",void 0),e([Fe("confirm-dialog")],kF.prototype,"confirmDialog",void 0),e([we()],kF.prototype,"name",void 0),e([we()],kF.prototype,"description",void 0),e([we()],kF.prototype,"type",void 0),e([we()],kF.prototype,"step",void 0),e([we()],kF.prototype,"tempSubfunctions",void 0),e([we()],kF.prototype,"selectedSubfunction",void 0);class $F extends(Ke(Ee)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.functionHoverHighlight=[],this.highlightBeforeAddingFunction=[],this.sldBounds=[],this.onResize=()=>this.calculateSldBounds(),this.handleKeydown=e=>{"Escape"===e.key&&this.inAction&&(e.preventDefault(),this.addingFunction&&(this.showFunctions=!1),this.reset())},this.handleStartPlaceFunction=(e,t)=>{this.placingFunction=e,this.placingFunctionOffset=t,this.functionsInAction=!0},this.handleFunctionHover=e=>{if(!e)return this.functionHoverHighlight=[],void(this.hoveredSubstation=void 0);const t=e.getElementsByTagNameNS(hM,"PowerSystemRelation")[0],n=t?.getAttribute("relation"),s=n?this.getElementFromProcessPath(n):e.parentElement;return s?"Substation"===s.tagName?(this.functionHoverHighlight=[],void(this.hoveredSubstation=s)):(this.hoveredSubstation=void 0,void(this.functionHoverHighlight=[{id:wt(s).toString(),style:yV}])):(this.functionHoverHighlight=[],void(this.hoveredSubstation=void 0))},this.preprocessEdits=e=>{const t=e;let n=Array.isArray(t.detail)?t.detail:[t.detail];n=n.flatMap((e=>e.edit?e.edit:e)),n.forEach((e=>{if(e.node&&e.parent&&!e.node.getAttribute("name")&&"Private"!==e.node.tagName){const t=function(e,t){const n=Array.from(t.children),s=e.getAttribute("name");if(s&&!n.find((e=>e.getAttribute("name")===s)))return s;const r=e.getAttribute("name")?.replace(/[0-9]*$/,"")??e.getAttribute("type")??e.tagName.charAt(0);let i=1;function a(e){return e.getAttribute("name")===r+i.toString()}for(;n.find(a);)i+=1;return r+i.toString()}(e.node,e.parent);e.node.setAttribute("name",t)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[uM]){const t=e.attributesNS[uM],n={};Object.entries(t).forEach((([e,t])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==t&&(n[s]=t)})),"SLDAttributes"===e.element.localName?Object.entries(n).forEach((([t,n])=>{e.element.setAttributeNS(uM,`${this.nsp}:${t}`,n)})):vM(e.element,this.nsp,n)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1)},this.handleSldSelected=e=>{this.addingFunction=!1,this.selectedElement=e.detail.element,this.highlight=[{id:wt(e.detail.element).toString(),style:yV}],this.doc&&this.createFunctionDialog&&(this.createFunctionDialog.parent=this.selectedElement,this.createFunctionDialog.selectedElementName=this.selectedElement.getAttribute("name")||"",this.createFunctionDialog.selectedElementType=this.selectedElement.tagName,this.createFunctionDialog.show())},this.handleCancelAddFunction=()=>{this.highlight=[...this.highlightBeforeAddingFunction],this.addingFunction=!0,this.selectedElement=void 0}}static get scopedElements(){return{"oscd-icon-button":Tn,"oscd-filled-icon-button":Nn,"oscd-icon":Bn,"functions-layer":AV,"sld-editor":customElements.get("sld-editor"),"create-function-dialog":kF}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown),window.addEventListener("resize",this.onResize)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown),window.removeEventListener("resize",this.onResize),this.sldEditor&&TM(this.sldEditor)}getElementFromProcessPath(e){if(!this.doc)return null;const t=e.split("/");if(!t.length||!t[0])return null;let n=this.doc.querySelector(`:root > Substation[name="${t[0]}"]`);for(let e=1;e<t.length&&n;e+=1){const s=t[e];n=Array.from(n.children).find((e=>e.getAttribute("name")===s))??null}return n}get inAction(){return this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if((e.has("doc")||e.has("gridSize")||e.has("editCount")||e.has("addingFunction"))&&requestAnimationFrame((()=>this.calculateSldBounds())),(e.has("highlight")||e.has("functionHoverHighlight")||e.has("selectedElement")||e.has("addingFunction")||e.has("editCount"))&&requestAnimationFrame((()=>this.applyBusbarHighlights())),!e.has("doc")||!this.doc)return;const t=this.doc.documentElement.lookupPrefix(uM);t?this.nsp=t:this.doc.documentElement.setAttributeNS(CM,`xmlns:${this.nsp}`,uM),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,t){const n=e.createElementNS(e.documentElement.namespaceURI,"Bay");n.setAttribute("name","BB1"),vM(n,t,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const r=e.createElementNS(e.documentElement.namespaceURI,"Private");r.setAttribute("type",mM);const i=e.createElementNS(uM,`${t}:Section`);vM(i,t,{bus:"true"});const a=e.createElementNS(uM,`${t}:Vertex`);vM(a,t,{x:"0.5",y:"0.5"}),i.appendChild(a);const o=e.createElementNS(uM,`${t}:Vertex`);return vM(o,t,{x:"1.5",y:"0.5"}),i.appendChild(o),r.appendChild(i),s.appendChild(r),n.appendChild(s),n}(this.doc,this.nsp)}calculateSldBounds(){if(!this.sldEditor||!this.editorContainer)return;const e=this.editorContainer.getBoundingClientRect();this.sldBounds=NM(this.sldEditor).map((t=>{const n=t.getBoundingClientRect();return{top:n.top-e.top,left:n.left-e.left,width:n.width,height:n.height}}))}applyBusbarHighlights(){if(!this.sldEditor||!this.doc)return;const e=this.selectedElement&&EM(this.selectedElement),t=this.addingFunction||this.functionHoverHighlight.length>0||e;if(TM(this.sldEditor),!t)return;const n=[...this.highlight,...this.functionHoverHighlight];if(0===n.length)return;const s=Array.from(this.doc.querySelectorAll("Bay")).filter((e=>EM(e)&&n.some((t=>t.id===wt(e).toString()))));if(0===s.length)return;const r=n.find((e=>s.some((t=>wt(t).toString()===e.id))))?.style??vV;PM(this.sldEditor,s,r)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.selectedElement=void 0,this.highlight=[],this.highlightBeforeAddingFunction=[],this.sldEditor&&(TM(this.sldEditor),this.sldEditor.resetWithOffset())}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,t=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),n=ft(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;t.setAttribute("name",`S${s}`),vM(t,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Et({parent:e,node:t,reference:n}))}getFunctionParent(e){const{tagName:t}=e;return"Bay"===t||"VoltageLevel"===t||"Substation"===t?e:"ConductingEquipment"===t?e.closest("Bay"):"PowerTransformer"===t||"TransformerWinding"===t?e.closest("Bay, VoltageLevel, Substation"):null}createFunction(e){const{name:t,description:n,type:s,subfunctions:r}=e.detail;if(!this.doc)return;const i=this.selectedElement;if(!i)return;const{tagName:a}=i,o=this.getFunctionParent(i);if(!o)return;const d=Mt(this.doc,"Function",{name:t,desc:n,type:s});if("ConductingEquipment"===a){const e=OM(i);d.appendChild(LM(this.doc,e))}else if("PowerTransformer"===a||"TransformerWinding"===a){const e="PowerTransformer"===a?i:i.parentElement;if(e){const t=OM(e);d.appendChild(LM(this.doc,t))}}const{x:c,y:l}=SM(this.doc,i);vM(d,this.nsp,{x:String(c),y:String(l)}),r.forEach((e=>{const t=Mt(this.doc,"SubFunction",{name:e.name,desc:e.description,type:e.type});d.appendChild(t)}));const p=ft(o,"Function");this.dispatchEvent(Et({parent:o,node:d,reference:p})),this.reset(),this.showFunctions=!0}renderTransformerButtons(){return this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?re`<oscd-icon-button
+  `,e([xe({type:Object})],kF.prototype,"parent",void 0),e([xe({type:String})],kF.prototype,"selectedElementName",void 0),e([xe({type:String})],kF.prototype,"selectedElementType",void 0),e([Fe("oscd-dialog")],kF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],kF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],kF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],kF.prototype,"typeField",void 0),e([Fe("add-subfunction-dialog")],kF.prototype,"createSubfunctionDialog",void 0),e([Fe("confirm-dialog")],kF.prototype,"confirmDialog",void 0),e([we()],kF.prototype,"name",void 0),e([we()],kF.prototype,"description",void 0),e([we()],kF.prototype,"type",void 0),e([we()],kF.prototype,"step",void 0),e([we()],kF.prototype,"tempSubfunctions",void 0),e([we()],kF.prototype,"selectedSubfunction",void 0),e([we()],kF.prototype,"confirmAction",void 0);class $F extends(Ke(Ee)){constructor(){super(...arguments),this.editCount=-1,this.gridSize=24,this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.showFunctions=!1,this.templateElements={},this.nsp="eosld",this.placingFunctionOffset=[0,0],this.highlight=[],this.functionHoverHighlight=[],this.highlightBeforeAddingFunction=[],this.sldBounds=[],this.onResize=()=>this.calculateSldBounds(),this.handleKeydown=e=>{"Escape"===e.key&&this.inAction&&(e.preventDefault(),this.addingFunction&&(this.showFunctions=!1),this.reset())},this.handleStartPlaceFunction=(e,t)=>{this.placingFunction=e,this.placingFunctionOffset=t,this.functionsInAction=!0},this.handleFunctionHover=e=>{if(!e)return this.functionHoverHighlight=[],void(this.hoveredSubstation=void 0);const t=e.getElementsByTagNameNS(hM,"PowerSystemRelation")[0],n=t?.getAttribute("relation"),s=n?this.getElementFromProcessPath(n):e.parentElement;return s?"Substation"===s.tagName?(this.functionHoverHighlight=[],void(this.hoveredSubstation=s)):(this.hoveredSubstation=void 0,void(this.functionHoverHighlight=[{id:wt(s).toString(),style:yV}])):(this.functionHoverHighlight=[],void(this.hoveredSubstation=void 0))},this.preprocessEdits=e=>{const t=e;let n=Array.isArray(t.detail)?t.detail:[t.detail];n=n.flatMap((e=>e.edit?e.edit:e)),n.forEach((e=>{if(e.node&&e.parent&&!e.node.getAttribute("name")&&"Private"!==e.node.tagName){const t=function(e,t){const n=Array.from(t.children),s=e.getAttribute("name");if(s&&!n.find((e=>e.getAttribute("name")===s)))return s;const r=e.getAttribute("name")?.replace(/[0-9]*$/,"")??e.getAttribute("type")??e.tagName.charAt(0);let i=1;function a(e){return e.getAttribute("name")===r+i.toString()}for(;n.find(a);)i+=1;return r+i.toString()}(e.node,e.parent);e.node.setAttribute("name",t)}if(e.attributes&&!e.attributesNS&&(e.attributesNS={}),e.element&&e.attributesNS?.[uM]){const t=e.attributesNS[uM],n={};Object.entries(t).forEach((([e,t])=>{const s=e.includes(":")?e.split(":")[1]:e;null!==t&&(n[s]=t)})),"SLDAttributes"===e.element.localName?Object.entries(n).forEach((([t,n])=>{e.element.setAttributeNS(uM,`${this.nsp}:${t}`,n)})):vM(e.element,this.nsp,n)}})),this.placingFunction&&(this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.functionsInAction=!1)},this.handleSldSelected=e=>{this.addingFunction=!1,this.selectedElement=e.detail.element,this.highlight=[{id:wt(e.detail.element).toString(),style:yV}],this.doc&&this.createFunctionDialog&&(this.createFunctionDialog.parent=this.selectedElement,this.createFunctionDialog.selectedElementName=this.selectedElement.getAttribute("name")||"",this.createFunctionDialog.selectedElementType=this.selectedElement.tagName,this.createFunctionDialog.show())},this.handleCancelAddFunction=()=>{this.highlight=[...this.highlightBeforeAddingFunction],this.addingFunction=!0,this.selectedElement=void 0}}static get scopedElements(){return{"oscd-icon-button":Tn,"oscd-filled-icon-button":Nn,"oscd-icon":Bn,"functions-layer":AV,"sld-editor":customElements.get("sld-editor"),"create-function-dialog":kF}}get showLabels(){return!this.labelToggle||!this.labelToggle.selected}connectedCallback(){super.connectedCallback(),this.addEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.addEventListener("keydown",this.handleKeydown),window.addEventListener("resize",this.onResize)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("oscd-edit-v2",this.preprocessEdits,{capture:!0}),window.removeEventListener("keydown",this.handleKeydown),window.removeEventListener("resize",this.onResize),this.sldEditor&&TM(this.sldEditor)}getElementFromProcessPath(e){if(!this.doc)return null;const t=e.split("/");if(!t.length||!t[0])return null;let n=this.doc.querySelector(`:root > Substation[name="${t[0]}"]`);for(let e=1;e<t.length&&n;e+=1){const s=t[e];n=Array.from(n.children).find((e=>e.getAttribute("name")===s))??null}return n}get inAction(){return this.sldEditorInAction||this.functionsInAction||this.addingFunction}updated(e){if((e.has("doc")||e.has("gridSize")||e.has("editCount")||e.has("addingFunction"))&&requestAnimationFrame((()=>this.calculateSldBounds())),(e.has("highlight")||e.has("functionHoverHighlight")||e.has("selectedElement")||e.has("addingFunction")||e.has("editCount"))&&requestAnimationFrame((()=>this.applyBusbarHighlights())),!e.has("doc")||!this.doc)return;const t=this.doc.documentElement.lookupPrefix(uM);t?this.nsp=t:this.doc.documentElement.setAttributeNS(CM,`xmlns:${this.nsp}`,uM),["Substation","VoltageLevel","Bay","ConductingEquipment","PowerTransformer","TransformerWinding"].forEach((e=>{this.templateElements[e]=this.doc.createElementNS(this.doc.documentElement.namespaceURI,e)})),this.templateElements.BusBar=function(e,t){const n=e.createElementNS(e.documentElement.namespaceURI,"Bay");n.setAttribute("name","BB1"),vM(n,t,{w:"2"});const s=e.createElementNS(e.documentElement.namespaceURI,"ConnectivityNode");s.setAttribute("name","L");const r=e.createElementNS(e.documentElement.namespaceURI,"Private");r.setAttribute("type",mM);const i=e.createElementNS(uM,`${t}:Section`);vM(i,t,{bus:"true"});const a=e.createElementNS(uM,`${t}:Vertex`);vM(a,t,{x:"0.5",y:"0.5"}),i.appendChild(a);const o=e.createElementNS(uM,`${t}:Vertex`);return vM(o,t,{x:"1.5",y:"0.5"}),i.appendChild(o),r.appendChild(i),s.appendChild(r),n.appendChild(s),n}(this.doc,this.nsp)}calculateSldBounds(){if(!this.sldEditor||!this.editorContainer)return;const e=this.editorContainer.getBoundingClientRect();this.sldBounds=NM(this.sldEditor).map((t=>{const n=t.getBoundingClientRect();return{top:n.top-e.top,left:n.left-e.left,width:n.width,height:n.height}}))}applyBusbarHighlights(){if(!this.sldEditor||!this.doc)return;const e=this.selectedElement&&EM(this.selectedElement),t=this.addingFunction||this.functionHoverHighlight.length>0||e;if(TM(this.sldEditor),!t)return;const n=[...this.highlight,...this.functionHoverHighlight];if(0===n.length)return;const s=Array.from(this.doc.querySelectorAll("Bay")).filter((e=>EM(e)&&n.some((t=>t.id===wt(e).toString()))));if(0===s.length)return;const r=n.find((e=>s.some((t=>wt(t).toString()===e.id))))?.style??vV;PM(this.sldEditor,s,r)}zoomIn(){this.gridSize+=3}zoomOut(){this.gridSize-=3,this.gridSize<2&&(this.gridSize=2)}startPlacing(e){this.reset(),this.sldEditor?.startPlacing(e)}reset(){this.sldEditorInAction=!1,this.functionsInAction=!1,this.addingFunction=!1,this.placingFunction=void 0,this.placingFunctionOffset=[0,0],this.selectedElement=void 0,this.highlight=[],this.highlightBeforeAddingFunction=[],this.sldEditor&&(TM(this.sldEditor),this.sldEditor.resetWithOffset())}insertSubstation(){if(!this.doc)return;const e=this.doc.documentElement,t=this.doc.createElementNS(this.doc.documentElement.namespaceURI,"Substation"),n=ft(e,"Substation");let s=1;for(;this.doc.querySelector(`:root > Substation[name="S${s}"]`);)s+=1;t.setAttribute("name",`S${s}`),vM(t,this.nsp,{w:"50",h:"25"}),this.dispatchEvent(Et({parent:e,node:t,reference:n}))}getFunctionParent(e){const{tagName:t}=e;return"Bay"===t||"VoltageLevel"===t||"Substation"===t?e:"ConductingEquipment"===t?e.closest("Bay"):"PowerTransformer"===t||"TransformerWinding"===t?e.closest("Bay, VoltageLevel, Substation"):null}createFunction(e){const{name:t,description:n,type:s,subfunctions:r}=e.detail;if(!this.doc)return;const i=this.selectedElement;if(!i)return;const{tagName:a}=i,o=this.getFunctionParent(i);if(!o)return;const d=Mt(this.doc,"Function",{name:t,desc:n,type:s});if("ConductingEquipment"===a){const e=OM(i);d.appendChild(LM(this.doc,e))}else if("PowerTransformer"===a||"TransformerWinding"===a){const e="PowerTransformer"===a?i:i.parentElement;if(e){const t=OM(e);d.appendChild(LM(this.doc,t))}}const{x:c,y:l}=SM(this.doc,i);vM(d,this.nsp,{x:String(c),y:String(l)}),r.forEach((e=>{const t=Mt(this.doc,"SubFunction",{name:e.name,desc:e.description,type:e.type});d.appendChild(t)}));const p=ft(o,"Function");this.dispatchEvent(Et({parent:o,node:d,reference:p})),this.reset(),this.showFunctions=!0}renderTransformerButtons(){return this.doc&&Array.from(this.doc.documentElement.children).find((e=>"Substation"===e.tagName))?re`<oscd-icon-button
         ?disabled=${this.showFunctions}
         label="Add Single Winding Auto Transformer"
         title="Add Single Winding Auto Transformer"

@@ -45,12 +45,17 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     step: CreateFunctionDialogStep;
     tempSubfunctions: SubfunctionData[];
     selectedSubfunction: number | null;
+    confirmAction: 'cancel' | 'delete-subfunction' | null;
     private formGroup;
     private shouldEmitCancel;
+    private readonly boundHandleDocumentKeydown;
     show(): void;
     close(): void;
+    private closeWithoutConfirm;
     reset(): void;
     private handleClosed;
+    private handleCancel;
+    private handleDocumentKeydown;
     private readonly nameTakenValidator;
     private handleNext;
     private handleSave;
@@ -58,7 +63,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleSaveSubfunction;
     private handleDeleteSubfunction;
     private handleSubfunctionClick;
-    private handleConfirmDeleteSubfunction;
+    private handleConfirm;
     renderFunctionAttrs(): import("lit-html").TemplateResult<1>;
     renderFunctionContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;

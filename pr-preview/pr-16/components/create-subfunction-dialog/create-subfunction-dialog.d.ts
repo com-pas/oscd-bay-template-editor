@@ -9,6 +9,7 @@ import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import type { SubfunctionData } from '../../util.js';
+import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
     SubfunctionContent = "subfunction-content"
@@ -25,25 +26,33 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
         'oscd-divider': typeof OscdDivider;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
+        'confirm-dialog': typeof ConfirmDialog;
     };
     subfunctions: SubfunctionData[];
     dialog: OscdDialog;
     nameField: OscdFilledTextField;
     descriptionField: OscdSclTextField;
     typeField: OscdSclTextField;
+    confirmDialog: ConfirmDialog;
     name: string;
     description: string | null;
     type: string | null;
     step: CreateSubfunctionDialogStep;
+    confirmAction: 'cancel' | null;
     private formGroup;
+    private readonly boundHandleDocumentKeydown;
     show(): void;
     close(): void;
+    private closeWithoutConfirm;
     reset(): void;
     private handleClosed;
+    private handleCancel;
+    private handleDocumentKeydown;
     private readonly nameNotTakenValidator;
     private handleNext;
     private handleBack;
     private handleSave;
+    private handleConfirm;
     renderSubfunctionAttrs(): import("lit-html").TemplateResult<1>;
     renderSubfunctionContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
