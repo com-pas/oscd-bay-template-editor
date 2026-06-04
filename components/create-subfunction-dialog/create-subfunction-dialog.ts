@@ -21,6 +21,7 @@ import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 import type { SubfunctionData } from '../../util.js';
+import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 
 export enum CreateSubfunctionDialogStep {
   SubfunctionAttributes = 'subfunction-attributes',
