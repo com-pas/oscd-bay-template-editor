@@ -92,7 +92,11 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   private shouldEmitCancel = true;
 
+  private readonly boundHandleDocumentKeydown =
+    this.handleDocumentKeydown.bind(this);
+
   show() {
+    document.addEventListener('keydown', this.boundHandleDocumentKeydown, true);
     this.step = CreateFunctionDialogStep.FunctionAttributes;
     this.tempSubfunctions = [];
     this.selectedSubfunction = null;
@@ -117,6 +121,11 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   close() {
+    document.removeEventListener(
+      'keydown',
+      this.boundHandleDocumentKeydown,
+      true
+    );
     this.dialog.close();
   }
 
@@ -140,6 +149,11 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleClosed() {
+    document.removeEventListener(
+      'keydown',
+      this.boundHandleDocumentKeydown,
+      true
+    );
     const emitCancel = this.shouldEmitCancel;
     this.shouldEmitCancel = true;
     this.reset();
@@ -147,6 +161,18 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       this.dispatchEvent(
         new CustomEvent('cancel', { bubbles: true, composed: true })
       );
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private handleCancel(e: Event) {
+    e.preventDefault();
+  }
+
+  private handleDocumentKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && this.dialog?.open) {
+      e.preventDefault();
+      e.stopPropagation();
     }
   }
 
@@ -369,7 +395,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-      <oscd-dialog @closed=${this.handleClosed}>
+      <oscd-dialog @cancel=${this.handleCancel} @closed=${this.handleClosed}>
         ${this.step === CreateFunctionDialogStep.FunctionAttributes
           ? this.renderFunctionAttrs()
           : this.renderFunctionContent()}

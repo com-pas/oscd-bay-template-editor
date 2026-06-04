@@ -118,6 +118,19 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.reset();
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private handleCancel(e: Event) {
+    e.preventDefault();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
   private readonly nameNotTakenValidator: Validator = (value: Value) => {
     if (typeof value !== 'string') return null;
     const trimmed = value.trim();
@@ -259,7 +272,11 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-      <oscd-dialog @closed=${this.handleClosed}>
+      <oscd-dialog
+        @cancel=${this.handleCancel}
+        @keydown=${this.handleKeydown}
+        @closed=${this.handleClosed}
+      >
         ${this.step === CreateSubfunctionDialogStep.SubfunctionAttributes
           ? this.renderSubfunctionAttrs()
           : this.renderSubfunctionContent()}
