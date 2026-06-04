@@ -27,6 +27,7 @@ export declare class ConfirmDialog extends ConfirmDialog_base {
     close(): void;
     private handleConfirm;
     private handleCancel;
+    private handleCancelClick;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;
 }
