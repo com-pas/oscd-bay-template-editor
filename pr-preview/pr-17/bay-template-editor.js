@@ -7962,9 +7962,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
           <oscd-list>
             ${0===this.tempSubfunctions.length?re`<oscd-list-item type="text">
                   <oscd-icon slot="start">info</oscd-icon>
-                  <span slot="headline"
-                    >Click the add button to create a new SubFunction</span
-                  >
+                  <span slot="headline">Click + to add a SubFunction</span>
                 </oscd-list-item>`:this.tempSubfunctions.map(((e,t)=>re`
                     <oscd-list-item
                       type="button"
@@ -7990,9 +7988,7 @@ const PF=e=>e??oe;class TF extends(Ke(Ee)){constructor(){super(...arguments),thi
           <oscd-list>
             <oscd-list-item type="text">
               <oscd-icon slot="start">info</oscd-icon>
-              <span slot="headline"
-                >Click the add button to create a new LNode</span
-              >
+              <span slot="headline">Click + to add an LNode</span>
             </oscd-list-item>
           </oscd-list>
         </div>
