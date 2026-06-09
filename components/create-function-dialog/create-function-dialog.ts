@@ -38,7 +38,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-divider': OscdDivider,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
-      'add-subfunction-dialog': CreateSubfunctionDialog,
+      'create-subfunction-dialog': CreateSubfunctionDialog,
       'confirm-dialog': ConfirmDialog,
     };
   }
@@ -52,6 +52,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @property({ type: String })
   selectedElementType = '';
 
+  @property({ attribute: false })
+  lnodeLibrary: Document | Element | null = null;
+
   @query('oscd-dialog')
   dialog!: OscdDialog;
 
@@ -64,7 +67,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-scl-text-field[name="type"]')
   typeField!: OscdSclTextField;
 
-  @query('add-subfunction-dialog')
+  @query('create-subfunction-dialog')
   createSubfunctionDialog!: CreateSubfunctionDialog;
 
   @query('confirm-dialog')
@@ -376,9 +379,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             ${this.tempSubfunctions.length === 0
               ? html`<oscd-list-item type="text">
                   <oscd-icon slot="start">info</oscd-icon>
-                  <span slot="headline"
-                    >Click the add button to create a new SubFunction</span
-                  >
+                  <span slot="headline">Click + to add a SubFunction</span>
                 </oscd-list-item>`
               : this.tempSubfunctions.map(
                   (sf, index) => html`
@@ -411,9 +412,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
           <oscd-list>
             <oscd-list-item type="text">
               <oscd-icon slot="start">info</oscd-icon>
-              <span slot="headline"
-                >Click the add button to create a new LNode</span
-              >
+              <span slot="headline">Click + to add an LNode</span>
             </oscd-list-item>
           </oscd-list>
         </div>
@@ -447,9 +446,10 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
           : this.renderFunctionContent()}
       </oscd-dialog>
 
-      <add-subfunction-dialog
+      <create-subfunction-dialog
+        .library=${this.lnodeLibrary}
         @save-subfunction=${this.handleSaveSubfunction}
-      ></add-subfunction-dialog>
+      ></create-subfunction-dialog>
 
       <confirm-dialog
         .headline=${this.confirmHeadline}

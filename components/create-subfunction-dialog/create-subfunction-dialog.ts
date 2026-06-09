@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
@@ -17,8 +17,10 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
-import type { SubfunctionData } from '../../util.js';
+import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
+import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
+import type { SubfunctionData } from '../../util.js';
 
 export enum CreateSubfunctionDialogStep {
   SubfunctionAttributes = 'subfunction-attributes',
@@ -37,9 +39,13 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-divider': OscdDivider,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
+      'lnode-picker': LNodePicker,
       'confirm-dialog': ConfirmDialog,
     };
   }
+
+  @property({ attribute: false })
+  library: Document | Element | null = null;
 
   @property({ type: Array })
   subfunctions: SubfunctionData[] = [];
@@ -92,6 +98,13 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   @state()
   private confirmCancelLabel = 'Cancel';
+  lnodes: LNodeTypeEntry[] = [];
+
+  @state()
+  selectedLNode: string | null = null;
+
+  @state()
+  pickerOpen = false;
 
   private formGroup: FormGroup | null = null;
 
@@ -147,6 +160,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.name = '';
     this.description = null;
     this.type = null;
+    this.lnodes = [];
+    this.selectedLNode = null;
+    this.pickerOpen = false;
     if (this.nameField) {
       this.nameField.errorText = '';
       this.nameField.error = false;
@@ -214,6 +230,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
           name: this.name,
           description: this.description,
           type: this.type,
+          lnodes: this.lnodes,
         },
       })
     );
@@ -226,6 +243,32 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       this.closeWithoutConfirm();
     }
     this.confirmAction = null;
+  }
+
+  private handleSelectLNode(id: string) {
+    this.selectedLNode = this.selectedLNode === id ? null : id;
+  }
+
+  private handleRemoveLNode() {
+    if (this.selectedLNode === null) return;
+    this.lnodes = this.lnodes.filter(l => l.id !== this.selectedLNode);
+    this.selectedLNode = null;
+  }
+
+  private handleAddLNode() {
+    this.pickerOpen = true;
+  }
+
+  private handlePickerConfirm(e: CustomEvent<{ selected: LNodeTypeEntry[] }>) {
+    const incoming = e.detail.selected.filter(
+      entry => !this.lnodes.some(l => l.id === entry.id)
+    );
+    this.lnodes = [...this.lnodes, ...incoming];
+    this.pickerOpen = false;
+  }
+
+  private handlePickerCancel() {
+    this.pickerOpen = false;
   }
 
   renderSubfunctionAttrs() {
@@ -296,18 +339,61 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
         <div class="section">
           <div class="section-header">
             <h4>LNodes</h4>
-            <oscd-icon-button title="Add LNode" disabled>
-              <oscd-icon>add</oscd-icon>
-            </oscd-icon-button>
-          </div>
-          <oscd-list>
-            <oscd-list-item type="text">
-              <oscd-icon slot="start">info</oscd-icon>
-              <span slot="headline"
-                >Click the add button to create a new LNode</span
+            <div class="section-actions">
+              <oscd-icon-button
+                title="Remove LNode"
+                ?disabled=${this.selectedLNode === null}
+                @click=${this.handleRemoveLNode}
               >
-            </oscd-list-item>
-          </oscd-list>
+                <oscd-icon>remove</oscd-icon>
+              </oscd-icon-button>
+              <oscd-icon-button
+                title="Add LNode"
+                ?disabled=${this.pickerOpen}
+                @click=${this.handleAddLNode}
+              >
+                <oscd-icon>add</oscd-icon>
+              </oscd-icon-button>
+            </div>
+          </div>
+
+          ${this.pickerOpen
+            ? html`
+                <lnode-picker
+                  .library=${this.library}
+                  .existingIds=${this.lnodes.map(l => l.id)}
+                  @lnode-picker-confirm=${this.handlePickerConfirm}
+                  @lnode-picker-cancel=${this.handlePickerCancel}
+                ></lnode-picker>
+              `
+            : html`
+                <oscd-list>
+                  ${this.lnodes.length === 0
+                    ? html`
+                        <oscd-list-item type="text" noninteractive>
+                          <oscd-icon slot="start">info</oscd-icon>
+                          <span slot="headline">Click + to add an LNode</span>
+                        </oscd-list-item>
+                      `
+                    : this.lnodes.map(
+                        lnode => html`
+                          <oscd-list-item
+                            type="button"
+                            ?selected=${this.selectedLNode === lnode.id}
+                            @click=${() => this.handleSelectLNode(lnode.id)}
+                          >
+                            <span slot="headline">${lnode.lnClass}</span>
+                            <span slot="supporting-text"
+                              >${lnode.desc ?? lnode.id}</span
+                            >
+                            ${this.selectedLNode === lnode.id
+                              ? html`<oscd-icon slot="end">check</oscd-icon>`
+                              : nothing}
+                          </oscd-list-item>
+                        `
+                      )}
+                </oscd-list>
+              `}
         </div>
       </div>
 
@@ -321,6 +407,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
         <oscd-filled-button
           type="button"
           data-testid="save-button"
+          .disabled=${this.pickerOpen}
           @click=${this.handleSave}
           >Save</oscd-filled-button
         >
@@ -403,6 +490,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     .section {
       display: flex;
       flex-direction: column;
+      max-height: 385px;
     }
 
     .section-header {
@@ -416,6 +504,12 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       font-size: 16px;
       font-weight: 500;
       color: var(--md-sys-color-on-surface, #1d1b20);
+    }
+
+    .section-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     oscd-list {

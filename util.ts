@@ -1,5 +1,6 @@
 import { getReference } from '@openscd/scl-lib';
 import { EditV2 } from '@openscd/oscd-api';
+import { LNodeTypeEntry } from './components/lnode-picker/lnode-picker.js';
 
 export const privType = 'OpenSCD-SLD-Layout';
 export const sldNs = 'https://openscd.org/SCL/SSD/SLD/v0';
@@ -49,6 +50,7 @@ export interface SubfunctionData {
   name: string;
   description: string | null;
   type: string | null;
+  lnodes: LNodeTypeEntry[] | null;
 }
 
 function sections(element: Element): Element[] {

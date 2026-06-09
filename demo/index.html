@@ -34,8 +34,13 @@
 
 <script type="module">
   import { plugins } from './plugins.js';
+  import { compasApi } from './compasApi.js';
 
   const editor = document.querySelector('open-scd');
+  
+  // Store compasApi on the editor element so plugins can access it
+  editor.compasApi = compasApi;
+  
   editor.plugins = plugins;
 </script>
 

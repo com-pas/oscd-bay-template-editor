@@ -68,8 +68,8 @@ describe('Bay Template Editor Plugin', () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
       const subfunctions = [
-        { name: 'Sub1', description: 'desc', type: 'type' },
-        { name: 'Sub2', description: 'desc', type: 'type' },
+        { name: 'Sub1', description: 'desc', type: 'type', lnodes: null },
+        { name: 'Sub2', description: 'desc', type: 'type', lnodes: null },
       ];
       const { parent, fn } = triggerAndCapture(bay, 'Fbay', subfunctions);
       expect(parent).to.equal(bay);
