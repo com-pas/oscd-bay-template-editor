@@ -75,6 +75,24 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   confirmAction: 'cancel' | null = null;
 
+  @state()
+  private confirmHeadline = 'Confirmation';
+
+  @state()
+  private confirmDescription = '';
+
+  @state()
+  private confirmIcon = 'help';
+
+  @state()
+  private confirmVariant: 'danger' | 'warning' | 'primary' = 'primary';
+
+  @state()
+  private confirmConfirmLabel = 'Confirm';
+
+  @state()
+  private confirmCancelLabel = 'Cancel';
+
   private formGroup: FormGroup | null = null;
 
   private readonly boundHandleDocumentKeydown =
@@ -105,13 +123,13 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   close() {
     this.confirmAction = 'cancel';
-    this.confirmDialog.headline = 'Cancel without saving?';
-    this.confirmDialog.description =
+    this.confirmHeadline = 'Cancel without saving?';
+    this.confirmDescription =
       'Are you sure you want to cancel? All changes will be lost.';
-    this.confirmDialog.icon = 'warning';
-    this.confirmDialog.variant = 'danger';
-    this.confirmDialog.confirmLabel = 'Yes, cancel';
-    this.confirmDialog.cancelLabel = 'No, go back';
+    this.confirmIcon = 'warning';
+    this.confirmVariant = 'danger';
+    this.confirmConfirmLabel = 'Yes, cancel';
+    this.confirmCancelLabel = 'No, go back';
     this.confirmDialog.show();
   }
 
@@ -323,11 +341,12 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       </oscd-dialog>
 
       <confirm-dialog
-        headline="Confirmation"
-        confirm-label="Confirm"
-        cancel-label="Cancel"
-        icon="help"
-        variant="primary"
+        .headline=${this.confirmHeadline}
+        .description=${this.confirmDescription}
+        .confirmLabel=${this.confirmConfirmLabel}
+        .cancelLabel=${this.confirmCancelLabel}
+        .icon=${this.confirmIcon}
+        .variant=${this.confirmVariant}
         @confirm-dialog-confirm=${this.handleConfirm}
       ></confirm-dialog>
     `;

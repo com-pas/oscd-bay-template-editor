@@ -91,6 +91,24 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   confirmAction: 'cancel' | 'delete-subfunction' | null = null;
 
+  @state()
+  private confirmHeadline = 'Confirmation';
+
+  @state()
+  private confirmDescription = '';
+
+  @state()
+  private confirmIcon = 'help';
+
+  @state()
+  private confirmVariant: 'danger' | 'warning' | 'primary' = 'primary';
+
+  @state()
+  private confirmConfirmLabel = 'Confirm';
+
+  @state()
+  private confirmCancelLabel = 'Cancel';
+
   private formGroup: FormGroup | null = null;
 
   private shouldEmitCancel = true;
@@ -125,13 +143,13 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   close() {
     this.confirmAction = 'cancel';
-    this.confirmDialog.headline = 'Cancel without saving?';
-    this.confirmDialog.description =
+    this.confirmHeadline = 'Cancel without saving?';
+    this.confirmDescription =
       'Are you sure you want to cancel? All changes will be lost.';
-    this.confirmDialog.icon = 'warning';
-    this.confirmDialog.variant = 'danger';
-    this.confirmDialog.confirmLabel = 'Yes, cancel';
-    this.confirmDialog.cancelLabel = 'No, go back';
+    this.confirmIcon = 'warning';
+    this.confirmVariant = 'danger';
+    this.confirmConfirmLabel = 'Yes, cancel';
+    this.confirmCancelLabel = 'No, go back';
     this.confirmDialog.show();
   }
 
@@ -246,12 +264,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       this.tempSubfunctions[this.selectedSubfunction].name;
 
     this.confirmAction = 'delete-subfunction';
-    this.confirmDialog.headline = 'Delete SubFunction?';
-    this.confirmDialog.description = `Are you sure you want to delete "${subfunctionName}"? This action cannot be undone.`;
-    this.confirmDialog.icon = 'delete';
-    this.confirmDialog.variant = 'danger';
-    this.confirmDialog.confirmLabel = 'Delete';
-    this.confirmDialog.cancelLabel = 'Cancel';
+    this.confirmHeadline = 'Delete SubFunction?';
+    this.confirmDescription = `Are you sure you want to delete "${subfunctionName}"? This action cannot be undone.`;
+    this.confirmIcon = 'delete';
+    this.confirmVariant = 'danger';
+    this.confirmConfirmLabel = 'Delete';
+    this.confirmCancelLabel = 'Cancel';
     this.confirmDialog.show();
   }
 
@@ -434,11 +452,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       ></add-subfunction-dialog>
 
       <confirm-dialog
-        headline="Confirmation"
-        confirm-label="Confirm"
-        cancel-label="Cancel"
-        icon="help"
-        variant="primary"
+        .headline=${this.confirmHeadline}
+        .description=${this.confirmDescription}
+        .confirmLabel=${this.confirmConfirmLabel}
+        .cancelLabel=${this.confirmCancelLabel}
+        .icon=${this.confirmIcon}
+        .variant=${this.confirmVariant}
         @confirm-dialog-confirm=${this.handleConfirm}
       ></confirm-dialog>
     `;
