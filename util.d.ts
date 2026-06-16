@@ -12,6 +12,11 @@ export type EqType = (typeof eqTypes)[number];
 export declare function isEqType(str: string): str is EqType;
 export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
+export interface SubfunctionData {
+    name: string;
+    description: string | null;
+    type: string | null;
+}
 export declare function setSLDAttributes(element: Element, nsPrefix: string, values: Record<string, string>): void;
 export declare function getSLDAttributes(element: Element, key: string): string | null;
 export declare function updateSLDAttributes(element: Element, nsPrefix: string, values: Partial<Record<string, string | null>>): EditV2;

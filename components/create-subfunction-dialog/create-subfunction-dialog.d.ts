@@ -8,15 +8,14 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-import { type SubfunctionData } from '../../util.js';
-import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
+import type { SubfunctionData } from '../../util.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
-export declare enum CreateFunctionDialogStep {
-    FunctionAttributes = "function-attributes",
-    FunctionContent = "function-content"
+export declare enum CreateSubfunctionDialogStep {
+    SubfunctionAttributes = "subfunction-attributes",
+    SubfunctionContent = "subfunction-content"
 }
-declare const CreateFunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
-export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
+declare const CreateSubfunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_base {
     static get scopedElements(): {
         'oscd-dialog': typeof OscdDialog;
         'oscd-filled-button': typeof OscdFilledButton;
@@ -27,25 +26,19 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'oscd-divider': typeof OscdDivider;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
-        'add-subfunction-dialog': typeof CreateSubfunctionDialog;
         'confirm-dialog': typeof ConfirmDialog;
     };
-    parent: Element | null;
-    selectedElementName: string;
-    selectedElementType: string;
+    subfunctions: SubfunctionData[];
     dialog: OscdDialog;
     nameField: OscdFilledTextField;
     descriptionField: OscdSclTextField;
     typeField: OscdSclTextField;
-    createSubfunctionDialog: CreateSubfunctionDialog;
     confirmDialog: ConfirmDialog;
     name: string;
     description: string | null;
     type: string | null;
-    step: CreateFunctionDialogStep;
-    tempSubfunctions: SubfunctionData[];
-    selectedSubfunction: number | null;
-    confirmAction: 'cancel' | 'delete-subfunction' | null;
+    step: CreateSubfunctionDialogStep;
+    confirmAction: 'cancel' | null;
     private confirmHeadline;
     private confirmDescription;
     private confirmIcon;
@@ -53,7 +46,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private confirmConfirmLabel;
     private confirmCancelLabel;
     private formGroup;
-    private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;
     show(): void;
     close(): void;
@@ -62,16 +54,13 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleClosed;
     private handleCancel;
     private handleDocumentKeydown;
-    private readonly nameTakenValidator;
+    private readonly nameNotTakenValidator;
     private handleNext;
+    private handleBack;
     private handleSave;
-    private handleAddSubfunction;
-    private handleSaveSubfunction;
-    private handleDeleteSubfunction;
-    private handleSubfunctionClick;
     private handleConfirm;
-    renderFunctionAttrs(): import("lit-html").TemplateResult<1>;
-    renderFunctionContent(): import("lit-html").TemplateResult<1>;
+    renderSubfunctionAttrs(): import("lit-html").TemplateResult<1>;
+    renderSubfunctionContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;
 }
