@@ -36,6 +36,7 @@ import {
   highlightBusbars,
   clearBusbarHighlights,
   eTr6100Ns,
+  type SubfunctionData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
@@ -478,9 +479,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       name: string;
       description: string | null;
       type: string | null;
+      subfunctions: SubfunctionData[];
     }>
   ) {
-    const { name, description, type } = e.detail;
+    const { name, description, type, subfunctions } = e.detail;
     if (!this.doc) return;
 
     const selected = this.selectedElement;
@@ -515,6 +517,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     setSLDAttributes(func, this.nsp, {
       x: String(x),
       y: String(y),
+    });
+
+    subfunctions.forEach(sf => {
+      const subFunction = createElement(this.doc!, 'SubFunction', {
+        name: sf.name,
+        desc: sf.description,
+        type: sf.type,
+      });
+      func.appendChild(subFunction);
     });
 
     const reference = getReference(functionParent, 'Function');

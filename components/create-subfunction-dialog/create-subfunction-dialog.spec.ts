@@ -1,18 +1,18 @@
 /* eslint-disable no-unused-expressions */
 import { fixture, expect, html, waitUntil } from '@open-wc/testing';
-import sinon, { spy } from 'sinon';
+import { spy } from 'sinon';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import {
-  CreateFunctionDialog,
-  CreateFunctionDialogStep,
-} from './create-function-dialog.js';
+  CreateSubfunctionDialog,
+  CreateSubfunctionDialogStep,
+} from './create-subfunction-dialog.js';
 
-if (!customElements.get('create-function-dialog')) {
-  customElements.define('create-function-dialog', CreateFunctionDialog);
+if (!customElements.get('add-subfunction-dialog')) {
+  customElements.define('add-subfunction-dialog', CreateSubfunctionDialog);
 }
 
-describe('CreateFunctionDialog', () => {
-  let element: CreateFunctionDialog;
+describe('CreateSubfunctionDialog', () => {
+  let element: CreateSubfunctionDialog;
   let doc: XMLDocument;
 
   beforeEach(async () => {
@@ -21,7 +21,7 @@ describe('CreateFunctionDialog', () => {
       'application/xml'
     );
     element = await fixture(
-      html`<create-function-dialog></create-function-dialog>`
+      html`<add-subfunction-dialog></add-subfunction-dialog>`
     );
     await element.updateComplete;
   });
@@ -44,9 +44,9 @@ describe('CreateFunctionDialog', () => {
   it('shows error if name is empty on submit', async () => {
     element.show();
     await element.updateComplete;
-    const nextBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="next-button"]'
-    ) as HTMLElement;
+    const nextBtn = Array.from(
+      element.shadowRoot?.querySelectorAll('oscd-filled-button') ?? []
+    ).find(btn => btn.textContent?.trim() === 'Next') as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
     const nameField = element.shadowRoot?.querySelector(
@@ -56,19 +56,19 @@ describe('CreateFunctionDialog', () => {
     expect(nameField?.errorText).to.equal('Name is required');
   });
 
-  it('shows error if duplicate name exists in parent', async () => {
-    const parent = doc.createElement('Bay');
-    const child1 = doc.createElement('Function');
-    child1.setAttribute('name', 'F1');
+  it('shows error if duplicate SubFunction name exists in parent', async () => {
+    const parent = doc.createElement('Function');
+    const child1 = doc.createElement('SubFunction');
+    child1.setAttribute('name', 'SF1');
     parent.appendChild(child1);
-    element.parent = parent;
-    element.name = 'F1';
+    element.subfunctions = [{ name: 'SF1', description: 'desc', type: 'type' }];
+    element.name = 'SF1';
     await element.updateComplete;
     element.show();
     await element.updateComplete;
-    const nextBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="next-button"]'
-    ) as HTMLElement;
+    const nextBtn = Array.from(
+      element.shadowRoot?.querySelectorAll('oscd-filled-button') ?? []
+    ).find(btn => btn.textContent?.trim() === 'Next') as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
     const nameField = element.shadowRoot?.querySelector(
@@ -76,15 +76,12 @@ describe('CreateFunctionDialog', () => {
     ) as OscdFilledTextField;
     expect(nameField?.error).to.be.true;
     expect(nameField?.errorText).to.equal(
-      'A Function with the name "F1" already exists'
+      'A SubFunction with the name "SF1" already exists'
     );
   });
 
-  it('dispatches save event with correct details', async () => {
-    const dispatchSpy = spy(element, 'dispatchEvent');
-    element.name = 'F2';
-    element.description = null;
-    element.type = null;
+  it('shows next step on valid input and button click', async () => {
+    element.name = 'SF2';
     element.show();
     await element.updateComplete;
     const nextBtn = element.shadowRoot?.querySelector(
@@ -92,45 +89,16 @@ describe('CreateFunctionDialog', () => {
     ) as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
-    await waitUntil(
-      () => element.step === CreateFunctionDialogStep.FunctionContent,
-      'Step did not advance to Function Content'
+    expect(element.step).to.equal(
+      CreateSubfunctionDialogStep.SubfunctionContent
     );
-
-    const saveBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="save-button"]'
-    ) as HTMLElement;
-    saveBtn.click();
-    await element.updateComplete;
-
-    expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'save'))).to.be
-      .true;
-    const saveEvent = dispatchSpy
-      .getCalls()
-      .find(call => call.args[0].type === 'save')?.args[0] as CustomEvent;
-    expect(saveEvent?.detail).to.deep.equal({
-      name: 'F2',
-      description: null,
-      type: null,
-      subfunctions: [],
-    });
-  });
-
-  it('dispatches cancel event on close', async () => {
-    const dispatchSpy = spy(element, 'dispatchEvent');
-    element.show();
-    await element.updateComplete;
-    (element as any).handleClosed();
-    await element.updateComplete;
-    expect(dispatchSpy.calledWithMatch(sinon.match.has('type', 'cancel'))).to.be
-      .true;
   });
 
   it('closes dialog on Cancel confirmation', async () => {
     element.show();
     await element.updateComplete;
     const cancelBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="cancel-button-step1"]'
+      'oscd-filled-button[data-testid="cancel-button"]'
     ) as HTMLElement;
     cancelBtn.click();
     await element.updateComplete;
@@ -152,7 +120,7 @@ describe('CreateFunctionDialog', () => {
     await element.updateComplete;
 
     const mainDialog = element.shadowRoot?.querySelector(
-      'oscd-dialog[id="create-function-dialog"]'
+      'oscd-dialog[id="create-subfunction-dialog"]'
     ) as any;
     await waitUntil(
       () => !mainDialog.open,
@@ -162,9 +130,9 @@ describe('CreateFunctionDialog', () => {
   });
 
   it('resets fields on close', async () => {
-    element.name = 'F3';
-    element.description = null;
-    element.type = null;
+    element.name = 'SF3';
+    element.description = 'desc';
+    element.type = 'type';
     (element as any).handleClosed();
     await element.updateComplete;
     expect(element.name).to.equal('');
@@ -177,39 +145,21 @@ describe('CreateFunctionDialog', () => {
     expect(nameField?.errorText).to.equal('');
   });
 
-  it('deletes selected subfunction', async () => {
-    element.name = 'F4';
+  it('does not dispatch cancel event when Next is pressed', async () => {
+    const dispatchSpy = spy(element, 'dispatchEvent');
+    element.name = 'SF4';
     element.show();
     await element.updateComplete;
-
-    element.tempSubfunctions = [
-      { name: 'SF1', description: null, type: null },
-      { name: 'SF2', description: null, type: null },
-    ];
-    element.selectedSubfunction = 0;
-    const nextBtn = element.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="next-button"]'
-    ) as HTMLElement;
+    const nextBtn = Array.from(
+      element.shadowRoot?.querySelectorAll('oscd-filled-button') ?? []
+    ).find(btn => btn.textContent?.trim() === 'Next') as HTMLElement;
     nextBtn.click();
     await element.updateComplete;
-    await waitUntil(
-      () => element.step === CreateFunctionDialogStep.FunctionContent,
-      'Step did not advance to Function Content'
-    );
-
-    const deleteBtn = element.shadowRoot?.querySelector(
-      'oscd-icon-button[data-testid="delete-subfunction-button"]'
-    ) as HTMLElement;
-    deleteBtn.click();
+    (element as any).handleClosed();
     await element.updateComplete;
-
-    const confirmBtn = element.confirmDialog.shadowRoot?.querySelector(
-      'oscd-filled-button[data-testid="confirm-button"]'
-    ) as HTMLElement;
-    confirmBtn.click();
-    await element.updateComplete;
-    expect(element.tempSubfunctions).to.deep.equal([
-      { name: 'SF2', description: null, type: null },
-    ]);
+    const cancelEvents = dispatchSpy
+      .getCalls()
+      .filter(call => call.args[0].type === 'cancel');
+    expect(cancelEvents.length).to.equal(0);
   });
 });
