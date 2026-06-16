@@ -43,6 +43,12 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     type: string | null;
     step: CreateSubfunctionDialogStep;
     confirmAction: 'cancel' | null;
+    private confirmHeadline;
+    private confirmDescription;
+    private confirmIcon;
+    private confirmVariant;
+    private confirmConfirmLabel;
+    private confirmCancelLabel;
     lnodes: LNodeTypeEntry[];
     selectedLNode: string | null;
     pickerOpen: boolean;
