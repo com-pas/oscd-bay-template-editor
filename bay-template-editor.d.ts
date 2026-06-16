@@ -4,6 +4,7 @@ import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOu
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
 import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
+import { type SubfunctionData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { type HighlightStyle } from './const.js';
@@ -75,6 +76,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         name: string;
         description: string | null;
         type: string | null;
+        subfunctions: SubfunctionData[];
     }>): void;
     private renderTransformerButtons;
     private renderSubstationHighlight;
