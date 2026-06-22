@@ -46,7 +46,16 @@ export class LNodePicker extends ScopedElementsMixin(LitElement) {
   @state()
   private selectedIds: Set<string> = new Set();
 
+  private entriesCache: LNodeTypeEntry[] | null = null;
+
   private get allEntries(): LNodeTypeEntry[] {
+    if (this.entriesCache === null) {
+      this.entriesCache = this.parseEntries();
+    }
+    return this.entriesCache;
+  }
+
+  private parseEntries(): LNodeTypeEntry[] {
     if (!this.library) return [];
 
     const lNodeTypes = this.library

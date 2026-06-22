@@ -145,15 +145,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   connectedCallback() {
     super.connectedCallback();
 
-    // A workaround to access the compasApi in the demo environment
-    if (!this.compasApi) {
-      const openScd = this.getRootNode() as ShadowRoot;
-      const host = openScd?.host as any;
-      if (host?.compasApi) {
-        this.compasApi = host.compasApi;
-      }
-    }
-
     if (this.compasApi?.lNodeLibrary?.loadLNodeLibrary) {
       this.compasApi.lNodeLibrary
         .loadLNodeLibrary()
