@@ -27,12 +27,13 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'oscd-divider': typeof OscdDivider;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
-        'add-subfunction-dialog': typeof CreateSubfunctionDialog;
+        'create-subfunction-dialog': typeof CreateSubfunctionDialog;
         'confirm-dialog': typeof ConfirmDialog;
     };
     parent: Element | null;
     selectedElementName: string;
     selectedElementType: string;
+    lnodeLibrary: Document | Element | null;
     dialog: OscdDialog;
     nameField: OscdFilledTextField;
     descriptionField: OscdSclTextField;

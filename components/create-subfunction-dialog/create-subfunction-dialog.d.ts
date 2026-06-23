@@ -8,8 +8,10 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-import type { SubfunctionData } from '../../util.js';
+import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
+import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
+import type { SubfunctionData } from '../../util.js';
 export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
     SubfunctionContent = "subfunction-content"
@@ -26,8 +28,10 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
         'oscd-divider': typeof OscdDivider;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
+        'lnode-picker': typeof LNodePicker;
         'confirm-dialog': typeof ConfirmDialog;
     };
+    library: Document | Element | null;
     subfunctions: SubfunctionData[];
     dialog: OscdDialog;
     nameField: OscdFilledTextField;
@@ -45,6 +49,9 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private confirmVariant;
     private confirmConfirmLabel;
     private confirmCancelLabel;
+    lnodes: LNodeTypeEntry[];
+    selectedLNode: string | null;
+    pickerOpen: boolean;
     private formGroup;
     private readonly boundHandleDocumentKeydown;
     show(): void;
@@ -59,6 +66,11 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private handleBack;
     private handleSave;
     private handleConfirm;
+    private handleSelectLNode;
+    private handleRemoveLNode;
+    private handleAddLNode;
+    private handlePickerConfirm;
+    private handlePickerCancel;
     renderSubfunctionAttrs(): import("lit-html").TemplateResult<1>;
     renderSubfunctionContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;

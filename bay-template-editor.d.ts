@@ -22,6 +22,12 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     doc?: XMLDocument;
     editCount: number;
     gridSize: number;
+    compasApi?: {
+        lNodeLibrary: {
+            loadLNodeLibrary: () => Promise<Document | null>;
+            lNodeLibrary: () => Document | null;
+        };
+    };
     sldEditor?: SldEditor;
     editorContainer?: HTMLElement;
     labelToggle?: OscdOutlinedIconButton;
