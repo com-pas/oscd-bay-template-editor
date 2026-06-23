@@ -32,7 +32,9 @@ export declare class LNodePicker extends LNodePicker_base {
     existingIds: string[];
     private query;
     private selectedIds;
+    private entriesCache;
     private get allEntries();
+    private parseEntries;
     private get filteredEntries();
     private handleSearchInput;
     private handleToggle;

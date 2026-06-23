@@ -51,6 +51,12 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     tempSubfunctions: SubfunctionData[];
     selectedSubfunction: number | null;
     confirmAction: 'cancel' | 'delete-subfunction' | null;
+    private confirmHeadline;
+    private confirmDescription;
+    private confirmIcon;
+    private confirmVariant;
+    private confirmConfirmLabel;
+    private confirmCancelLabel;
     lnPickerOpen: boolean;
     lnodes: LNodeTypeEntry[];
     selectedLNode: string | null;
