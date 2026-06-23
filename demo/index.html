@@ -34,8 +34,23 @@
 
 <script type="module">
   import { plugins } from './plugins.js';
+  import { compasApi } from './compasApi.js';
 
   const editor = document.querySelector('open-scd');
+
+  // Inject compasApi whenever the plugin element is defined
+  const _define = customElements.define.bind(customElements);
+  customElements.define = (name, cls, opts) => {
+    if (name.match(/^oscd-p[0-9a-f]+$/i)) {
+      const orig = cls.prototype.connectedCallback;
+      cls.prototype.connectedCallback = function (...args) {
+        this.compasApi ??= compasApi;
+        return orig?.apply(this, args);
+      };
+    }
+    _define(name, cls, opts);
+  };
+
   editor.plugins = plugins;
 </script>
 

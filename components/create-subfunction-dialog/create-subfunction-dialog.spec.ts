@@ -61,7 +61,9 @@ describe('CreateSubfunctionDialog', () => {
     const child1 = doc.createElement('SubFunction');
     child1.setAttribute('name', 'SF1');
     parent.appendChild(child1);
-    element.subfunctions = [{ name: 'SF1', description: 'desc', type: 'type' }];
+    element.subfunctions = [
+      { name: 'SF1', description: 'desc', type: 'type', lnodes: null },
+    ];
     element.name = 'SF1';
     await element.updateComplete;
     element.show();

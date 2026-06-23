@@ -69,6 +69,14 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @property({ type: Number })
   gridSize: number = 24;
 
+  @property({ attribute: false })
+  compasApi?: {
+    lNodeLibrary: {
+      loadLNodeLibrary: () => Promise<Document | null>;
+      lNodeLibrary: () => Document | null;
+    };
+  };
+
   @query('sld-editor') sldEditor?: SldEditor;
 
   @query('.editor-container') editorContainer?: HTMLElement;
@@ -136,6 +144,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   connectedCallback() {
     super.connectedCallback();
+
+    if (this.compasApi?.lNodeLibrary?.loadLNodeLibrary) {
+      this.compasApi.lNodeLibrary
+        .loadLNodeLibrary()
+        .then(() => this.requestUpdate());
+    }
     this.addEventListener('oscd-edit-v2', this.preprocessEdits, {
       capture: true,
     });
@@ -303,6 +317,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         this.selectedElement.getAttribute('name') || '';
       this.createFunctionDialog.selectedElementType =
         this.selectedElement.tagName;
+      this.createFunctionDialog.lnodeLibrary =
+        this.compasApi?.lNodeLibrary?.lNodeLibrary() ?? null;
       this.createFunctionDialog.show();
     }
   };
@@ -525,6 +541,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         desc: sf.description,
         type: sf.type,
       });
+      if (sf.lnodes) {
+        sf.lnodes.forEach(lnode => {
+          const lnodeElement = createElement(this.doc!, 'LNode', {
+            lnClass: lnode.lnClass,
+            desc: lnode.desc,
+          });
+          subFunction.appendChild(lnodeElement);
+        });
+      }
       func.appendChild(subFunction);
     });
 
@@ -910,6 +935,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               : nothing}
           </div>
           <create-function-dialog
+            .lnodeLibrary=${this.compasApi?.lNodeLibrary?.lNodeLibrary() ??
+            null}
             @cancel=${this.handleCancelAddFunction}
             @save=${this.createFunction}
           ></create-function-dialog>

@@ -183,8 +183,8 @@ describe('CreateFunctionDialog', () => {
     await element.updateComplete;
 
     element.tempSubfunctions = [
-      { name: 'SF1', description: null, type: null },
-      { name: 'SF2', description: null, type: null },
+      { name: 'SF1', description: null, type: null, lnodes: null },
+      { name: 'SF2', description: null, type: null, lnodes: null },
     ];
     element.selectedSubfunction = 0;
     const nextBtn = element.shadowRoot?.querySelector(
@@ -209,7 +209,7 @@ describe('CreateFunctionDialog', () => {
     confirmBtn.click();
     await element.updateComplete;
     expect(element.tempSubfunctions).to.deep.equal([
-      { name: 'SF2', description: null, type: null },
+      { name: 'SF2', description: null, type: null, lnodes: null },
     ]);
   });
 });
