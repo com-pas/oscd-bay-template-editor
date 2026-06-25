@@ -1,5 +1,4 @@
 import { EditV2 } from '@openscd/oscd-api';
-import { LNodeTypeEntry } from './components/lnode-picker/lnode-picker.js';
 export declare const privType = "OpenSCD-SLD-Layout";
 export declare const sldNs = "https://openscd.org/SCL/SSD/SLD/v0";
 export declare const xmlnsNs = "http://www.w3.org/2000/xmlns/";
@@ -13,11 +12,15 @@ export type EqType = (typeof eqTypes)[number];
 export declare function isEqType(str: string): str is EqType;
 export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
+export interface LNodeData {
+    lnClass: string;
+    desc: string | null;
+}
 export interface SubfunctionData {
     name: string;
     description: string | null;
     type: string | null;
-    lnodes: LNodeTypeEntry[] | null;
+    lnodes: LNodeData[] | null;
 }
 export declare function setSLDAttributes(element: Element, nsPrefix: string, values: Record<string, string>): void;
 export declare function getSLDAttributes(element: Element, key: string): string | null;
