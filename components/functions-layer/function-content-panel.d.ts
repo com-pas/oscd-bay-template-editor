@@ -15,7 +15,7 @@ export declare class FunctionContentPanel extends FunctionContentPanel_base {
     private getSubFunctions;
     private getFunctionLNodes;
     private getLNodes;
-    render(): import("lit-html").TemplateResult<1> | typeof nothing;
+    render(): typeof nothing | import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult;
 }
 export {};

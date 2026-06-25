@@ -11,6 +11,8 @@ import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { type SubfunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
+import { LNodePicker } from '../lnode-picker/lnode-picker.js';
+import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
     FunctionContent = "function-content"
@@ -29,6 +31,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'oscd-list-item': typeof OscdListItem;
         'create-subfunction-dialog': typeof CreateSubfunctionDialog;
         'confirm-dialog': typeof ConfirmDialog;
+        'lnode-picker': typeof LNodePicker;
     };
     parent: Element | null;
     selectedElementName: string;
@@ -40,6 +43,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     typeField: OscdSclTextField;
     createSubfunctionDialog: CreateSubfunctionDialog;
     confirmDialog: ConfirmDialog;
+    lnodePicker: LNodePicker;
     name: string;
     description: string | null;
     type: string | null;
@@ -53,6 +57,11 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private confirmVariant;
     private confirmConfirmLabel;
     private confirmCancelLabel;
+    lnPickerOpen: boolean;
+    lnodes: LNodeTypeEntry[];
+    selectedLNode: string | null;
+    subfunctionsCollapsed: boolean;
+    lnodesCollapsed: boolean;
     private formGroup;
     private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;
@@ -71,8 +80,17 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleDeleteSubfunction;
     private handleSubfunctionClick;
     private handleConfirm;
+    private handleToggleSubfunctions;
+    private handleToggleLNodes;
+    private handleAddLNode;
+    private handleRemoveLNode;
+    private handleSelectLNode;
+    private handleLNodePickerCancel;
+    private handleLNodePickerConfirm;
     renderFunctionAttrs(): import("lit-html").TemplateResult<1>;
+    renderLNodePicker(): import("lit-html").TemplateResult<1>;
     renderFunctionContent(): import("lit-html").TemplateResult<1>;
+    private renderDialogContent;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;
 }
