@@ -11,7 +11,7 @@ import {
   docWithBusBarBay,
   docWithElements,
 } from './bay-template-editor.testfiles.js';
-import { eqTypes, SubfunctionData } from './util.js';
+import { eqTypes, SubfunctionData, LNodeData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
   customElements.define('oscd-editor-bay-template', BayTemplatePlugin);
@@ -37,12 +37,19 @@ describe('Bay Template Editor Plugin', () => {
     function triggerAndCapture(
       selected: Element,
       name = 'F1',
-      subfunctions: SubfunctionData[] = []
+      subfunctions: SubfunctionData[] = [],
+      lnodes: LNodeData[] = []
     ) {
       const dispatchSpy = spy(element, 'dispatchEvent');
       element.selectedElement = selected;
       element.createFunction({
-        detail: { name, description: 'desc', type: 'type', subfunctions },
+        detail: {
+          name,
+          description: 'desc',
+          type: 'type',
+          subfunctions,
+          lnodes,
+        },
       } as any);
       const editCall = dispatchSpy.args.find(
         args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
@@ -79,6 +86,23 @@ describe('Bay Template Editor Plugin', () => {
       expect(subFnElements.length).to.equal(2);
       expect(subFnElements[0].getAttribute('name')).to.equal('Sub1');
       expect(subFnElements[1].getAttribute('name')).to.equal('Sub2');
+    });
+
+    it('adds Function and LNodes to Bay', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const lnodes = [
+        { lnClass: 'LLN0', desc: 'desc' },
+        { lnClass: 'XCBR', desc: 'desc' },
+      ];
+      const { parent, fn } = triggerAndCapture(bay, 'Fbay', [], lnodes);
+      expect(parent).to.equal(bay);
+      expect(fn.tagName).to.equal('Function');
+      expect(fn.getAttribute('name')).to.equal('Fbay');
+      const lnodeElements = fn.querySelectorAll('LNode');
+      expect(lnodeElements.length).to.equal(2);
+      expect(lnodeElements[0].getAttribute('lnClass')).to.equal('LLN0');
+      expect(lnodeElements[1].getAttribute('lnClass')).to.equal('XCBR');
     });
 
     it('adds Function to VoltageLevel', async () => {

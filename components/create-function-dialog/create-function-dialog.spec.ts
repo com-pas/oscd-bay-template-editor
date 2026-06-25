@@ -113,6 +113,7 @@ describe('CreateFunctionDialog', () => {
       description: null,
       type: null,
       subfunctions: [],
+      lnodes: [],
     });
   });
 

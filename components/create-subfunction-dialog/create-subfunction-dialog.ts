@@ -445,6 +445,10 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
       width: 500px;
     }
 
+    [slot='content'] {
+      padding-top: 12px;
+    }
+
     form {
       display: flex;
       flex-direction: column;
@@ -490,7 +494,6 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     .section {
       display: flex;
       flex-direction: column;
-      max-height: 385px;
     }
 
     .section-header {
