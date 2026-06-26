@@ -56,6 +56,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     selectedElement?: Element;
     private sldBounds;
     private readonly onResize;
+    private readonly eqFunctionHostTags;
+    private resolveFunctionTags;
     get showLabels(): boolean;
     connectedCallback(): void;
     disconnectedCallback(): void;
