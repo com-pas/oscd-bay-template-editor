@@ -22,7 +22,9 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
   private getSubFunctions() {
     if (!this.functionElement) return [];
     return Array.from(
-      this.functionElement.querySelectorAll(':scope > SubFunction')
+      this.functionElement.querySelectorAll(
+        ':scope > SubFunction, :scope > EqSubFunction'
+      )
     );
   }
 

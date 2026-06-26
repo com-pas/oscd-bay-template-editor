@@ -125,55 +125,56 @@ describe('Bay Template Editor Plugin', () => {
       expect(fn.querySelector('Private[type="eIEC61850-6-100"]')).to.not.exist;
     });
 
-    it('adds Function to parent Bay for ConductingEquipment, with PowerSystemRelation', async () => {
+    it('adds EqFunction to ConductingEquipment, with EqSubFunction', async () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
       const ce = doc.createElement('ConductingEquipment');
       ce.setAttribute('name', 'CE1');
       bay.appendChild(ce);
-      const { parent, fn } = triggerAndCapture(ce, 'Fce');
-      expect(parent).to.equal(bay);
+      const subfunctions = [
+        { name: 'ESF1', description: 'desc', type: 'type', lnodes: null },
+      ];
+      const { parent, fn } = triggerAndCapture(ce, 'Fce', subfunctions);
+      expect(parent).to.equal(ce);
+      expect(fn.tagName).to.equal('EqFunction');
       expect(fn.getAttribute('name')).to.equal('Fce');
-      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
-      expect(priv).to.exist;
-      const psr = priv!.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelations'
-      )[0];
-      expect(psr).to.exist;
-      const rel = psr.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelation'
-      )[0];
-      expect(rel).to.exist;
-      expect(rel.getAttribute('relation')).to.include('CE1');
+      const eqSubFunctions = fn.querySelectorAll(':scope > EqSubFunction');
+      expect(eqSubFunctions.length).to.equal(1);
+      expect(eqSubFunctions[0].getAttribute('name')).to.equal('ESF1');
     });
 
-    it('adds Function to parent Bay for PowerTransformer, with PowerSystemRelation', async () => {
+    it('keeps LNode elements before EqSubFunction in EqFunction', async () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const ce = doc.createElement('ConductingEquipment');
+      ce.setAttribute('name', 'CE1');
+      bay.appendChild(ce);
+
+      const subfunctions = [
+        { name: 'ESF1', description: 'desc', type: 'type', lnodes: null },
+      ];
+      const lnodes = [{ lnClass: 'XCBR', desc: 'breaker' }];
+
+      const { fn } = triggerAndCapture(ce, 'Fce', subfunctions, lnodes);
+      const childTags = Array.from(fn.children).map(child => child.tagName);
+      const lastLNodeIdx = childTags.lastIndexOf('LNode');
+      const firstEqSubFnIdx = childTags.indexOf('EqSubFunction');
+      expect(lastLNodeIdx).to.be.greaterThan(-1);
+      expect(firstEqSubFnIdx).to.be.greaterThan(lastLNodeIdx);
+    });
+
+    it('adds EqFunction to PowerTransformer', async () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
       const pt = doc.createElement('PowerTransformer');
       pt.setAttribute('name', 'PTR1');
       bay.appendChild(pt);
       const { parent, fn } = triggerAndCapture(pt, 'Fptr');
-      expect(parent).to.equal(bay);
+      expect(parent).to.equal(pt);
       expect(fn.getAttribute('name')).to.equal('Fptr');
-      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
-      expect(priv).to.exist;
-      const psr = priv!.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelations'
-      )[0];
-      expect(psr).to.exist;
-      const rel = psr.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelation'
-      )[0];
-      expect(rel).to.exist;
-      expect(rel.getAttribute('relation')).to.include('PTR1');
     });
 
-    it('adds Function to parent Bay for TransformerWinding, with PowerSystemRelation from PowerTransformer', async () => {
+    it('adds EqFunction to TransformerWinding', async () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
       const pt = doc.createElement('PowerTransformer');
@@ -183,21 +184,8 @@ describe('Bay Template Editor Plugin', () => {
       pt.appendChild(tw);
       bay.appendChild(pt);
       const { parent, fn } = triggerAndCapture(tw, 'Ftw');
-      expect(parent).to.equal(bay);
+      expect(parent).to.equal(tw);
       expect(fn.getAttribute('name')).to.equal('Ftw');
-      const priv = fn.querySelector('Private[type="eIEC61850-6-100"]');
-      expect(priv).to.exist;
-      const psr = priv!.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelations'
-      )[0];
-      expect(psr).to.exist;
-      const rel = psr.getElementsByTagNameNS(
-        'http://www.iec.ch/61850/2019/SCL/6-100',
-        'PowerSystemRelation'
-      )[0];
-      expect(rel).to.exist;
-      expect(rel.getAttribute('relation')).to.include('PTR1');
     });
   });
 

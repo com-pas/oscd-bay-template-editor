@@ -133,6 +133,14 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   lnodesCollapsed = false;
 
+  private get isEqFunction() {
+    return (
+      this.parent?.tagName === 'ConductingEquipment' ||
+      this.parent?.tagName === 'PowerTransformer' ||
+      this.parent?.tagName === 'TransformerWinding'
+    );
+  }
+
   private formGroup: FormGroup | null = null;
 
   private shouldEmitCancel = true;
@@ -359,7 +367,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderFunctionAttrs() {
     return html`
-      <div slot="headline">Add Function</div>
+      <div slot="headline">
+        ${this.isEqFunction ? 'Add EqFunction' : 'Add Function'}
+      </div>
       <form slot="content" novalidate autocomplete="off">
         <oscd-filled-text-field
           label="Name"
@@ -479,8 +489,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
               <oscd-icon-button
                 class="collapse-btn"
                 title=${this.subfunctionsCollapsed
-                  ? 'Expand SubFunctions'
-                  : 'Collapse SubFunctions'}
+                  ? `Expand ${
+                      this.isEqFunction ? 'EqSubFunctions' : 'SubFunctions'
+                    }`
+                  : `Collapse ${
+                      this.isEqFunction ? 'EqSubFunctions' : 'SubFunctions'
+                    }`}
                 @click=${this.handleToggleSubfunctions}
               >
                 <oscd-icon
@@ -489,7 +503,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
                     : 'expand_more'}</oscd-icon
                 >
               </oscd-icon-button>
-              SubFunctions
+              ${this.isEqFunction ? 'EqSubFunctions' : 'SubFunctions'}
               ${this.tempSubfunctions.length > 0
                 ? html`<span class="count-badge"
                     >${this.tempSubfunctions.length}</span
@@ -506,7 +520,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
                 <oscd-icon>remove</oscd-icon>
               </oscd-icon-button>
               <oscd-icon-button
-                title="Add SubFunction"
+                title="Add ${this.isEqFunction
+                  ? 'EqSubFunction'
+                  : 'SubFunction'}"
                 @click=${this.handleAddSubfunction}
               >
                 <oscd-icon>add</oscd-icon>
@@ -521,7 +537,10 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
                     ? html`<oscd-list-item type="text">
                         <oscd-icon slot="start">info</oscd-icon>
                         <span slot="headline"
-                          >Click + to add a SubFunction</span
+                          >Click + to add a
+                          ${this.isEqFunction
+                            ? 'EqSubFunction'
+                            : 'SubFunction'}</span
                         >
                       </oscd-list-item>`
                     : this.tempSubfunctions.map(
@@ -652,6 +671,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
       <create-subfunction-dialog
         .library=${this.lnodeLibrary}
+        .isEqFunction=${this.isEqFunction}
         @save-subfunction=${this.handleSaveSubfunction}
       ></create-subfunction-dialog>
 

@@ -50,6 +50,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @property({ type: Array })
   subfunctions: SubfunctionData[] = [];
 
+  @property({ type: Boolean })
+  isEqFunction = false;
+
   @query('oscd-dialog')
   dialog!: OscdDialog;
 
@@ -98,6 +101,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   @state()
   private confirmCancelLabel = 'Cancel';
+
   lnodes: LNodeTypeEntry[] = [];
 
   @state()
@@ -204,7 +208,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
     const existing = this.subfunctions.find(sf => sf.name.trim() === trimmed);
     return existing
-      ? `A SubFunction with the name "${trimmed}" already exists`
+      ? `A ${
+          this.isEqFunction ? 'EqSubFunction' : 'SubFunction'
+        } with the name "${trimmed}" already exists`
       : null;
   };
 
@@ -273,7 +279,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderSubfunctionAttrs() {
     return html`
-      <div slot="headline">Add SubFunction</div>
+      <div slot="headline">
+        Add ${this.isEqFunction ? 'EqSubFunction' : 'SubFunction'}
+      </div>
       <form
         slot="content"
         novalidate

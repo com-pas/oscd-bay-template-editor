@@ -192,12 +192,20 @@ describe('utils', () => {
       const names = functions.map(fn => fn.getAttribute('name'));
       expect(names).to.include.members(['F3']);
     });
-    it('returns all Function elments related to ConductingEquipment', () => {
+    it('returns all EqFunction elments related to ConductingEquipment', () => {
       const ce = doc.querySelector('ConductingEquipment[name="CAB1"]')!;
       const functions = getFunctions(ce);
       expect(functions.length).equal(1);
+      expect(functions[0].tagName).equal('EqFunction');
       const names = functions.map(fn => fn.getAttribute('name'));
       expect(names).to.include.members(['CABFunction']);
+    });
+    it('returns all EqFunction elements related to PowerTransformer', () => {
+      const ptr = doc.querySelector('PowerTransformer[name="PTR1"]')!;
+      const functions = getFunctions(ptr);
+      expect(functions[0].tagName).equal('EqFunction');
+      const names = functions.map(f => f.getAttribute('name'));
+      expect(names).to.include('PTRFunction');
     });
   });
 

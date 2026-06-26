@@ -252,8 +252,10 @@ export function getFunctionCoordinates(
     }
   }
 
-  // Avoid stacking: offset if position is occupied by another Function
-  const existingFunctions = Array.from(doc.querySelectorAll('Function'));
+  // Avoid stacking: offset if position is occupied by another Function/EqFunction
+  const existingFunctions = Array.from(
+    doc.querySelectorAll('Function, EqFunction')
+  );
   function isOccupied(testX: number, testY: number): boolean {
     return existingFunctions.some(fn => {
       const fx = parseFloat(getSLDAttributes(fn, 'x') ?? 'NaN');
@@ -325,8 +327,8 @@ export function createPowerSystemRelationPrivate(
  *
  * - For Bay, VoltageLevel, Substation: returns direct child Function elements
  *   that have no PowerSystemRelation private (i.e. not linked to specific equipment).
- * - For ConductingEquipment and PowerTransformer: returns Function elements anywhere
- *   in the document whose PowerSystemRelation references this element's process path.
+ * - For ConductingEquipment, PowerTransformer and TransformerWinding:
+ *  returns direct child EqFunction elements.
  */
 export function getFunctions(element: Element): Element[] {
   const { tagName } = element;
@@ -343,14 +345,12 @@ export function getFunctions(element: Element): Element[] {
     );
   }
 
-  if (tagName === 'ConductingEquipment' || tagName === 'PowerTransformer') {
-    const path = getProcessPath(element);
-    const doc = element.ownerDocument;
-    return Array.from(
-      doc.querySelectorAll(
-        `Function:has(> Private[type="${eTr6100PrivType}"] > PowerSystemRelations > PowerSystemRelation[relation="${path}"])`
-      )
-    );
+  if (
+    tagName === 'ConductingEquipment' ||
+    tagName === 'PowerTransformer' ||
+    tagName === 'TransformerWinding'
+  ) {
+    return Array.from(element.querySelectorAll(':scope > EqFunction'));
   }
 
   return [];
