@@ -218,7 +218,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     if (!this.doc) return [];
 
     const scope: Element | Document = this.substation ?? this.doc;
-    const functions = Array.from(scope.querySelectorAll('Function'));
+    const functions = Array.from(
+      scope.querySelectorAll('Function, EqFunction')
+    );
     const result: FunctionData[] = [];
 
     functions.forEach(fn => {

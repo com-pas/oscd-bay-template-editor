@@ -30,8 +30,6 @@ import {
   uniqueName,
   xmlnsNs,
   getFunctionCoordinates,
-  getProcessPath,
-  createPowerSystemRelationPrivate,
   getSldSvgs,
   highlightBusbars,
   clearBusbarHighlights,
@@ -47,6 +45,9 @@ import {
   SELECTED_PSR_HIGHLIGHT_STYLE,
   type HighlightStyle,
 } from './const.js';
+
+type FunctionTag = 'Function' | 'EqFunction';
+type SubFunctionTag = 'SubFunction' | 'EqSubFunction';
 
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
@@ -137,6 +138,27 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }[] = [];
 
   private readonly onResize = () => this.calculateSldBounds();
+
+  private readonly eqFunctionHostTags = new Set([
+    'ConductingEquipment',
+    'PowerTransformer',
+    'TransformerWinding',
+  ]);
+
+  private resolveFunctionTags(tagName: string): {
+    functionTag: FunctionTag;
+    subFunctionTag: SubFunctionTag;
+  } {
+    const functionTag: FunctionTag = this.eqFunctionHostTags.has(tagName)
+      ? 'EqFunction'
+      : 'Function';
+
+    return {
+      functionTag,
+      subFunctionTag:
+        functionTag === 'EqFunction' ? 'EqSubFunction' : 'SubFunction',
+    };
+  }
 
   get showLabels(): boolean {
     if (this.labelToggle) return !this.labelToggle.selected;
@@ -472,25 +494,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(newEditEventV2({ parent, node, reference }));
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private getFunctionParent(selected: Element): Element | null {
-    const { tagName } = selected;
-    if (
-      tagName === 'Bay' ||
-      tagName === 'VoltageLevel' ||
-      tagName === 'Substation'
-    ) {
-      return selected;
-    }
-    if (tagName === 'ConductingEquipment') {
-      return selected.closest('Bay');
-    }
-    if (tagName === 'PowerTransformer' || tagName === 'TransformerWinding') {
-      return selected.closest('Bay, VoltageLevel, Substation');
-    }
-    return null;
-  }
-
   createFunction(
     e: CustomEvent<{
       name: string;
@@ -507,29 +510,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     if (!selected) return;
 
     const { tagName } = selected;
-    const functionParent = this.getFunctionParent(selected);
+    const functionParent = selected;
     if (!functionParent) return;
 
-    const func = createElement(this.doc, 'Function', {
+    const { functionTag, subFunctionTag } = this.resolveFunctionTags(tagName);
+
+    const func = createElement(this.doc, functionTag, {
       name,
       desc: description,
       type,
     });
-
-    if (tagName === 'ConductingEquipment') {
-      const path = getProcessPath(selected);
-      func.appendChild(createPowerSystemRelationPrivate(this.doc, path));
-    } else if (
-      tagName === 'PowerTransformer' ||
-      tagName === 'TransformerWinding'
-    ) {
-      const powerTransformer =
-        tagName === 'PowerTransformer' ? selected : selected.parentElement;
-      if (powerTransformer) {
-        const path = getProcessPath(powerTransformer);
-        func.appendChild(createPowerSystemRelationPrivate(this.doc, path));
-      }
-    }
 
     const { x, y } = getFunctionCoordinates(this.doc, selected);
     setSLDAttributes(func, this.nsp, {
@@ -537,8 +527,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       y: String(y),
     });
 
+    lnodes.forEach(lnode => {
+      const lnodeElement = createElement(this.doc!, 'LNode', {
+        lnClass: lnode.lnClass,
+        desc: lnode.desc,
+      });
+      func.appendChild(lnodeElement);
+    });
+
     subfunctions.forEach(sf => {
-      const subFunction = createElement(this.doc!, 'SubFunction', {
+      const subFunction = createElement(this.doc!, subFunctionTag, {
         name: sf.name,
         desc: sf.description,
         type: sf.type,
@@ -555,15 +553,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       func.appendChild(subFunction);
     });
 
-    lnodes.forEach(lnode => {
-      const lnodeElement = createElement(this.doc!, 'LNode', {
-        lnClass: lnode.lnClass,
-        desc: lnode.desc,
-      });
-      func.appendChild(lnodeElement);
-    });
-
-    const reference = getReference(functionParent, 'Function');
+    const reference = getReference(functionParent, functionTag);
     this.dispatchEvent(
       newEditEventV2({ parent: functionParent, node: func, reference })
     );
@@ -790,7 +780,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         >
           ${functionAddIcon}
         </oscd-icon-button>`
-      : nothing}${this.doc.querySelector('Function')
+      : nothing}${this.doc.querySelector('Function, EqFunction')
       ? html`<oscd-icon-button
           id="functions"
           ?selected=${this.showFunctions}

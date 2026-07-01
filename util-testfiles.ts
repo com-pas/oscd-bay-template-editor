@@ -15,12 +15,27 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
 					<Private xmlns="" type="OpenSCD-SLD-Layout">
 						<eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:lx="6" eosld:ly="6"/>
 					</Private>
+          <EqFunction name="CABFunction">
+            <Private type="OpenSCD-SLD-Layout">
+              <eosld:SLDAttributes eosld:x="8" eosld:y="13"/>
+            </Private>
+          </EqFunction>
 					<Terminal name="T2" connectivityNode="S1/V1/BB1/L" substationName="S1" voltageLevelName="V1" bayName="BB1" cNodeName="L">
 						<Private xmlns="" type="OpenSCD-SLD-Layout">
 							<eosld:SLDAttributes eosld:uuid="21578381-cfea-446c-aebe-532f1ac13192"/>
 						</Private>
 					</Terminal>
 				</ConductingEquipment>
+        <PowerTransformer name="PTR1">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+          </Private>
+          <EqFunction name="PTRFunction">
+            <Private type="OpenSCD-SLD-Layout">
+              <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
+            </Private>
+          </EqFunction>
+        </PowerTransformer>
         <Function name="F1">
           <Private type="OpenSCD-SLD-Layout">
             <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
@@ -29,16 +44,6 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
         <Function name="F2">
           <Private type="OpenSCD-SLD-Layout">
             <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
-          </Private>
-        </Function>
-        <Function name="CABFunction">
-          <Private type="OpenSCD-SLD-Layout">
-            <eosld:SLDAttributes eosld:x="8" eosld:y="13"/>
-          </Private>
-          <Private type="eIEC61850-6-100">
-            <eTr_6-100:PowerSystemRelations>
-              <eTr_6-100:PowerSystemRelation relation="S1/V1/B1/CAB1"/>
-            </eTr_6-100:PowerSystemRelations>
           </Private>
         </Function>
       </Bay>
