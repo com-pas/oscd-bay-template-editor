@@ -63,6 +63,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     subfunctionsCollapsed: boolean;
     lnodesCollapsed: boolean;
     private get isEqFunction();
+    private get elementName();
+    private get subFunctionName();
     private formGroup;
     private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;

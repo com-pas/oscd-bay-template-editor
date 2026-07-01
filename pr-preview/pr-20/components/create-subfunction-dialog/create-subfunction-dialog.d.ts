@@ -34,6 +34,7 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     library: Document | Element | null;
     subfunctions: SubfunctionData[];
     isEqFunction: boolean;
+    private get elementName();
     dialog: OscdDialog;
     nameField: OscdFilledTextField;
     descriptionField: OscdSclTextField;
