@@ -49,8 +49,8 @@ export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path:
  *
  * - For Bay, VoltageLevel, Substation: returns direct child Function elements
  *   that have no PowerSystemRelation private (i.e. not linked to specific equipment).
- * - For ConductingEquipment and PowerTransformer: returns Function elements anywhere
- *   in the document whose PowerSystemRelation references this element's process path.
+ * - For ConductingEquipment, PowerTransformer and TransformerWinding:
+ *  returns direct child EqFunction elements.
  */
 export declare function getFunctions(element: Element): Element[];
 /**

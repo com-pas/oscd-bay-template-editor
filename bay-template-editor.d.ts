@@ -56,6 +56,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     selectedElement?: Element;
     private sldBounds;
     private readonly onResize;
+    private readonly eqFunctionHostTags;
+    private resolveFunctionTags;
     get showLabels(): boolean;
     connectedCallback(): void;
     disconnectedCallback(): void;
@@ -77,7 +79,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     reset(): void;
     handleCancelAddFunction: () => void;
     insertSubstation(): void;
-    private getFunctionParent;
     createFunction(e: CustomEvent<{
         name: string;
         description: string | null;
