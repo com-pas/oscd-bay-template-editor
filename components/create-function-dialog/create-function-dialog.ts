@@ -22,6 +22,7 @@ import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-sub
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
+import { EditList, DeleteEventDetail } from '../edit-list/edit-list.js';
 
 export enum CreateFunctionDialogStep {
   FunctionAttributes = 'function-attributes',
@@ -43,6 +44,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'create-subfunction-dialog': CreateSubfunctionDialog,
       'confirm-dialog': ConfirmDialog,
       'lnode-picker': LNodePicker,
+      'edit-list': EditList,
     };
   }
 
@@ -304,6 +306,16 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.subfunctionsCollapsed = false;
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private handleDeleteSubfunction2(
+    e: CustomEvent<DeleteEventDetail<SubfunctionData>>
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const subfunctionToDelete = e.detail.item;
+
+    // TODO: Implement dialog
+  }
+
   private handleDeleteSubfunction() {
     if (this.selectedSubfunction === null) return;
 
@@ -489,6 +501,20 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       </div>
 
       <div slot="content" class="content">
+        <div class="section">
+          <edit-list
+            title=${this.elementName}
+            itemName=${this.elementName}
+            .items=${this.tempSubfunctions}
+            .itemHeadline=${(func: SubfunctionData) => func.name}
+            @add-item=${this.handleAddSubfunction}
+            @delete-item=${(
+              e: CustomEvent<DeleteEventDetail<SubfunctionData>>
+            ) => this.handleDeleteSubfunction2(e)}
+          >
+          </edit-list>
+        </div>
+
         <div class="section">
           <div class="section-header">
             <h4 class="section-title">
