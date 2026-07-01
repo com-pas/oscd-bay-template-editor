@@ -53,6 +53,10 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean })
   isEqFunction = false;
 
+  private get elementName(): string {
+    return this.isEqFunction ? 'EqSubFunction' : 'SubFunction';
+  }
+
   @query('oscd-dialog')
   dialog!: OscdDialog;
 
@@ -208,9 +212,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
     const existing = this.subfunctions.find(sf => sf.name.trim() === trimmed);
     return existing
-      ? `A ${
-          this.isEqFunction ? 'EqSubFunction' : 'SubFunction'
-        } with the name "${trimmed}" already exists`
+      ? `A ${this.elementName} with the name "${trimmed}" already exists`
       : null;
   };
 
@@ -279,9 +281,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderSubfunctionAttrs() {
     return html`
-      <div slot="headline">
-        Add ${this.isEqFunction ? 'EqSubFunction' : 'SubFunction'}
-      </div>
+      <div slot="headline">Add ${this.elementName}</div>
       <form
         slot="content"
         novalidate
