@@ -187,7 +187,7 @@ describe('CreateFunctionDialog', () => {
       { name: 'SF1', description: null, type: null, lnodes: null },
       { name: 'SF2', description: null, type: null, lnodes: null },
     ];
-    element.selectedSubfunction = 0;
+    [element.subfunctionToDelete] = element.tempSubfunctions;
     const nextBtn = element.shadowRoot?.querySelector(
       'oscd-filled-button[data-testid="next-button"]'
     ) as HTMLElement;
