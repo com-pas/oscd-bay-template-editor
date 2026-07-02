@@ -8,8 +8,6 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
-import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
-import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import {
   FormGroup,
   Validators,
@@ -39,8 +37,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       'oscd-icon': OscdIcon,
       'oscd-icon-button': OscdIconButton,
       'oscd-divider': OscdDivider,
-      'oscd-list': OscdList,
-      'oscd-list-item': OscdListItem,
       'create-subfunction-dialog': CreateSubfunctionDialog,
       'confirm-dialog': ConfirmDialog,
       'lnode-picker': LNodePicker,
@@ -96,8 +92,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   tempSubfunctions: SubfunctionData[] = [];
 
-  @state()
-  selectedSubfunction: number | null = null;
+  subfunctionToDelete: SubfunctionData | null = null;
 
   @state()
   confirmAction: 'cancel' | 'delete-subfunction' | null = null;
@@ -126,15 +121,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   lnodes: LNodeTypeEntry[] = [];
 
-  @state()
-  selectedLNode: string | null = null;
-
-  @state()
-  subfunctionsCollapsed = false;
-
-  @state()
-  lnodesCollapsed = false;
-
   private get isEqFunction() {
     return (
       this.parent?.tagName === 'ConductingEquipment' ||
@@ -162,7 +148,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     document.addEventListener('keydown', this.boundHandleDocumentKeydown, true);
     this.step = CreateFunctionDialogStep.FunctionAttributes;
     this.tempSubfunctions = [];
-    this.selectedSubfunction = null;
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -211,9 +196,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.type = null;
     this.lnPickerOpen = false;
     this.lnodes = [];
-    this.selectedLNode = null;
-    this.subfunctionsCollapsed = false;
-    this.lnodesCollapsed = false;
     if (this.nameField) {
       this.nameField.errorText = '';
       this.nameField.error = false;
@@ -302,29 +284,14 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   private handleSaveSubfunction(e: CustomEvent<SubfunctionData>) {
     this.tempSubfunctions = [...this.tempSubfunctions, e.detail];
-    this.selectedSubfunction = null;
-    this.subfunctionsCollapsed = false;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private handleDeleteSubfunction2(
-    e: CustomEvent<DeleteEventDetail<SubfunctionData>>
-  ) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const subfunctionToDelete = e.detail.item;
-
-    // TODO: Implement dialog
-  }
-
-  private handleDeleteSubfunction() {
-    if (this.selectedSubfunction === null) return;
-
-    const subfunctionName =
-      this.tempSubfunctions[this.selectedSubfunction].name;
+  private handleDeleteSubfunction(subfunctionToDelete: SubfunctionData) {
+    this.subfunctionToDelete = subfunctionToDelete;
 
     this.confirmAction = 'delete-subfunction';
     this.confirmHeadline = 'Delete SubFunction?';
-    this.confirmDescription = `Are you sure you want to delete "${subfunctionName}"? This action cannot be undone.`;
+    this.confirmDescription = `Are you sure you want to delete "${this.subfunctionToDelete.name}"? This action cannot be undone.`;
     this.confirmIcon = 'delete';
     this.confirmVariant = 'danger';
     this.confirmConfirmLabel = 'Delete';
@@ -332,42 +299,27 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.confirmDialog.show();
   }
 
-  private handleSubfunctionClick(index: number) {
-    this.selectedSubfunction =
-      this.selectedSubfunction === index ? null : index;
-  }
-
   private handleConfirm() {
     if (this.confirmAction === 'cancel') {
       this.closeWithoutConfirm();
     } else if (this.confirmAction === 'delete-subfunction') {
-      if (this.selectedSubfunction === null) return;
-      this.tempSubfunctions.splice(this.selectedSubfunction, 1);
-      this.selectedSubfunction = null;
+      if (this.subfunctionToDelete === null) return;
+
+      const index = this.tempSubfunctions.findIndex(
+        sf => sf === this.subfunctionToDelete
+      );
+      this.tempSubfunctions.splice(index, 1);
+      this.subfunctionToDelete = null;
     }
     this.confirmAction = null;
-  }
-
-  private handleToggleSubfunctions() {
-    this.subfunctionsCollapsed = !this.subfunctionsCollapsed;
-  }
-
-  private handleToggleLNodes() {
-    this.lnodesCollapsed = !this.lnodesCollapsed;
   }
 
   private handleAddLNode() {
     this.lnPickerOpen = true;
   }
 
-  private handleRemoveLNode() {
-    if (this.selectedLNode === null) return;
-    this.lnodes = this.lnodes.filter(l => l.id !== this.selectedLNode);
-    this.selectedLNode = null;
-  }
-
-  private handleSelectLNode(id: string) {
-    this.selectedLNode = this.selectedLNode === id ? null : id;
+  private handleRemoveLNode(lnodeToRemove: LNodeTypeEntry) {
+    this.lnodes = this.lnodes.filter(l => l !== lnodeToRemove);
   }
 
   private handleLNodePickerCancel() {
@@ -382,7 +334,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     );
     this.lnodes = [...this.lnodes, ...incoming];
     this.lnPickerOpen = false;
-    this.lnodesCollapsed = false;
   }
 
   renderFunctionAttrs() {
@@ -443,18 +394,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       <div slot="content" class="content">
         <div class="section-header">
           <h4>LNodes</h4>
-          <div class="section-actions">
-            <oscd-icon-button
-              title="Remove LNode"
-              ?disabled=${this.selectedLNode === null}
-              @click=${this.handleRemoveLNode}
-            >
-              <oscd-icon>remove</oscd-icon>
-            </oscd-icon-button>
-            <oscd-icon-button title="Add LNode" disabled>
-              <oscd-icon>add</oscd-icon>
-            </oscd-icon-button>
-          </div>
         </div>
         <lnode-picker
           .library=${this.lnodeLibrary}
@@ -503,155 +442,33 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       <div slot="content" class="content">
         <div class="section">
           <edit-list
-            title=${this.elementName}
-            itemName=${this.elementName}
+            title=${`${this.subFunctionName}s`}
+            itemName=${this.subFunctionName}
             .items=${this.tempSubfunctions}
             .itemHeadline=${(func: SubfunctionData) => func.name}
             @add-item=${this.handleAddSubfunction}
             @delete-item=${(
               e: CustomEvent<DeleteEventDetail<SubfunctionData>>
-            ) => this.handleDeleteSubfunction2(e)}
+            ) => this.handleDeleteSubfunction(e.detail.item)}
           >
           </edit-list>
-        </div>
-
-        <div class="section">
-          <div class="section-header">
-            <h4 class="section-title">
-              <oscd-icon-button
-                class="collapse-btn"
-                title=${this.subfunctionsCollapsed
-                  ? `Expand ${this.subFunctionName}s`
-                  : `Collapse ${this.subFunctionName}s`}
-                @click=${this.handleToggleSubfunctions}
-              >
-                <oscd-icon
-                  >${this.subfunctionsCollapsed
-                    ? 'chevron_right'
-                    : 'expand_more'}</oscd-icon
-                >
-              </oscd-icon-button>
-              ${this.subFunctionName}s
-              ${this.tempSubfunctions.length > 0
-                ? html`<span class="count-badge"
-                    >${this.tempSubfunctions.length}</span
-                  >`
-                : nothing}
-            </h4>
-            <div class="button-group">
-              <oscd-icon-button
-                title="Delete SubFunction"
-                ?disabled=${this.selectedSubfunction === null}
-                data-testid="delete-subfunction-button"
-                @click=${this.handleDeleteSubfunction}
-              >
-                <oscd-icon>remove</oscd-icon>
-              </oscd-icon-button>
-              <oscd-icon-button
-                title="Add ${this.subFunctionName}"
-                @click=${this.handleAddSubfunction}
-              >
-                <oscd-icon>add</oscd-icon>
-              </oscd-icon-button>
-            </div>
-          </div>
-          ${this.subfunctionsCollapsed
-            ? nothing
-            : html`
-                <oscd-list>
-                  ${this.tempSubfunctions.length === 0
-                    ? html`<oscd-list-item type="text">
-                        <oscd-icon slot="start">info</oscd-icon>
-                        <span slot="headline"
-                          >Click + to add a ${this.subFunctionName}</span
-                        >
-                      </oscd-list-item>`
-                    : this.tempSubfunctions.map(
-                        (sf, index) => html`
-                          <oscd-list-item
-                            type="button"
-                            class="${this.selectedSubfunction === index
-                              ? 'selected'
-                              : ''}"
-                            @click=${() => this.handleSubfunctionClick(index)}
-                          >
-                            ${sf.name}
-                            ${this.selectedSubfunction === index
-                              ? html`<oscd-icon slot="end">check</oscd-icon>`
-                              : nothing}
-                          </oscd-list-item>
-                        `
-                      )}
-                </oscd-list>
-              `}
         </div>
 
         <oscd-divider></oscd-divider>
 
         <div class="section">
-          <div class="section-header">
-            <h4 class="section-title">
-              <oscd-icon-button
-                class="collapse-btn"
-                title=${this.lnodesCollapsed
-                  ? 'Expand LNodes'
-                  : 'Collapse LNodes'}
-                @click=${this.handleToggleLNodes}
-              >
-                <oscd-icon
-                  >${this.lnodesCollapsed
-                    ? 'chevron_right'
-                    : 'expand_more'}</oscd-icon
-                >
-              </oscd-icon-button>
-              LNodes
-              ${this.lnodes.length > 0
-                ? html`<span class="count-badge">${this.lnodes.length}</span>`
-                : nothing}
-            </h4>
-            <div class="section-actions">
-              <oscd-icon-button
-                title="Remove LNode"
-                ?disabled=${this.selectedLNode === null}
-                @click=${this.handleRemoveLNode}
-              >
-                <oscd-icon>remove</oscd-icon>
-              </oscd-icon-button>
-              <oscd-icon-button title="Add LNode" @click=${this.handleAddLNode}>
-                <oscd-icon>add</oscd-icon>
-              </oscd-icon-button>
-            </div>
-          </div>
-          ${this.lnodesCollapsed
-            ? nothing
-            : html`
-                <oscd-list>
-                  ${this.lnodes.length === 0
-                    ? html`
-                        <oscd-list-item type="text" noninteractive>
-                          <oscd-icon slot="start">info</oscd-icon>
-                          <span slot="headline">Click + to add an LNode</span>
-                        </oscd-list-item>
-                      `
-                    : this.lnodes.map(
-                        lnode => html`
-                          <oscd-list-item
-                            type="button"
-                            ?selected=${this.selectedLNode === lnode.id}
-                            @click=${() => this.handleSelectLNode(lnode.id)}
-                          >
-                            <span slot="headline">${lnode.lnClass}</span>
-                            <span slot="supporting-text"
-                              >${lnode.desc ?? lnode.id}</span
-                            >
-                            ${this.selectedLNode === lnode.id
-                              ? html`<oscd-icon slot="end">check</oscd-icon>`
-                              : nothing}
-                          </oscd-list-item>
-                        `
-                      )}
-                </oscd-list>
-              `}
+          <edit-list
+            title="LNodes"
+            itemName="LNode"
+            .items=${this.lnodes}
+            .itemHeadline=${(ln: LNodeTypeEntry) => ln.lnClass}
+            .itemSupportingText=${(ln: LNodeTypeEntry) => ln.desc ?? ln.id}
+            @add-item=${this.handleAddLNode}
+            @delete-item=${(
+              e: CustomEvent<DeleteEventDetail<LNodeTypeEntry>>
+            ) => this.handleRemoveLNode(e.detail.item)}
+          >
+          </edit-list>
         </div>
       </div>
 
@@ -780,59 +597,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       font-size: 16px;
       font-weight: 500;
       color: var(--md-sys-color-on-surface, #1d1b20);
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      margin: 0;
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--md-sys-color-on-surface, #1d1b20);
-    }
-
-    .collapse-btn {
-      margin-left: -8px;
-    }
-
-    .count-badge {
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--md-sys-color-on-surface-variant, #49454f);
-      margin-left: 4px;
-    }
-
-    .section-actions {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 4px;
-    }
-
-    oscd-list {
-      --md-list-container-color: transparent;
-    }
-
-    oscd-list-item {
-      --md-list-item-one-line-container-height: 40px;
-      --md-list-item-two-line-container-height: 52px;
-      --md-list-item-label-text-color: var(
-        --md-sys-color-on-surface-variant,
-        #49454f
-      );
-      cursor: pointer;
-    }
-
-    oscd-list-item.selected {
-      background-color: var(
-        --md-sys-color-secondary-container,
-        rgba(103, 80, 164, 0.12)
-      );
     }
 
     oscd-outlined-text-field,
