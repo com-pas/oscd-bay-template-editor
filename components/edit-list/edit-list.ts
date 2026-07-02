@@ -62,9 +62,11 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
         detail: { item: this.selectedItem },
       })
     );
+
+    this.selectedItem = null;
   }
 
-  selectIndex(item: TItem) {
+  selectItem(item: TItem) {
     this.selectedItem = item;
   }
 
@@ -79,11 +81,12 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
               <span slot="headline">Click + to add a ${this.itemName}</span>
             </oscd-list-item>`
           : this.items.map(
-              item => html`
+              (item, index) => html`
                 <oscd-list-item
                   type="button"
                   class="${this.selectedItem === item ? 'selected' : ''}"
-                  @click=${() => this.selectIndex(item)}
+                  data-testid=${`edit-list-item-${index}`}
+                  @click=${() => this.selectItem(item)}
                 >
                   <span slot="headline">${this.itemHeadline(item)}</span>
                   <span slot="supporting-text"
@@ -121,12 +124,16 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
           <oscd-icon-button
             title="Delete"
             ?disabled=${this.selectedItem === null}
-            data-testid="delete-subfunction-button"
+            data-testid="edit-list-delete-button"
             @click=${this.deleteItem}
           >
             <oscd-icon>remove</oscd-icon>
           </oscd-icon-button>
-          <oscd-icon-button title="Add" @click=${this.addItem}>
+          <oscd-icon-button
+            title="Add"
+            data-testid="edit-list-add-button"
+            @click=${this.addItem}
+          >
             <oscd-icon>add</oscd-icon>
           </oscd-icon-button>
         </div>
