@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/com-pas/oscd-bay-template-editor#readme",
   "scripts": {
-    "postinstall": "cd node_modules/@omicronenergy/oscd-editor-sld && npm install --ignore-scripts && npm install @open-wc/scoped-elements@3.0.6 --no-save --ignore-scripts && npm run build",
+    "postinstall": "cd node_modules/@omicronenergy/oscd-editor-sld && npm ci --ignore-scripts && npm install @open-wc/scoped-elements@3.0.6 --no-save --ignore-scripts && npm run build",
     "prepare": "npm run build",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
