@@ -199,7 +199,7 @@ describe('CreateFunctionDialog', () => {
     );
 
     const deleteBtn = element.shadowRoot?.querySelector(
-      'oscd-icon-button[data-testid="delete-subfunction-button"]'
+      'oscd-icon-button[data-testid="edit-list-delete-button"]'
     ) as HTMLElement;
     deleteBtn.click();
     await element.updateComplete;
