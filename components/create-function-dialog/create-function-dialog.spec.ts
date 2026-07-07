@@ -198,7 +198,7 @@ describe('CreateFunctionDialog', () => {
     );
 
     const subfunctionsEditList = element.shadowRoot?.querySelector(
-      'edit-list[title="EqSubFunctions"]'
+      'edit-list[title="SubFunctions"]'
     );
 
     const firstSubfunctionElement =
