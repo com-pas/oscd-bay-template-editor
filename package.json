@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/com-pas/oscd-bay-template-editor#readme",
   "scripts": {
-    "postinstall": "cd node_modules/@omicronenergy/oscd-editor-sld && npm ci --ignore-scripts && npm install @open-wc/scoped-elements@3.0.6 --no-save --ignore-scripts && npm run build",
+    "postinstall": "cd node_modules/@omicronenergy/oscd-editor-sld && npm install --ignore-scripts && npm install @open-wc/scoped-elements@3.0.6 @types/node@16.18.126 --no-save --ignore-scripts && npm run build",
     "prepare": "npm run build",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
@@ -52,7 +52,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",
     "@custom-elements-manifest/analyzer": "^0.4.17",
-    "@omicronenergy/oscd-editor-sld": "github:OMICRONEnergyOSS/oscd-editor-sld#main",
+    "@omicronenergy/oscd-editor-sld": "github:OMICRONEnergyOSS/oscd-editor-sld#e9eafc02eb0e33c5fb8db4789e748ddea8e68287",
     "@open-wc/building-rollup": "^2.0.2",
     "@open-wc/eslint-config": "^8.0.2",
     "@open-wc/testing": "^3.1.6",
