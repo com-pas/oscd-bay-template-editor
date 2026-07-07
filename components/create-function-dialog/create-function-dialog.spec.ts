@@ -198,7 +198,10 @@ describe('CreateFunctionDialog', () => {
       'Step did not advance to Function Content'
     );
 
-    const deleteBtn = element.shadowRoot?.querySelector(
+    const subfunctionsEditList = element.shadowRoot?.querySelector(
+      'edit-list[title="Subfunctions"]'
+    );
+    const deleteBtn = subfunctionsEditList?.shadowRoot?.querySelector(
       'oscd-icon-button[data-testid="edit-list-delete-button"]'
     ) as HTMLElement;
     deleteBtn.click();
