@@ -187,7 +187,6 @@ describe('CreateFunctionDialog', () => {
       { name: 'SF1', description: null, type: null, lnodes: null },
       { name: 'SF2', description: null, type: null, lnodes: null },
     ];
-    element.selectedSubfunction = 0;
     const nextBtn = element.shadowRoot?.querySelector(
       'oscd-filled-button[data-testid="next-button"]'
     ) as HTMLElement;
@@ -198,8 +197,21 @@ describe('CreateFunctionDialog', () => {
       'Step did not advance to Function Content'
     );
 
-    const deleteBtn = element.shadowRoot?.querySelector(
-      'oscd-icon-button[data-testid="delete-subfunction-button"]'
+    const subfunctionsEditList = element.shadowRoot?.querySelector(
+      'edit-list[title="SubFunctions"]'
+    );
+
+    const firstSubfunctionElement =
+      subfunctionsEditList?.shadowRoot?.querySelector(
+        'oscd-list-item[data-testid="edit-list-item-0"]'
+      ) as HTMLElement;
+    firstSubfunctionElement.click();
+    await new Promise(r => {
+      setTimeout(r, 0);
+    });
+
+    const deleteBtn = subfunctionsEditList?.shadowRoot?.querySelector(
+      'oscd-icon-button[data-testid="edit-list-delete-button"]'
     ) as HTMLElement;
     deleteBtn.click();
     await element.updateComplete;
