@@ -14,7 +14,10 @@ import {
   updateSLDAttributes,
   getSldSvgs,
 } from '../../util.js';
-import { FunctionContentPanel } from './function-content-panel.js';
+import {
+  FunctionContentPanel,
+  type LNodeSelectionContext,
+} from './function-content-panel.js';
 import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 
 type Point = [number, number];
@@ -95,6 +98,18 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   @property({ attribute: false })
   onSelectFunction?: (element: Element | null) => void;
+
+  @property({ attribute: false })
+  onStartCreateFunctionLink?: (context: LNodeSelectionContext) => void;
+
+  @property({ attribute: false })
+  onSelectLinkSourceFunction?: (sourceFunction: Element) => void;
+
+  @property({ attribute: false })
+  linkSourceCandidates: Element[] = [];
+
+  @property({ type: Boolean })
+  selectingLinkSource = false;
 
   @state()
   functions: FunctionData[] = [];
@@ -292,6 +307,13 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     e.stopPropagation();
 
+    if (this.selectingLinkSource) {
+      if (this.linkSourceCandidates.includes(fn.element)) {
+        this.onSelectLinkSourceFunction?.(fn.element);
+      }
+      return;
+    }
+
     if (this.placing === fn.element) {
       this.finalizeFunctionPlacement(fn);
       return;
@@ -380,6 +402,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     let classAttr = 'function';
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
+    const isSourceCandidate = this.linkSourceCandidates.includes(fn.element);
+    if (this.selectingLinkSource && isSourceCandidate)
+      classAttr += ' source-candidate';
+    if (this.selectingLinkSource && !isSourceCandidate)
+      classAttr += ' source-blocked';
     const isHovered = this.hoveredFunction === fn.element;
     const isSelected = this.selectedFunctionElement === fn.element;
     if (isSelected) classAttr += ' selected';
@@ -391,6 +418,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       fill = SELECTED_PSR_HIGHLIGHT_STYLE.fill;
       stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
       strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
+    } else if (this.selectingLinkSource && isSourceCandidate) {
+      fill = '#d9f2e3';
+      stroke = '#1a7f37';
+      strokeWidth = STROKE_WIDTH * 1.5;
     } else if (preview) {
       fill = PREVIEW_FILL;
       stroke = PREVIEW_STROKE;
@@ -536,6 +567,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               .function.placing {
                 cursor: move;
               }
+              .function.source-candidate {
+                cursor: crosshair;
+              }
+              .function.source-blocked {
+                opacity: 0.45;
+              }
               .function.preview {
                 opacity: 0.7;
               }
@@ -565,6 +602,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           ? html`<div class="sidebar">
               <function-content-panel
                 .functionElement=${this.selectedFunctionElement}
+                .selectingLinkSource=${this.selectingLinkSource}
+                @start-create-function-link=${(
+                  e: CustomEvent<LNodeSelectionContext>
+                ) => this.onStartCreateFunctionLink?.(e.detail)}
                 @close=${() => {
                   this.selectedFunctionElement = undefined;
                 }}

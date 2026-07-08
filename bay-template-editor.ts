@@ -34,11 +34,14 @@ import {
   highlightBusbars,
   clearBusbarHighlights,
   eTr6100Ns,
+  getProcessPath,
   type SubfunctionData,
   type LNodeData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
+import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
   PSR_HIGHLIGHT_STYLE,
@@ -59,6 +62,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       'functions-layer': FunctionsLayer,
       'sld-editor': customElements.get('sld-editor')!,
       'create-function-dialog': CreateFunctionDialog,
+      'function-link-dialog': FunctionLinkDialog,
     };
   }
 
@@ -86,6 +90,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @query('#labels') labelToggle?: OscdOutlinedIconButton;
 
   @query('create-function-dialog') createFunctionDialog?: CreateFunctionDialog;
+
+  @query('function-link-dialog') functionLinkDialog?: FunctionLinkDialog;
 
   @state()
   sldEditorInAction: boolean = false;
@@ -136,6 +142,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     width: number;
     height: number;
   }[] = [];
+
+  @state()
+  private linkSinkContext?: LNodeSelectionContext;
+
+  @state()
+  private linkSourceCandidates: Element[] = [];
+
+  @state()
+  private selectingLinkSource = false;
 
   private readonly onResize = () => this.calculateSldBounds();
 
@@ -246,6 +261,47 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         style: SELECTED_PSR_HIGHLIGHT_STYLE,
       },
     ];
+  };
+
+  private handleStartCreateFunctionLink = (context: LNodeSelectionContext) => {
+    const bay = context.functionElement.closest('Bay');
+    if (!bay) return;
+
+    this.linkSinkContext = context;
+    this.linkSourceCandidates = Array.from(
+      bay.querySelectorAll('Function, EqFunction')
+    );
+    this.selectingLinkSource = true;
+    this.showFunctions = true;
+  };
+
+  private handleSelectLinkSourceFunction = (sourceFunction: Element) => {
+    if (
+      !this.selectingLinkSource ||
+      !this.linkSourceCandidates.includes(sourceFunction)
+    ) {
+      return;
+    }
+
+    this.selectingLinkSource = false;
+
+    requestAnimationFrame(() => {
+      if (!this.functionLinkDialog) return;
+
+      this.functionLinkDialog.sourceFunctionName =
+        sourceFunction.getAttribute('name') ?? '';
+      this.functionLinkDialog.sourceFunctionPath =
+        getProcessPath(sourceFunction);
+      this.functionLinkDialog.sinkFunctionName =
+        this.linkSinkContext?.functionElement.getAttribute('name') ?? '';
+      this.functionLinkDialog.show();
+    });
+  };
+
+  private closeFunctionLinkDialog = () => {
+    this.selectingLinkSource = false;
+    this.linkSinkContext = undefined;
+    this.linkSourceCandidates = [];
   };
 
   private getElementFromProcessPath(path: string): Element | null {
@@ -465,6 +521,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.selectedElement = undefined;
     this.highlight = [];
     this.highlightBeforeAddingFunction = [];
+    this.selectingLinkSource = false;
+    this.linkSinkContext = undefined;
+    this.linkSourceCandidates = [];
+
+    this.functionLinkDialog?.close();
 
     if (this.sldEditor) {
       clearBusbarHighlights(this.sldEditor);
@@ -930,6 +991,13 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .placingOffset=${this.placingFunctionOffset}
                     .onStartPlaceFunction=${this.handleStartPlaceFunction}
                     .onHoverFunction=${this.handleFunctionHover}
+                    .onStartCreateFunctionLink=${this
+                      .handleStartCreateFunctionLink}
+                    .onSelectLinkSourceFunction=${this
+                      .handleSelectLinkSourceFunction}
+                    .linkSourceCandidates=${this.linkSourceCandidates}
+                    .selectingLinkSource=${this.selectingLinkSource}
+                    @cancel-create-function-link=${this.closeFunctionLinkDialog}
                   ></functions-layer>`
                 )
               : nothing}
@@ -940,6 +1008,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             @cancel=${this.handleCancelAddFunction}
             @save=${this.createFunction}
           ></create-function-dialog>
+          <function-link-dialog
+            @close=${this.closeFunctionLinkDialog}
+            @connect=${this.closeFunctionLinkDialog}
+          ></function-link-dialog>
         `
       : html`<p>Please open an SCL document</p>`;
   }
