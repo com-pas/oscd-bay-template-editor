@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { ifDefined } from 'lit/directives/if-defined.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
@@ -52,7 +53,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private getSubFunctions() {
+  private getSubFunctions(): Element[] {
     if (!this.functionElement) return [];
     return Array.from(
       this.functionElement.querySelectorAll(
@@ -61,7 +62,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     );
   }
 
-  private getFunctionLNodes() {
+  private getFunctionLNodes(): Element[] {
     if (!this.functionElement) return [];
     return Array.from(this.functionElement.querySelectorAll(':scope > LNode'));
   }
@@ -71,13 +72,16 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     return Array.from(subFunction.querySelectorAll(':scope > LNode'));
   }
 
-  private isSelectedLNode(lnode: Element, subFunction: Element | null) {
+  private isSelectedLNode(
+    lnode: Element,
+    subFunction: Element | null
+  ): boolean {
     return (
       this.selectedLNode === lnode && this.selectedSubFunction === subFunction
     );
   }
 
-  private selectLNode(lnode: Element, subFunction: Element | null) {
+  private selectLNode(lnode: Element, subFunction: Element | null): void {
     const selectionChanged =
       this.selectedLNode !== lnode || this.selectedSubFunction !== subFunction;
 
@@ -90,7 +94,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     this.selectedSubFunction = subFunction;
   }
 
-  private dispatchCancelCreateFunctionLink() {
+  private dispatchCancelCreateFunctionLink(): void {
     this.dispatchEvent(
       new CustomEvent('cancel-create-function-link', {
         bubbles: true,
@@ -99,7 +103,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     );
   }
 
-  private dispatchStartCreateFunctionLink() {
+  private dispatchStartCreateFunctionLink(): void {
     if (!this.functionElement || !this.selectedLNode) return;
 
     this.dispatchEvent(
@@ -115,19 +119,19 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     );
   }
 
-  private handleCreateFunctionLinkClick(e: Event) {
+  private handleCreateFunctionLinkClick(e: Event): void {
     e.stopPropagation();
     this.resetLinkSelectionUi = false;
     this.dispatchStartCreateFunctionLink();
   }
 
-  private handleCancelFunctionLinkClick(e: Event) {
+  private handleCancelFunctionLinkClick(e: Event): void {
     e.stopPropagation();
     this.resetLinkSelectionUi = true;
     this.dispatchCancelCreateFunctionLink();
   }
 
-  private handleCloseClick() {
+  private handleCloseClick(): void {
     if (this.selectingLinkSource) {
       this.resetLinkSelectionUi = true;
       this.dispatchCancelCreateFunctionLink();
@@ -185,6 +189,28 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+  private renderLNodeItem(lnode: Element, subFunction: Element | null) {
+    const lnClass = lnode.getAttribute('lnClass') ?? '';
+    const desc = lnode.getAttribute('desc') ?? '';
+    const isSelected = this.isSelectedLNode(lnode, subFunction);
+
+    return html`
+      <oscd-list-item
+        type="button"
+        @click=${() => this.selectLNode(lnode, subFunction)}
+        class=${ifDefined(isSelected ? 'selected-lnode-item' : undefined)}
+      >
+        <span slot="headline" title=${lnClass}>${lnClass}</span>
+        ${desc ? html`<span slot="supporting-text">${desc}</span>` : nothing}
+        ${isSelected
+          ? html`<div slot="supporting-text" class="lnode-actions-wrapper">
+              ${this.renderLNodeLinkActions()}
+            </div>`
+          : nothing}
+      </oscd-list-item>
+    `;
+  }
+
   render() {
     if (!this.functionElement) {
       return nothing;
@@ -237,57 +263,9 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
                       ${lnodes.length > 0
                         ? html`
                             <div slot="supporting-text" class="lnode-chips">
-                              ${lnodes.map(ln => {
-                                const lnClass =
-                                  ln.getAttribute('lnClass') || '';
-                                const lnDesc = ln.getAttribute('desc') || '';
-                                const isSelected = this.isSelectedLNode(
-                                  ln,
-                                  subFn
-                                );
-
-                                if (isSelected) {
-                                  return html`
-                                    <oscd-list-item
-                                      type="button"
-                                      @click=${() =>
-                                        this.selectLNode(ln, subFn)}
-                                      class="selected-lnode-item"
-                                    >
-                                      <span slot="headline" title=${lnClass}
-                                        >${lnClass}</span
-                                      >
-                                      ${lnDesc
-                                        ? html`<span slot="supporting-text"
-                                            >${lnDesc}</span
-                                          >`
-                                        : nothing}
-                                      <div
-                                        slot="supporting-text"
-                                        class="lnode-actions-wrapper"
-                                      >
-                                        ${this.renderLNodeLinkActions()}
-                                      </div>
-                                    </oscd-list-item>
-                                  `;
-                                }
-
-                                return html`
-                                  <oscd-list-item
-                                    type="button"
-                                    @click=${() => this.selectLNode(ln, subFn)}
-                                  >
-                                    <span slot="headline" title=${lnClass}
-                                      >${lnClass}</span
-                                    >
-                                    ${lnDesc
-                                      ? html`<span slot="supporting-text"
-                                          >${lnDesc}</span
-                                        >`
-                                      : nothing}
-                                  </oscd-list-item>
-                                `;
-                              })}
+                              ${lnodes.map(ln =>
+                                this.renderLNodeItem(ln, subFn)
+                              )}
                             </div>
                           `
                         : nothing}
@@ -301,31 +279,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
           ? html`
               <div class="section-label">LNodes</div>
               <oscd-list>
-                ${functionLNodes.map(ln => {
-                  const desc = ln.getAttribute('desc') || '';
-                  const lnClass = ln.getAttribute('lnClass') || '';
-                  const isSelected = this.isSelectedLNode(ln, null);
-                  return html`
-                    <oscd-list-item
-                      type="button"
-                      @click=${() => this.selectLNode(ln, null)}
-                      class=${isSelected ? 'selected-lnode-item' : ''}
-                    >
-                      <span slot="headline" title=${lnClass}>${lnClass}</span>
-                      ${desc
-                        ? html`<span slot="supporting-text">${desc}</span>`
-                        : nothing}
-                      ${isSelected
-                        ? html`<div
-                            slot="supporting-text"
-                            class="lnode-actions-wrapper"
-                          >
-                            ${this.renderLNodeLinkActions()}
-                          </div>`
-                        : nothing}
-                    </oscd-list-item>
-                  `;
-                })}
+                ${functionLNodes.map(ln => this.renderLNodeItem(ln, null))}
               </oscd-list>
             `
           : nothing}
@@ -456,17 +410,6 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
       flex-direction: column;
       gap: 5px;
       margin-top: 6px;
-    }
-
-    .lnode-chip {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      color: var(--md-sys-color-on-secondary-container, #1d192b);
-      background: var(--md-sys-color-secondary-container, #e8def8);
-      border-radius: 6px;
-      padding: 5px 10px;
-      overflow: hidden;
     }
 
     oscd-list-item.selected-lnode-item {

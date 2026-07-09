@@ -100,10 +100,13 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onSelectFunction?: (element: Element | null) => void;
 
   @property({ attribute: false })
-  onStartCreateFunctionLink?: (context: LNodeSelectionContext) => void;
+  onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
 
   @property({ attribute: false })
-  onSelectLinkSourceFunction?: (sourceFunction: Element) => void;
+  onCancelCreateFunctionLink?: () => void;
+
+  @property({ attribute: false })
+  onSelectSourceFunction?: (sourceFunction: Element) => void;
 
   @property({ attribute: false })
   linkSourceCandidates: Element[] = [];
@@ -142,6 +145,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   private readonly handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && this.selectedFunctionElement) {
       this.selectedFunctionElement = undefined;
+      this.onCancelCreateFunctionLink?.();
     }
   };
 
@@ -309,7 +313,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     if (this.selectingLinkSource) {
       if (this.linkSourceCandidates.includes(fn.element)) {
-        this.onSelectLinkSourceFunction?.(fn.element);
+        this.onSelectSourceFunction?.(fn.element);
       }
       return;
     }
@@ -567,11 +571,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               .function.placing {
                 cursor: move;
               }
-              .function.source-candidate {
-                cursor: crosshair;
-              }
               .function.source-blocked {
                 opacity: 0.45;
+                cursor: not-allowed;
               }
               .function.preview {
                 opacity: 0.7;
@@ -605,7 +607,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                 .selectingLinkSource=${this.selectingLinkSource}
                 @start-create-function-link=${(
                   e: CustomEvent<LNodeSelectionContext>
-                ) => this.onStartCreateFunctionLink?.(e.detail)}
+                ) => this.onCreateFunctionLink?.(e.detail)}
+                @cancel-create-function-link=${() =>
+                  this.onCancelCreateFunctionLink?.()}
                 @close=${() => {
                   this.selectedFunctionElement = undefined;
                 }}

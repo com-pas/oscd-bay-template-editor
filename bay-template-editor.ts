@@ -91,7 +91,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @query('create-function-dialog') createFunctionDialog?: CreateFunctionDialog;
 
-  @query('function-link-dialog') functionLinkDialog?: FunctionLinkDialog;
+  @query('function-link-dialog') functionLinkDialog!: FunctionLinkDialog;
 
   @state()
   sldEditorInAction: boolean = false;
@@ -142,9 +142,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     width: number;
     height: number;
   }[] = [];
-
-  @state()
-  private linkSinkContext?: LNodeSelectionContext;
 
   @state()
   private linkSourceCandidates: Element[] = [];
@@ -263,11 +260,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     ];
   };
 
-  private handleStartCreateFunctionLink = (context: LNodeSelectionContext) => {
+  private handleCreateFunctionLink = (context: LNodeSelectionContext) => {
     const bay = context.functionElement.closest('Bay');
     if (!bay) return;
 
-    this.linkSinkContext = context;
     this.linkSourceCandidates = Array.from(
       bay.querySelectorAll('Function, EqFunction')
     );
@@ -275,7 +271,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.showFunctions = true;
   };
 
-  private handleSelectLinkSourceFunction = (sourceFunction: Element) => {
+  private handleSelectSourceFunction = (sourceFunction: Element) => {
     if (
       !this.selectingLinkSource ||
       !this.linkSourceCandidates.includes(sourceFunction)
@@ -285,22 +281,14 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     this.selectingLinkSource = false;
 
-    requestAnimationFrame(() => {
-      if (!this.functionLinkDialog) return;
-
-      this.functionLinkDialog.sourceFunctionName =
-        sourceFunction.getAttribute('name') ?? '';
-      this.functionLinkDialog.sourceFunctionPath =
-        getProcessPath(sourceFunction);
-      this.functionLinkDialog.sinkFunctionName =
-        this.linkSinkContext?.functionElement.getAttribute('name') ?? '';
-      this.functionLinkDialog.show();
-    });
+    this.functionLinkDialog.showForSourceFunction(
+      sourceFunction.getAttribute('name') ?? '',
+      getProcessPath(sourceFunction)
+    );
   };
 
-  private closeFunctionLinkDialog = () => {
+  private resetLinkingState = () => {
     this.selectingLinkSource = false;
-    this.linkSinkContext = undefined;
     this.linkSourceCandidates = [];
   };
 
@@ -521,11 +509,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.selectedElement = undefined;
     this.highlight = [];
     this.highlightBeforeAddingFunction = [];
-    this.selectingLinkSource = false;
-    this.linkSinkContext = undefined;
-    this.linkSourceCandidates = [];
-
-    this.functionLinkDialog?.close();
+    this.resetLinkingState();
 
     if (this.sldEditor) {
       clearBusbarHighlights(this.sldEditor);
@@ -991,13 +975,11 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .placingOffset=${this.placingFunctionOffset}
                     .onStartPlaceFunction=${this.handleStartPlaceFunction}
                     .onHoverFunction=${this.handleFunctionHover}
-                    .onStartCreateFunctionLink=${this
-                      .handleStartCreateFunctionLink}
-                    .onSelectLinkSourceFunction=${this
-                      .handleSelectLinkSourceFunction}
+                    .onCreateFunctionLink=${this.handleCreateFunctionLink}
+                    .onCancelCreateFunctionLink=${this.resetLinkingState}
+                    .onSelectSourceFunction=${this.handleSelectSourceFunction}
                     .linkSourceCandidates=${this.linkSourceCandidates}
                     .selectingLinkSource=${this.selectingLinkSource}
-                    @cancel-create-function-link=${this.closeFunctionLinkDialog}
                   ></functions-layer>`
                 )
               : nothing}
@@ -1009,8 +991,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             @save=${this.createFunction}
           ></create-function-dialog>
           <function-link-dialog
-            @close=${this.closeFunctionLinkDialog}
-            @connect=${this.closeFunctionLinkDialog}
+            @close-function-link-dialog=${this.resetLinkingState}
           ></function-link-dialog>
         `
       : html`<p>Please open an SCL document</p>`;
