@@ -35,6 +35,7 @@ export declare class FunctionContentPanel extends FunctionContentPanel_base {
     private handleCancelFunctionLinkClick;
     private handleCloseClick;
     private renderLNodeLinkActions;
+    private renderLNodeItem;
     render(): typeof nothing | import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult;
 }
