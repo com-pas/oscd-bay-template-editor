@@ -70,8 +70,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private handleKeydown;
     handleStartPlaceFunction: (element: Element, offset: [number, number]) => void;
     handleFunctionHover: (funcElement: Element | null) => void;
-    private handleStartCreateFunctionLink;
-    private handleSelectLinkSourceFunction;
+    private handleCreateFunctionLink;
+    private handleSelectSourceFunction;
     private closeFunctionLinkDialog;
     private getElementFromProcessPath;
     get inAction(): boolean;

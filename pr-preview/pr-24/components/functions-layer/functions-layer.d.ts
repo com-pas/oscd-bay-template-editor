@@ -35,8 +35,9 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
     onHoverFunction?: (funcElement: Element | null) => void;
     onSelectFunction?: (element: Element | null) => void;
-    onStartCreateFunctionLink?: (context: LNodeSelectionContext) => void;
-    onSelectLinkSourceFunction?: (sourceFunction: Element) => void;
+    onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
+    onCancelCreateFunctionLink?: () => void;
+    onSelectSourceFunction?: (sourceFunction: Element) => void;
     linkSourceCandidates: Element[];
     selectingLinkSource: boolean;
     functions: FunctionData[];
