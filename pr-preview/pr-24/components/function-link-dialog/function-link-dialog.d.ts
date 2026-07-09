@@ -12,10 +12,10 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private readonly dialog;
     sourceFunctionName: string;
     sourceFunctionPath: string;
+    get open(): boolean;
     show(): void;
     close(): void;
     private dispatchCloseEvent;
-    private handleClose;
     private handleDialogClosed;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult;

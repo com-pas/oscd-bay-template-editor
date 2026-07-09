@@ -8347,10 +8347,9 @@ const AF=e=>e??oe;class EF extends(Ke(Ee)){constructor(){super(...arguments),thi
       gap: 8px;
       justify-content: flex-end;
     }
-  `,e([xe({type:Object})],RF.prototype,"parent",void 0),e([xe({type:String})],RF.prototype,"selectedElementName",void 0),e([xe({type:String})],RF.prototype,"selectedElementType",void 0),e([xe({attribute:!1})],RF.prototype,"lnodeLibrary",void 0),e([Fe("oscd-dialog")],RF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],RF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],RF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],RF.prototype,"typeField",void 0),e([Fe("create-subfunction-dialog")],RF.prototype,"createSubfunctionDialog",void 0),e([Fe("confirm-dialog")],RF.prototype,"confirmDialog",void 0),e([Fe("lnode-picker")],RF.prototype,"lnodePicker",void 0),e([we()],RF.prototype,"name",void 0),e([we()],RF.prototype,"description",void 0),e([we()],RF.prototype,"type",void 0),e([we()],RF.prototype,"step",void 0),e([we()],RF.prototype,"tempSubfunctions",void 0),e([we()],RF.prototype,"confirmAction",void 0),e([we()],RF.prototype,"confirmHeadline",void 0),e([we()],RF.prototype,"confirmDescription",void 0),e([we()],RF.prototype,"confirmIcon",void 0),e([we()],RF.prototype,"confirmVariant",void 0),e([we()],RF.prototype,"confirmConfirmLabel",void 0),e([we()],RF.prototype,"confirmCancelLabel",void 0),e([we()],RF.prototype,"lnPickerOpen",void 0),e([we()],RF.prototype,"lnodes",void 0);class VF extends(Ke(Ee)){constructor(){super(...arguments),this.sourceFunctionName="",this.sourceFunctionPath="",this.handleClose=()=>{this.dispatchCloseEvent(),this.close()},this.handleDialogClosed=()=>{this.dispatchCloseEvent()}}static get scopedElements(){return{"oscd-dialog":kV,"oscd-filled-button":yV,"oscd-filled-text-field":bF}}show(){this.dialog.show()}close(){this.dialog.close()}dispatchCloseEvent(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return re`
+  `,e([xe({type:Object})],RF.prototype,"parent",void 0),e([xe({type:String})],RF.prototype,"selectedElementName",void 0),e([xe({type:String})],RF.prototype,"selectedElementType",void 0),e([xe({attribute:!1})],RF.prototype,"lnodeLibrary",void 0),e([Fe("oscd-dialog")],RF.prototype,"dialog",void 0),e([Fe('oscd-filled-text-field[name="name"]')],RF.prototype,"nameField",void 0),e([Fe('oscd-scl-text-field[name="description"]')],RF.prototype,"descriptionField",void 0),e([Fe('oscd-scl-text-field[name="type"]')],RF.prototype,"typeField",void 0),e([Fe("create-subfunction-dialog")],RF.prototype,"createSubfunctionDialog",void 0),e([Fe("confirm-dialog")],RF.prototype,"confirmDialog",void 0),e([Fe("lnode-picker")],RF.prototype,"lnodePicker",void 0),e([we()],RF.prototype,"name",void 0),e([we()],RF.prototype,"description",void 0),e([we()],RF.prototype,"type",void 0),e([we()],RF.prototype,"step",void 0),e([we()],RF.prototype,"tempSubfunctions",void 0),e([we()],RF.prototype,"confirmAction",void 0),e([we()],RF.prototype,"confirmHeadline",void 0),e([we()],RF.prototype,"confirmDescription",void 0),e([we()],RF.prototype,"confirmIcon",void 0),e([we()],RF.prototype,"confirmVariant",void 0),e([we()],RF.prototype,"confirmConfirmLabel",void 0),e([we()],RF.prototype,"confirmCancelLabel",void 0),e([we()],RF.prototype,"lnPickerOpen",void 0),e([we()],RF.prototype,"lnodes",void 0);class VF extends(Ke(Ee)){constructor(){super(...arguments),this.sourceFunctionName="",this.sourceFunctionPath="",this.handleDialogClosed=()=>{this.dispatchCloseEvent()}}static get scopedElements(){return{"oscd-dialog":kV,"oscd-filled-button":yV,"oscd-filled-text-field":bF}}get open(){return this.dialog.open}show(){this.dialog.show()}close(){this.dialog.close()}dispatchCloseEvent(){this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}render(){return re`
       <oscd-dialog id="function-link-dialog" @closed=${this.handleDialogClosed}>
         <div slot="headline">Create Function Link</div>
-
         <div slot="content" class="content">
           <oscd-filled-text-field
             label="Source function"
@@ -8364,9 +8363,10 @@ const AF=e=>e??oe;class EF extends(Ke(Ee)){constructor(){super(...arguments),thi
             .value=${this.sourceFunctionPath}
             disabled
           ></oscd-filled-text-field>
+        </div>
         <div slot="actions">
-          <oscd-filled-button data-testid="close-button" @click=${this.handleClose}
-            >Close</oscd-filled-button
+          <oscd-filled-button data-testid="close-button" @click=${this.close}>
+            Close</oscd-filled-button
           >
           <oscd-filled-button disabled data-testid="connect-button"
             >Connect</oscd-filled-button
