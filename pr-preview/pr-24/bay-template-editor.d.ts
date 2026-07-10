@@ -34,7 +34,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     editorContainer?: HTMLElement;
     labelToggle?: OscdOutlinedIconButton;
     createFunctionDialog?: CreateFunctionDialog;
-    functionLinkDialog?: FunctionLinkDialog;
+    functionLinkDialog: FunctionLinkDialog;
     sldEditorInAction: boolean;
     functionsInAction: boolean;
     addingFunction: boolean;
@@ -58,7 +58,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private hoveredSubstation?;
     selectedElement?: Element;
     private sldBounds;
-    private linkSinkContext?;
     private linkSourceCandidates;
     private selectingLinkSource;
     private readonly onResize;
@@ -72,7 +71,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     handleFunctionHover: (funcElement: Element | null) => void;
     private handleCreateFunctionLink;
     private handleSelectSourceFunction;
-    private closeFunctionLinkDialog;
+    private resetLinkingState;
     private getElementFromProcessPath;
     get inAction(): boolean;
     private preprocessEdits;

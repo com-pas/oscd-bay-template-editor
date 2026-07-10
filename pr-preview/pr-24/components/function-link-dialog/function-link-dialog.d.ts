@@ -14,6 +14,7 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     sourceFunctionPath: string;
     get open(): boolean;
     show(): void;
+    showForSourceFunction(sourceFunctionName: string, sourceFunctionPath: string): void;
     close(): void;
     private dispatchCloseEvent;
     private handleDialogClosed;
