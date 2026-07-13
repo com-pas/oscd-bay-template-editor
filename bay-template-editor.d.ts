@@ -7,6 +7,7 @@ import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.j
 import { type SubfunctionData, type LNodeData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
+import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import { type HighlightStyle } from './const.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
@@ -18,6 +19,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         'functions-layer': typeof FunctionsLayer;
         'sld-editor': CustomElementConstructor;
         'create-function-dialog': typeof CreateFunctionDialog;
+        'function-link-dialog': typeof FunctionLinkDialog;
     };
     doc?: XMLDocument;
     editCount: number;
@@ -32,6 +34,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     editorContainer?: HTMLElement;
     labelToggle?: OscdOutlinedIconButton;
     createFunctionDialog?: CreateFunctionDialog;
+    functionLinkDialog: FunctionLinkDialog;
     sldEditorInAction: boolean;
     functionsInAction: boolean;
     addingFunction: boolean;
@@ -55,6 +58,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private hoveredSubstation?;
     selectedElement?: Element;
     private sldBounds;
+    private linkSourceCandidates;
+    private selectingLinkSource;
     private readonly onResize;
     private readonly eqFunctionHostTags;
     private resolveFunctionTags;
@@ -64,6 +69,9 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private handleKeydown;
     handleStartPlaceFunction: (element: Element, offset: [number, number]) => void;
     handleFunctionHover: (funcElement: Element | null) => void;
+    private handleCreateFunctionLink;
+    private handleSelectSourceFunction;
+    private resetLinkingState;
     private getElementFromProcessPath;
     get inAction(): boolean;
     private preprocessEdits;
