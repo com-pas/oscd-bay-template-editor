@@ -6,13 +6,12 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
-import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
-import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { type SubfunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
+import { EditList } from '../edit-list/edit-list.js';
 export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
     FunctionContent = "function-content"
@@ -27,11 +26,10 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'oscd-icon': typeof OscdIcon;
         'oscd-icon-button': typeof OscdIconButton;
         'oscd-divider': typeof OscdDivider;
-        'oscd-list': typeof OscdList;
-        'oscd-list-item': typeof OscdListItem;
         'create-subfunction-dialog': typeof CreateSubfunctionDialog;
         'confirm-dialog': typeof ConfirmDialog;
         'lnode-picker': typeof LNodePicker;
+        'edit-list': typeof EditList;
     };
     parent: Element | null;
     selectedElementName: string;
@@ -49,7 +47,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     type: string | null;
     step: CreateFunctionDialogStep;
     tempSubfunctions: SubfunctionData[];
-    selectedSubfunction: number | null;
+    subfunctionToDelete: SubfunctionData | null;
     confirmAction: 'cancel' | 'delete-subfunction' | null;
     private confirmHeadline;
     private confirmDescription;
@@ -59,9 +57,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private confirmCancelLabel;
     lnPickerOpen: boolean;
     lnodes: LNodeTypeEntry[];
-    selectedLNode: string | null;
-    subfunctionsCollapsed: boolean;
-    lnodesCollapsed: boolean;
     private get isEqFunction();
     private get elementName();
     private get subFunctionName();
@@ -81,13 +76,9 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleAddSubfunction;
     private handleSaveSubfunction;
     private handleDeleteSubfunction;
-    private handleSubfunctionClick;
     private handleConfirm;
-    private handleToggleSubfunctions;
-    private handleToggleLNodes;
     private handleAddLNode;
     private handleRemoveLNode;
-    private handleSelectLNode;
     private handleLNodePickerCancel;
     private handleLNodePickerConfirm;
     renderFunctionAttrs(): import("lit-html").TemplateResult<1>;

@@ -3,7 +3,7 @@ import { Ref } from 'lit/directives/ref.js';
 import { OscdMenu } from '@omicronenergy/oscd-ui/menu/OscdMenu.js';
 import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
-import { FunctionContentPanel } from './function-content-panel.js';
+import { FunctionContentPanel, type LNodeSelectionContext } from './function-content-panel.js';
 type Point = [number, number];
 type FunctionData = {
     element: Element;
@@ -35,6 +35,11 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
     onHoverFunction?: (funcElement: Element | null) => void;
     onSelectFunction?: (element: Element | null) => void;
+    onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
+    onCancelCreateFunctionLink?: () => void;
+    onSelectSourceFunction?: (sourceFunction: Element) => void;
+    linkSourceCandidates: Element[];
+    selectingLinkSource: boolean;
     functions: FunctionData[];
     mouseX: number;
     mouseY: number;
