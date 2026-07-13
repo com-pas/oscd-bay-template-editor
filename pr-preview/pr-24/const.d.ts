@@ -20,3 +20,8 @@ export declare const SELECTED_PSR_HIGHLIGHT_STYLE: {
     readonly fill: "#d3b9ec";
     readonly opacity: 0.5;
 };
+/** Highlight style applied to the Function when selecting a source for Link */
+export declare const SOURCE_CANDIDATE_HIGHLIGHT_STYLE: {
+    readonly stroke: "#1a7f37";
+    readonly fill: "#d9f2e3";
+};
