@@ -18,7 +18,10 @@ import {
   FunctionContentPanel,
   type LNodeSelectionContext,
 } from './function-content-panel.js';
-import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
+import {
+  SELECTED_PSR_HIGHLIGHT_STYLE,
+  SOURCE_CANDIDATE_HIGHLIGHT_STYLE,
+} from '../../const.js';
 
 type Point = [number, number];
 
@@ -423,8 +426,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
       strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
     } else if (this.selectingLinkSource && isSourceCandidate) {
-      fill = '#d9f2e3';
-      stroke = '#1a7f37';
+      fill = SOURCE_CANDIDATE_HIGHLIGHT_STYLE.fill;
+      stroke = SOURCE_CANDIDATE_HIGHLIGHT_STYLE.stroke;
       strokeWidth = STROKE_WIDTH * 1.5;
     } else if (preview) {
       fill = PREVIEW_FILL;

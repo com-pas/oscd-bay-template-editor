@@ -29,3 +29,9 @@ export const SELECTED_PSR_HIGHLIGHT_STYLE = {
   fill: '#d3b9ec',
   opacity: 0.5,
 } as const;
+
+/** Highlight style applied to the Function when selecting a source for Link */
+export const SOURCE_CANDIDATE_HIGHLIGHT_STYLE = {
+  stroke: '#1a7f37',
+  fill: '#d9f2e3',
+} as const;
