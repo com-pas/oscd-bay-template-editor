@@ -691,4 +691,60 @@ describe('FunctionsLayer', () => {
       );
     });
   });
+
+  describe('function link source selection', () => {
+    beforeEach(async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBayAndFunctions,
+        'application/xml'
+      );
+      element.doc = doc;
+      element.selectingLinkSource = true;
+      element.linkSourceCandidates = [
+        doc.querySelector('Function[name="F1"]')!,
+      ];
+      await element.updateComplete;
+    });
+
+    it('highlights applicable source functions and dims non-applicable ones', async () => {
+      const groups = Array.from(
+        element.shadowRoot?.querySelectorAll('g.function') ?? []
+      ) as SVGGElement[];
+
+      const f1Group = groups.find(group =>
+        group.textContent?.includes('F1')
+      ) as SVGGElement;
+      const f2Group = groups.find(group =>
+        group.textContent?.includes('F2')
+      ) as SVGGElement;
+
+      expect(f1Group.classList.contains('source-candidate')).to.be.true;
+      expect(f2Group.classList.contains('source-blocked')).to.be.true;
+    });
+
+    it('accepts selection only for highlighted source functions', async () => {
+      const selectSourceSpy = spy();
+      element.onSelectSourceFunction = selectSourceSpy;
+
+      const groups = Array.from(
+        element.shadowRoot?.querySelectorAll('g.function') ?? []
+      ) as SVGGElement[];
+
+      const f1Group = groups.find(group =>
+        group.textContent?.includes('F1')
+      ) as SVGGElement;
+      const f2Group = groups.find(group =>
+        group.textContent?.includes('F2')
+      ) as SVGGElement;
+
+      f2Group.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      f1Group.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await element.updateComplete;
+
+      expect(selectSourceSpy.calledOnce).to.be.true;
+      expect(selectSourceSpy.firstCall.args[0].getAttribute('name')).to.equal(
+        'F1'
+      );
+    });
+  });
 });

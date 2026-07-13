@@ -1050,4 +1050,122 @@ describe('Bay Template Editor Plugin', () => {
       expect(element.selectedElement).to.be.undefined;
     });
   });
+
+  describe('function link flow', () => {
+    it('collects Function and EqFunction source candidates in same bay from selected sink LNode', async () => {
+      const doc = new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="F1"><LNode lnClass="LLN0" /></Function>
+                <Function name="F2" />
+                <EqFunction name="EF1" />
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const sinkFunction = doc.querySelector('Function[name="F1"]')!;
+      const sinkLNode = sinkFunction.querySelector('LNode')!;
+
+      (element as any).handleCreateFunctionLink({
+        functionElement: sinkFunction,
+        subFunctionElement: null,
+        lNodeElement: sinkLNode,
+      });
+
+      expect((element as any).selectingLinkSource).to.be.true;
+      expect((element as any).linkSourceCandidates.length).to.equal(3);
+      expect(
+        (element as any).linkSourceCandidates.map((fn: Element) =>
+          fn.getAttribute('name')
+        )
+      ).to.deep.equal(['F1', 'F2', 'EF1']);
+    });
+
+    it('includes EqFunction nested under ConductingEquipment in source candidates', async () => {
+      const doc = new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="F1"><LNode lnClass="LLN0" /></Function>
+                <ConductingEquipment name="Q1">
+                  <EqFunction name="Q1F" />
+                </ConductingEquipment>
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const sinkFunction = doc.querySelector('Function[name="F1"]')!;
+      const sinkLNode = sinkFunction.querySelector('LNode')!;
+
+      (element as any).handleCreateFunctionLink({
+        functionElement: sinkFunction,
+        subFunctionElement: null,
+        lNodeElement: sinkLNode,
+      });
+
+      expect(
+        (element as any).linkSourceCandidates.map((fn: Element) =>
+          fn.getAttribute('name')
+        )
+      ).to.deep.equal(['F1', 'Q1F']);
+    });
+
+    it('opens function link dialog after selecting an applicable source function', async () => {
+      const doc = new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="F1"><LNode lnClass="LLN0" /></Function>
+                <Function name="F2" />
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const sinkFunction = doc.querySelector('Function[name="F1"]')!;
+      const sinkLNode = sinkFunction.querySelector('LNode')!;
+      const sourceFunction = doc.querySelector('Function[name="F2"]')!;
+
+      (element as any).handleCreateFunctionLink({
+        functionElement: sinkFunction,
+        subFunctionElement: null,
+        lNodeElement: sinkLNode,
+      });
+
+      (element as any).handleSelectSourceFunction(sourceFunction);
+      await element.updateComplete;
+      await new Promise<void>(resolve => {
+        requestAnimationFrame(() => resolve());
+      });
+      await element.updateComplete;
+
+      const dialog = element.shadowRoot?.querySelector(
+        'function-link-dialog'
+      ) as any;
+      expect(dialog).to.exist;
+      expect(dialog.sourceFunctionName).to.equal('F2');
+      expect(dialog.sourceFunctionPath).to.equal('S1/V1/B1/F2');
+    });
+  });
 });

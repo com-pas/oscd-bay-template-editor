@@ -14,8 +14,14 @@ import {
   updateSLDAttributes,
   getSldSvgs,
 } from '../../util.js';
-import { FunctionContentPanel } from './function-content-panel.js';
-import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
+import {
+  FunctionContentPanel,
+  type LNodeSelectionContext,
+} from './function-content-panel.js';
+import {
+  SELECTED_PSR_HIGHLIGHT_STYLE,
+  SOURCE_CANDIDATE_HIGHLIGHT_STYLE,
+} from '../../const.js';
 
 type Point = [number, number];
 
@@ -96,6 +102,21 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   @property({ attribute: false })
   onSelectFunction?: (element: Element | null) => void;
 
+  @property({ attribute: false })
+  onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
+
+  @property({ attribute: false })
+  onCancelCreateFunctionLink?: () => void;
+
+  @property({ attribute: false })
+  onSelectSourceFunction?: (sourceFunction: Element) => void;
+
+  @property({ attribute: false })
+  linkSourceCandidates: Element[] = [];
+
+  @property({ type: Boolean })
+  selectingLinkSource = false;
+
   @state()
   functions: FunctionData[] = [];
 
@@ -127,6 +148,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   private readonly handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && this.selectedFunctionElement) {
       this.selectedFunctionElement = undefined;
+      this.onCancelCreateFunctionLink?.();
     }
   };
 
@@ -292,6 +314,13 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
     e.stopPropagation();
 
+    if (this.selectingLinkSource) {
+      if (this.linkSourceCandidates.includes(fn.element)) {
+        this.onSelectSourceFunction?.(fn.element);
+      }
+      return;
+    }
+
     if (this.placing === fn.element) {
       this.finalizeFunctionPlacement(fn);
       return;
@@ -380,6 +409,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     let classAttr = 'function';
     if (preview) classAttr += ' preview';
     if (isPlacing) classAttr += ' placing';
+    const isSourceCandidate = this.linkSourceCandidates.includes(fn.element);
+    if (this.selectingLinkSource && isSourceCandidate)
+      classAttr += ' source-candidate';
+    if (this.selectingLinkSource && !isSourceCandidate)
+      classAttr += ' source-blocked';
     const isHovered = this.hoveredFunction === fn.element;
     const isSelected = this.selectedFunctionElement === fn.element;
     if (isSelected) classAttr += ' selected';
@@ -391,6 +425,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       fill = SELECTED_PSR_HIGHLIGHT_STYLE.fill;
       stroke = SELECTED_PSR_HIGHLIGHT_STYLE.stroke;
       strokeWidth = SELECTED_PSR_HIGHLIGHT_STYLE.strokeWidth;
+    } else if (this.selectingLinkSource && isSourceCandidate) {
+      fill = SOURCE_CANDIDATE_HIGHLIGHT_STYLE.fill;
+      stroke = SOURCE_CANDIDATE_HIGHLIGHT_STYLE.stroke;
+      strokeWidth = STROKE_WIDTH * 1.5;
     } else if (preview) {
       fill = PREVIEW_FILL;
       stroke = PREVIEW_STROKE;
@@ -536,6 +574,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               .function.placing {
                 cursor: move;
               }
+              .function.source-blocked {
+                opacity: 0.45;
+                cursor: not-allowed;
+              }
               .function.preview {
                 opacity: 0.7;
               }
@@ -565,6 +607,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           ? html`<div class="sidebar">
               <function-content-panel
                 .functionElement=${this.selectedFunctionElement}
+                .selectingLinkSource=${this.selectingLinkSource}
+                @start-create-function-link=${(
+                  e: CustomEvent<LNodeSelectionContext>
+                ) => this.onCreateFunctionLink?.(e.detail)}
+                @cancel-create-function-link=${() =>
+                  this.onCancelCreateFunctionLink?.()}
                 @close=${() => {
                   this.selectedFunctionElement = undefined;
                 }}
