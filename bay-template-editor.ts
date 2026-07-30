@@ -10,8 +10,7 @@ import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFill
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 
-import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
-import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
+import { SldEditor } from '@omicronenergy/oscd-editor-sld/sld-editor.js';
 import {
   bayIcon,
   equipmentIcon,
@@ -60,7 +59,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       'oscd-filled-icon-button': OscdFilledIconButton,
       'oscd-icon': OscdIcon,
       'functions-layer': FunctionsLayer,
-      'sld-editor': customElements.get('sld-editor')!,
+      'sld-editor': SldEditor,
       'create-function-dialog': CreateFunctionDialog,
       'function-link-dialog': FunctionLinkDialog,
     };
@@ -513,7 +512,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     if (this.sldEditor) {
       clearBusbarHighlights(this.sldEditor);
-      this.sldEditor.resetWithOffset();
+      this.sldEditor.startPlacing(undefined);
     }
   }
 
