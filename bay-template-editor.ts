@@ -26,7 +26,6 @@ import {
   makeBusBar,
   setSLDAttributes,
   sldNs,
-  uniqueName,
   xmlnsNs,
   getFunctionCoordinates,
   getSldSvgs,
@@ -148,6 +147,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @state()
   private selectingLinkSource = false;
 
+  @state()
+  private lnodeLibrary: Document | null = null;
+
   private readonly onResize = () => this.calculateSldBounds();
 
   private readonly eqFunctionHostTags = new Set([
@@ -176,26 +178,26 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     return true;
   }
 
+  private loadLNodeLibrary() {
+    if (!this.compasApi?.lNodeLibrary?.loadLNodeLibrary) return;
+
+    this.compasApi.lNodeLibrary.loadLNodeLibrary().then(library => {
+      this.lnodeLibrary = library;
+    });
+  }
+
   connectedCallback() {
     super.connectedCallback();
 
-    if (this.compasApi?.lNodeLibrary?.loadLNodeLibrary) {
-      this.compasApi.lNodeLibrary
-        .loadLNodeLibrary()
-        .then(() => this.requestUpdate());
-    }
-    this.addEventListener('oscd-edit-v2', this.preprocessEdits, {
-      capture: true,
-    });
+    this.loadLNodeLibrary();
+
     window.addEventListener('keydown', this.handleKeydown);
     window.addEventListener('resize', this.onResize);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    this.removeEventListener('oscd-edit-v2', this.preprocessEdits, {
-      capture: true,
-    });
+
     window.removeEventListener('keydown', this.handleKeydown);
     window.removeEventListener('resize', this.onResize);
 
@@ -218,6 +220,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.placingFunction = element;
     this.placingFunctionOffset = offset;
     this.functionsInAction = true;
+  };
+
+  handleDonePlaceFunction = () => {
+    this.placingFunction = undefined;
+    this.placingFunctionOffset = [0, 0];
+    this.functionsInAction = false;
   };
 
   handleFunctionHover = (funcElement: Element | null) => {
@@ -315,59 +323,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     );
   }
 
-  // TODO: Remove this workaround once the official oscd-editor is integrated in open-scd (https://github.com/com-pas/open-scd/issues/25).
-  // Currently, edits with only attributesNS are not processed by the open-scd edit handler.
-  // This preprocessing mutates the edit object to apply the attributes directly and removes attributesNS.
-  private preprocessEdits = (event: Event) => {
-    const editEvent = event as CustomEvent;
-    let edits = Array.isArray(editEvent.detail)
-      ? editEvent.detail
-      : [editEvent.detail];
-
-    edits = edits.flatMap((e: any) => (e.edit ? e.edit : e));
-
-    edits.forEach((edit: any) => {
-      if (
-        edit.node &&
-        edit.parent &&
-        !edit.node.getAttribute('name') &&
-        edit.node.tagName !== 'Private'
-      ) {
-        const name = uniqueName(edit.node, edit.parent);
-        edit.node.setAttribute('name', name);
-      }
-
-      // Ensure attributesNS exists as an object if element has attributes
-      if (edit.attributes && !edit.attributesNS) {
-        // eslint-disable-next-line no-param-reassign
-        edit.attributesNS = {};
-      }
-
-      if (edit.element && edit.attributesNS?.[sldNs]) {
-        const attrs = edit.attributesNS[sldNs];
-        const cleanAttrs: Record<string, string> = {};
-        Object.entries(attrs).forEach(([key, value]) => {
-          const localName = key.includes(':') ? key.split(':')[1] : key;
-          if (value !== null) cleanAttrs[localName] = value as string;
-        });
-
-        if (edit.element.localName === 'SLDAttributes') {
-          Object.entries(cleanAttrs).forEach(([key, value]) => {
-            edit.element.setAttributeNS(sldNs, `${this.nsp}:${key}`, value);
-          });
-        } else {
-          setSLDAttributes(edit.element, this.nsp, cleanAttrs);
-        }
-      }
-    });
-
-    if (this.placingFunction) {
-      this.placingFunction = undefined;
-      this.placingFunctionOffset = [0, 0];
-      this.functionsInAction = false;
-    }
-  };
-
   handleSldSelected = (event: CustomEvent<{ element: Element }>) => {
     this.addingFunction = false;
     this.selectedElement = event.detail.element;
@@ -383,13 +338,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         this.selectedElement.getAttribute('name') || '';
       this.createFunctionDialog.selectedElementType =
         this.selectedElement.tagName;
-      this.createFunctionDialog.lnodeLibrary =
-        this.compasApi?.lNodeLibrary?.lNodeLibrary() ?? null;
+      this.createFunctionDialog.lnodeLibrary = this.lnodeLibrary;
       this.createFunctionDialog.show();
     }
   };
 
   updated(changedProperties: Map<PropertyKey, unknown>) {
+    if (changedProperties.has('compasApi')) {
+      this.loadLNodeLibrary();
+    }
+
     if (
       changedProperties.has('doc') ||
       changedProperties.has('gridSize') ||
@@ -973,6 +931,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .placing=${this.placingFunction}
                     .placingOffset=${this.placingFunctionOffset}
                     .onStartPlaceFunction=${this.handleStartPlaceFunction}
+                    .onDonePlaceFunction=${this.handleDonePlaceFunction}
                     .onHoverFunction=${this.handleFunctionHover}
                     .onCreateFunctionLink=${this.handleCreateFunctionLink}
                     .onCancelCreateFunctionLink=${this.resetLinkingState}
@@ -984,8 +943,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               : nothing}
           </div>
           <create-function-dialog
-            .lnodeLibrary=${this.compasApi?.lNodeLibrary?.lNodeLibrary() ??
-            null}
+            .lnodeLibrary=${this.lnodeLibrary}
             @cancel=${this.handleCancelAddFunction}
             @save=${this.createFunction}
           ></create-function-dialog>

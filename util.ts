@@ -363,7 +363,9 @@ export function getFunctions(element: Element): Element[] {
  */
 export function getSldSvgs(sldEditor: Element): SVGSVGElement[] {
   const substationEditors = Array.from(
-    sldEditor.shadowRoot?.querySelectorAll('sld-substation-editor') ?? []
+    sldEditor.shadowRoot?.querySelectorAll(
+      'sld-substation-editor, sld-substation-viewer'
+    ) ?? []
   );
   return substationEditors.flatMap(se => {
     const svg = se.shadowRoot?.querySelector('svg#sld') as SVGSVGElement | null;

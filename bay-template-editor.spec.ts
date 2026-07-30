@@ -699,99 +699,6 @@ describe('Bay Template Editor Plugin', () => {
     });
   });
 
-  describe('preprocessEdits method', () => {
-    it('assigns unique names to elements without names when inserted', async () => {
-      const doc = new DOMParser().parseFromString(
-        docWithBay,
-        'application/xml'
-      );
-      element.doc = doc;
-      await element.updateComplete;
-
-      const bay = doc.querySelector('Bay')!;
-      const newEquipment = doc.createElementNS(
-        doc.documentElement.namespaceURI,
-        'ConductingEquipment'
-      );
-      newEquipment.setAttribute('type', 'CBR');
-
-      const editEvent = new CustomEvent('oscd-edit-v2', {
-        detail: {
-          node: newEquipment,
-          parent: bay,
-          reference: null,
-        },
-        bubbles: true,
-        composed: true,
-      });
-
-      element.dispatchEvent(editEvent);
-
-      expect(newEquipment.getAttribute('name')).to.equal('CBR1');
-    });
-
-    it('preserves existing names on elements', async () => {
-      const doc = new DOMParser().parseFromString(
-        docWithBay,
-        'application/xml'
-      );
-      element.doc = doc;
-      await element.updateComplete;
-
-      const bay = doc.querySelector('Bay')!;
-      const newEquipment = doc.createElementNS(
-        doc.documentElement.namespaceURI,
-        'ConductingEquipment'
-      );
-      newEquipment.setAttribute('type', 'CBR');
-      newEquipment.setAttribute('name', 'MyCustomName');
-
-      const editEvent = new CustomEvent('oscd-edit-v2', {
-        detail: {
-          node: newEquipment,
-          parent: bay,
-        },
-      });
-
-      element.dispatchEvent(editEvent);
-
-      expect(newEquipment.getAttribute('name')).to.equal('MyCustomName');
-    });
-
-    it('handles SLD attributes in edits', async () => {
-      const doc = new DOMParser().parseFromString(
-        docWithBay,
-        'application/xml'
-      );
-      element.doc = doc;
-      await element.updateComplete;
-
-      const testElement = doc.createElementNS(
-        doc.documentElement.namespaceURI,
-        'Bay'
-      );
-
-      const editEvent = new CustomEvent('oscd-edit-v2', {
-        detail: {
-          element: testElement,
-          attributesNS: {
-            'https://openscd.org/SCL/SSD/SLD/v0': {
-              w: '10',
-              h: '20',
-            },
-          },
-        },
-      });
-
-      element.dispatchEvent(editEvent);
-
-      const sldAttrs = testElement.querySelector(
-        'Private[type="OpenSCD-SLD-Layout"] > SLDAttributes'
-      );
-      expect(sldAttrs).to.exist;
-    });
-  });
-
   describe('function placement', () => {
     it('starts placing function when handleStartPlaceFunction is called', async () => {
       const doc = new DOMParser().parseFromString(
@@ -835,31 +742,28 @@ describe('Bay Template Editor Plugin', () => {
       expect(element.functionsInAction).to.be.false;
     });
 
-    it('resets placing function after edit event', async () => {
+    it('resets placing function when functions-layer calls onDonePlaceFunction', async () => {
       const doc = new DOMParser().parseFromString(
         docWithBay,
         'application/xml'
       );
       element.doc = doc;
+      element.showFunctions = true;
       await element.updateComplete;
 
       const functionElement = doc.createElement('Function');
       element.placingFunction = functionElement;
+      element.functionsInAction = true;
       await element.updateComplete;
 
-      const editEvent = new CustomEvent('oscd-edit-v2', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          parent: doc.querySelector('Bay'),
-          node: functionElement,
-        },
-      });
-
-      element.dispatchEvent(editEvent);
+      const functionsLayer = element.shadowRoot?.querySelector(
+        'functions-layer'
+      ) as any;
+      functionsLayer.onDonePlaceFunction();
       await element.updateComplete;
 
       expect(element.placingFunction).to.be.undefined;
+      expect(element.functionsInAction).to.be.false;
     });
   });
 
