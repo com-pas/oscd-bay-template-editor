@@ -2,14 +2,13 @@ import { LitElement } from 'lit';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
-import '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
-import type { SldEditor } from '@omicronenergy/oscd-editor-sld/dist/sld-editor.js';
+import { SldEditor } from '@omicronenergy/oscd-editor-sld/sld-editor.js';
 import { type SubfunctionData, type LNodeData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import { type HighlightStyle } from './const.js';
-declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
 export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     static get scopedElements(): {
@@ -17,7 +16,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         'oscd-filled-icon-button': typeof OscdFilledIconButton;
         'oscd-icon': typeof OscdIcon;
         'functions-layer': typeof FunctionsLayer;
-        'sld-editor': CustomElementConstructor;
+        'sld-editor': typeof SldEditor;
         'create-function-dialog': typeof CreateFunctionDialog;
         'function-link-dialog': typeof FunctionLinkDialog;
     };
@@ -60,21 +59,23 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private sldBounds;
     private linkSourceCandidates;
     private selectingLinkSource;
+    private lnodeLibrary;
     private readonly onResize;
     private readonly eqFunctionHostTags;
     private resolveFunctionTags;
     get showLabels(): boolean;
+    private loadLNodeLibrary;
     connectedCallback(): void;
     disconnectedCallback(): void;
     private handleKeydown;
     handleStartPlaceFunction: (element: Element, offset: [number, number]) => void;
+    handleDonePlaceFunction: () => void;
     handleFunctionHover: (funcElement: Element | null) => void;
     private handleCreateFunctionLink;
     private handleSelectSourceFunction;
     private resetLinkingState;
     private getElementFromProcessPath;
     get inAction(): boolean;
-    private preprocessEdits;
     handleSldSelected: (event: CustomEvent<{
         element: Element;
     }>) => void;

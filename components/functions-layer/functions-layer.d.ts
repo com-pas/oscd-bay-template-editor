@@ -12,7 +12,7 @@ type FunctionData = {
     y: number;
     parent?: Element | null;
 };
-declare const FunctionsLayer_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const FunctionsLayer_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 export declare class FunctionsLayer extends FunctionsLayer_base {
     static get scopedElements(): {
         'function-content-panel': typeof FunctionContentPanel;
@@ -33,6 +33,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     placing?: Element;
     placingOffset: Point;
     onStartPlaceFunction?: (element: Element, offset: Point) => void;
+    onDonePlaceFunction?: () => void;
     onHoverFunction?: (funcElement: Element | null) => void;
     onSelectFunction?: (element: Element | null) => void;
     onCreateFunctionLink?: (context: LNodeSelectionContext) => void;

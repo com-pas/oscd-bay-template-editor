@@ -16,7 +16,7 @@ export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
     SubfunctionContent = "subfunction-content"
 }
-declare const CreateSubfunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const CreateSubfunctionDialog_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_base {
     static get scopedElements(): {
         'oscd-dialog': typeof OscdDialog;
