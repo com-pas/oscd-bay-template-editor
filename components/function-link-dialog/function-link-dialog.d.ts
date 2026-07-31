@@ -2,7 +2,7 @@ import { LitElement } from 'lit';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
-declare const FunctionLinkDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const FunctionLinkDialog_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     static get scopedElements(): {
         'oscd-dialog': typeof OscdDialog;

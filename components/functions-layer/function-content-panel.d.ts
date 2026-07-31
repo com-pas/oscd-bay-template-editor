@@ -9,7 +9,7 @@ export interface LNodeSelectionContext {
     subFunctionElement: Element | null;
     lNodeElement: Element;
 }
-declare const FunctionContentPanel_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const FunctionContentPanel_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 export declare class FunctionContentPanel extends FunctionContentPanel_base {
     static get scopedElements(): {
         'oscd-list': typeof OscdList;

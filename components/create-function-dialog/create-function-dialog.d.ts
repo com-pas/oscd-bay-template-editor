@@ -16,7 +16,7 @@ export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
     FunctionContent = "function-content"
 }
-declare const CreateFunctionDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const CreateFunctionDialog_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     static get scopedElements(): {
         'oscd-dialog': typeof OscdDialog;

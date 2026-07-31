@@ -2,7 +2,7 @@ import { LitElement } from 'lit';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
-declare const ConfirmDialog_base: typeof LitElement & import("@open-wc/scoped-elements/lit-element.js").ScopedElementsHostConstructor;
+declare const ConfirmDialog_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 /**
  * A reusable confirmation dialog component.
  *
