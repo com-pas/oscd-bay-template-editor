@@ -97,6 +97,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onStartPlaceFunction?: (element: Element, offset: Point) => void;
 
   @property({ attribute: false })
+  onDonePlaceFunction?: () => void;
+
+  @property({ attribute: false })
   onHoverFunction?: (funcElement: Element | null) => void;
 
   @property({ attribute: false })
@@ -299,6 +302,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       y: y.toString(),
     });
     this.dispatchEvent(newEditEventV2(edit));
+    this.onDonePlaceFunction?.();
   }
 
   private handleMouseMove(e: MouseEvent) {
