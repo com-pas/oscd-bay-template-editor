@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p pages
           cp -r dist/* pages/
-          rsync -av --exclude='plugins.js' demo/ pages/
+          rsync -av demo/ pages/
           sed -i "s|../dist/bay-template-editor.js|./bay-template-editor.js|g" pages/plugins.js
 
       - name: Deploy to GitHub Pages
