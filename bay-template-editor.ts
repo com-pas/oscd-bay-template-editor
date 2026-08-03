@@ -179,6 +179,18 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     return true;
   }
 
+  private updateLNodeLibrary(library: Document | null) {
+    if (library === null && this.lnodeLibrary !== null) {
+      return;
+    }
+
+    this.lnodeLibrary = library;
+
+    if (this.createFunctionDialog) {
+      this.createFunctionDialog.lnodeLibrary = this.lnodeLibrary;
+    }
+  }
+
   private loadLNodeLibrary() {
     const libraryApi = this.compasApi?.lNodeLibrary;
 
