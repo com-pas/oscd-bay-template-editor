@@ -18,6 +18,9 @@ export interface SubfunctionData {
     type: string | null;
     lnodes: Element[] | null;
 }
+export declare function lNodeTypeClass(lNodeType: Element): string;
+export declare function lNodeTypeDesc(lNodeType: Element): string | null;
+export declare function lNodeTypeId(lNodeType: Element): string;
 export declare function createLNodeFromType(doc: XMLDocument, lNodeType: Element): Element;
 export declare function uniqueLNodeTypes(lNodeTypes: Element[]): Element[];
 export declare function setSLDAttributes(element: Element, nsPrefix: string, values: Record<string, string>): void;
