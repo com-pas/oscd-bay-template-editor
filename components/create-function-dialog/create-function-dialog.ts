@@ -15,11 +15,16 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
-import { getFunctions, type SubfunctionData } from '../../util.js';
+import {
+  getFunctions,
+  lNodeTypeClass,
+  lNodeTypeDesc,
+  lNodeTypeId,
+  type SubfunctionData,
+} from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
-import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 import { EditList, DeleteEventDetail } from '../edit-list/edit-list.js';
 
 export enum CreateFunctionDialogStep {
@@ -119,7 +124,11 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   lnPickerOpen = false;
 
   @state()
-  lnodes: LNodeTypeEntry[] = [];
+  lnodes: Element[] = [];
+
+  private get selectedLNodeTypeIds(): string[] {
+    return this.lnodes.map(lNodeType => lNodeTypeId(lNodeType));
+  }
 
   private get isEqFunction() {
     return (
@@ -318,7 +327,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.lnPickerOpen = true;
   }
 
-  private handleRemoveLNode(lnodeToRemove: LNodeTypeEntry) {
+  private handleRemoveLNode(lnodeToRemove: Element) {
     this.lnodes = this.lnodes.filter(l => l !== lnodeToRemove);
   }
 
@@ -326,11 +335,10 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.lnPickerOpen = false;
   }
 
-  private handleLNodePickerConfirm(
-    e: CustomEvent<{ selected: LNodeTypeEntry[] }>
-  ) {
-    const incoming = e.detail.selected.filter(
-      entry => !this.lnodes.some(l => l.id === entry.id)
+  private handleLNodePickerConfirm(e: CustomEvent<{ lNodes: Element[] }>) {
+    const existingIds = new Set(this.selectedLNodeTypeIds);
+    const incoming = e.detail.lNodes.filter(
+      lNodeType => !existingIds.has(lNodeTypeId(lNodeType))
     );
     this.lnodes = [...this.lnodes, ...incoming];
     this.lnPickerOpen = false;
@@ -397,7 +405,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         </div>
         <lnode-picker
           .library=${this.lnodeLibrary}
-          .existingIds=${this.lnodes.map(l => l.id)}
+          .existingIds=${this.selectedLNodeTypeIds}
           @lnode-picker-confirm=${this.handleLNodePickerConfirm}
           @lnode-picker-cancel=${this.handleLNodePickerCancel}
         ></lnode-picker>
@@ -461,12 +469,12 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             title="LNodes"
             itemName="LNode"
             .items=${this.lnodes}
-            .itemHeadline=${(ln: LNodeTypeEntry) => ln.lnClass}
-            .itemSupportingText=${(ln: LNodeTypeEntry) => ln.desc ?? ln.id}
+            .itemHeadline=${(ln: Element) => lNodeTypeClass(ln)}
+            .itemSupportingText=${(ln: Element) =>
+              lNodeTypeDesc(ln) ?? lNodeTypeId(ln)}
             @add-item=${this.handleAddLNode}
-            @delete-item=${(
-              e: CustomEvent<DeleteEventDetail<LNodeTypeEntry>>
-            ) => this.handleRemoveLNode(e.detail.item)}
+            @delete-item=${(e: CustomEvent<DeleteEventDetail<Element>>) =>
+              this.handleRemoveLNode(e.detail.item)}
           >
           </edit-list>
         </div>

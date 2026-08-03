@@ -11,7 +11,7 @@ import {
   docWithBusBarBay,
   docWithElements,
 } from './bay-template-editor.testfiles.js';
-import { eqTypes, SubfunctionData, LNodeData } from './util.js';
+import { eqTypes, SubfunctionData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
   customElements.define('oscd-editor-bay-template', BayTemplatePlugin);
@@ -38,7 +38,7 @@ describe('Bay Template Editor Plugin', () => {
       selected: Element,
       name = 'F1',
       subfunctions: SubfunctionData[] = [],
-      lnodes: LNodeData[] = []
+      lnodes: Element[] = []
     ) {
       const dispatchSpy = spy(element, 'dispatchEvent');
       element.selectedElement = selected;
@@ -56,7 +56,8 @@ describe('Bay Template Editor Plugin', () => {
       );
       expect(editCall, 'oscd-edit-v2 event was dispatched').to.exist;
       const { edit } = (editCall![0] as CustomEvent).detail;
-      const { parent, node } = edit;
+      const createEdit = Array.isArray(edit) ? edit[0] : edit;
+      const { parent, node } = createEdit;
       dispatchSpy.restore();
       return { parent: parent as Element, fn: node as Element };
     }
@@ -92,9 +93,13 @@ describe('Bay Template Editor Plugin', () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
       const lnodes = [
-        { lnClass: 'LLN0', desc: 'desc' },
-        { lnClass: 'XCBR', desc: 'desc' },
+        doc.createElement('LNodeType'),
+        doc.createElement('LNodeType'),
       ];
+      lnodes[0].setAttribute('lnClass', 'LLN0');
+      lnodes[0].setAttribute('desc', 'desc');
+      lnodes[1].setAttribute('lnClass', 'XCBR');
+      lnodes[1].setAttribute('desc', 'desc');
       const { parent, fn } = triggerAndCapture(bay, 'Fbay', [], lnodes);
       expect(parent).to.equal(bay);
       expect(fn.tagName).to.equal('Function');
@@ -153,7 +158,9 @@ describe('Bay Template Editor Plugin', () => {
       const subfunctions = [
         { name: 'ESF1', description: 'desc', type: 'type', lnodes: null },
       ];
-      const lnodes = [{ lnClass: 'XCBR', desc: 'breaker' }];
+      const lnodes = [doc.createElement('LNodeType')];
+      lnodes[0].setAttribute('lnClass', 'XCBR');
+      lnodes[0].setAttribute('desc', 'breaker');
 
       const { fn } = triggerAndCapture(ce, 'Fce', subfunctions, lnodes);
       const childTags = Array.from(fn.children).map(child => child.tagName);

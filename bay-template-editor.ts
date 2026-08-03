@@ -3,7 +3,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
-import { getReference, identity } from '@openscd/scl-lib';
+import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
@@ -33,8 +33,9 @@ import {
   clearBusbarHighlights,
   eTr6100Ns,
   getProcessPath,
+  createLNodeFromType,
+  uniqueLNodeTypes,
   type SubfunctionData,
-  type LNodeData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
@@ -179,17 +180,35 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   }
 
   private loadLNodeLibrary() {
-    if (!this.compasApi?.lNodeLibrary?.loadLNodeLibrary) return;
+    const libraryApi = this.compasApi?.lNodeLibrary;
 
-    this.compasApi.lNodeLibrary.loadLNodeLibrary().then(library => {
-      this.lnodeLibrary = library;
-    });
+    if (!libraryApi) {
+      this.lnodeLibrary = null;
+      return;
+    }
+
+    const cachedLibrary = libraryApi.lNodeLibrary?.() ?? null;
+    if (cachedLibrary !== null || !libraryApi.loadLNodeLibrary) {
+      this.lnodeLibrary = cachedLibrary;
+      return;
+    }
+
+    libraryApi
+      .loadLNodeLibrary()
+      .then(library => {
+        if (this.compasApi?.lNodeLibrary === libraryApi) {
+          this.lnodeLibrary = library ?? null;
+        }
+      })
+      .catch(() => {
+        if (this.compasApi?.lNodeLibrary === libraryApi) {
+          this.lnodeLibrary = null;
+        }
+      });
   }
 
   connectedCallback() {
     super.connectedCallback();
-
-    this.loadLNodeLibrary();
 
     window.addEventListener('keydown', this.handleKeydown);
     window.addEventListener('resize', this.onResize);
@@ -338,7 +357,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         this.selectedElement.getAttribute('name') || '';
       this.createFunctionDialog.selectedElementType =
         this.selectedElement.tagName;
-      this.createFunctionDialog.lnodeLibrary = this.lnodeLibrary;
       this.createFunctionDialog.show();
     }
   };
@@ -502,7 +520,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       description: string | null;
       type: string | null;
       subfunctions: SubfunctionData[];
-      lnodes: LNodeData[];
+      lnodes: Element[];
     }>
   ) {
     const { name, description, type, subfunctions, lnodes } = e.detail;
@@ -511,31 +529,21 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     const selected = this.selectedElement;
     if (!selected) return;
 
-    const { tagName } = selected;
-    const functionParent = selected;
-    if (!functionParent) return;
-
-    const { functionTag, subFunctionTag } = this.resolveFunctionTags(tagName);
+    const { functionTag, subFunctionTag } = this.resolveFunctionTags(
+      selected.tagName
+    );
 
     const func = createElement(this.doc, functionTag, {
       name,
       desc: description,
       type,
     });
-
     const { x, y } = getFunctionCoordinates(this.doc, selected);
-    setSLDAttributes(func, this.nsp, {
-      x: String(x),
-      y: String(y),
-    });
+    setSLDAttributes(func, this.nsp, { x: String(x), y: String(y) });
 
-    lnodes.forEach(lnode => {
-      const lnodeElement = createElement(this.doc!, 'LNode', {
-        lnClass: lnode.lnClass,
-        desc: lnode.desc,
-      });
-      func.appendChild(lnodeElement);
-    });
+    lnodes.forEach(lnode =>
+      func.appendChild(createLNodeFromType(this.doc!, lnode))
+    );
 
     subfunctions.forEach(sf => {
       const subFunction = createElement(this.doc!, subFunctionTag, {
@@ -543,22 +551,30 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         desc: sf.description,
         type: sf.type,
       });
-      if (sf.lnodes) {
-        sf.lnodes.forEach(lnode => {
-          const lnodeElement = createElement(this.doc!, 'LNode', {
-            lnClass: lnode.lnClass,
-            desc: lnode.desc,
-          });
-          subFunction.appendChild(lnodeElement);
-        });
-      }
+      sf.lnodes?.forEach(lnode =>
+        subFunction.appendChild(createLNodeFromType(this.doc!, lnode))
+      );
       func.appendChild(subFunction);
     });
 
-    const reference = getReference(functionParent, functionTag);
+    const allLNodeTypes = [
+      ...lnodes,
+      ...subfunctions.flatMap(sf => sf.lnodes ?? []),
+    ];
+
+    const reference = getReference(selected, functionTag);
     this.dispatchEvent(
-      newEditEventV2({ parent: functionParent, node: func, reference })
+      newEditEventV2(
+        { parent: selected, node: func, reference },
+        { title: 'Add Function' }
+      )
     );
+
+    uniqueLNodeTypes(allLNodeTypes).forEach(lNodeType => {
+      importLNodeType(lNodeType, this.doc!).forEach(edit =>
+        this.dispatchEvent(newEditEventV2(edit, { squash: true }))
+      );
+    });
 
     this.reset();
     this.showFunctions = true;

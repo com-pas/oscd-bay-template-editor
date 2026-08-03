@@ -16,9 +16,11 @@ import {
   getSldSvgs,
   highlightBusbars,
   clearBusbarHighlights,
+  createLNodeFromType,
+  uniqueLNodeTypes,
 } from './util.js';
 
-import { docWithBayAndFunctions } from './util-testfiles.js';
+import { docWithBayAndFunctions, lnodeTypeLibrary } from './util-testfiles.js';
 
 describe('utils', () => {
   let doc: XMLDocument;
@@ -456,6 +458,44 @@ describe('utils', () => {
 
         const highlights = svg.querySelectorAll('.busbar-highlight-workaround');
         expect(highlights.length).equal(0);
+      });
+    });
+
+    describe('createLNodeFromType', () => {
+      beforeEach(() => {
+        doc = new DOMParser().parseFromString(
+          lnodeTypeLibrary,
+          'application/xml'
+        );
+      });
+      it('creates a new LNode element from an LNodeType', () => {
+        const lNodeType = doc.querySelector('LNodeType[lnClass="TVTR"]')!;
+        const newLNode = createLNodeFromType(doc, lNodeType);
+        expect(newLNode.tagName).equal('LNode');
+        expect(newLNode.getAttribute('lnClass')).equal('TVTR');
+        expect(newLNode.getAttribute('iedName')).to.equal(null);
+        expect(newLNode.getAttribute('ldInst')).to.equal(null);
+        expect(newLNode.getAttribute('prefix')).to.equal(null);
+        expect(newLNode.getAttribute('lnInst')).to.equal(null);
+      });
+    });
+
+    describe('uniqueLNodeTypes', () => {
+      function createLNodeType(id: string, lnClass: string): Element {
+        const lNodeType = doc.createElement('LNodeType');
+        lNodeType.setAttribute('id', id);
+        lNodeType.setAttribute('lnClass', lnClass);
+        return lNodeType;
+      }
+      it('returns unique LNode types', () => {
+        const lNodeTypes = [
+          createLNodeType('1', 'TVTR'),
+          createLNodeType('2', 'TVTR'),
+          createLNodeType('1', 'TVTR'),
+        ];
+        const uniqueTypes = uniqueLNodeTypes(lNodeTypes);
+        const ids = uniqueTypes.map(type => type.getAttribute('id'));
+        expect(ids).to.have.lengthOf(2);
       });
     });
   });
