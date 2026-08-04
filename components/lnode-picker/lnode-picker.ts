@@ -6,8 +6,9 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
+import { lNodeTypeClass, lNodeTypeDesc, lNodeTypeId } from '../../util.js';
 
-export interface LNodeTypeEntry {
+interface LNodeTypeEntry {
   id: string;
   lnClass: string;
   desc: string | null;
@@ -18,7 +19,8 @@ export interface LNodeTypeEntry {
  *
  * Parses all `LNodeType` elements from the provided SCL `library` document,
  * presents them as a searchable multi-select list, and emits
- * `lnode-picker-confirm` with the selected entries when the user confirms.
+ * `lnode-picker-confirm` with the selected `LNodeType` elements when the user
+ * confirms.
  *
  * @fires lnode-picker-confirm
  * @fires lnode-picker-cancel
@@ -46,29 +48,15 @@ export class LNodePicker extends ScopedElementsMixin(LitElement) {
   @state()
   private selectedIds: Set<string> = new Set();
 
-  private entriesCache: LNodeTypeEntry[] | null = null;
-
   private get allEntries(): LNodeTypeEntry[] {
-    if (this.entriesCache === null) {
-      this.entriesCache = this.parseEntries();
-    }
-    return this.entriesCache;
+    return this.parseEntries();
   }
 
-  private parseEntries(): LNodeTypeEntry[] {
+  private get lNodeTypes(): Element[] {
     if (!this.library) return [];
-
-    const lNodeTypes = this.library
-      ? Array.from(
-          this.library.querySelectorAll(':root > DataTypeTemplates > LNodeType')
-        )
-      : [];
-
-    return lNodeTypes.map(el => ({
-      id: el.getAttribute('id') ?? '',
-      lnClass: el.getAttribute('lnClass') ?? '',
-      desc: el.getAttribute('desc'),
-    }));
+    return Array.from(
+      this.library.querySelectorAll(':root > DataTypeTemplates > LNodeType')
+    );
   }
 
   private get filteredEntries(): LNodeTypeEntry[] {
@@ -80,6 +68,16 @@ export class LNodePicker extends ScopedElementsMixin(LitElement) {
         e.lnClass.toLowerCase().includes(q) ||
         (e.desc ?? '').toLowerCase().includes(q)
     );
+  }
+
+  private parseEntries(): LNodeTypeEntry[] {
+    const { lNodeTypes } = this;
+
+    return lNodeTypes.map(el => ({
+      id: lNodeTypeId(el),
+      lnClass: lNodeTypeClass(el),
+      desc: lNodeTypeDesc(el),
+    }));
   }
 
   private handleSearchInput(e: InputEvent) {
@@ -98,12 +96,16 @@ export class LNodePicker extends ScopedElementsMixin(LitElement) {
   }
 
   private handleConfirm() {
-    const selected = this.allEntries.filter(e => this.selectedIds.has(e.id));
+    const lNodes = this.lNodeTypes.filter(lNodeType => {
+      const id = lNodeTypeId(lNodeType);
+      return this.selectedIds.has(id);
+    });
+
     this.dispatchEvent(
       new CustomEvent('lnode-picker-confirm', {
         bubbles: true,
         composed: true,
-        detail: { selected },
+        detail: { lNodes },
       })
     );
     this.reset();

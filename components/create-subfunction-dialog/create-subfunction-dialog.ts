@@ -17,9 +17,9 @@ import {
   type Validator,
   type Value,
 } from '@compas-oscd/forms';
+import { lNodeTypeClass, lNodeTypeDesc, lNodeTypeId } from '../../util.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
-import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 import type { SubfunctionData } from '../../util.js';
 
 export enum CreateSubfunctionDialogStep {
@@ -106,7 +106,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   private confirmCancelLabel = 'Cancel';
 
-  lnodes: LNodeTypeEntry[] = [];
+  lnodes: Element[] = [];
 
   @state()
   selectedLNode: string | null = null;
@@ -259,7 +259,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   private handleRemoveLNode() {
     if (this.selectedLNode === null) return;
-    this.lnodes = this.lnodes.filter(l => l.id !== this.selectedLNode);
+    this.lnodes = this.lnodes.filter(
+      l => lNodeTypeId(l) !== this.selectedLNode
+    );
     this.selectedLNode = null;
   }
 
@@ -267,10 +269,14 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.pickerOpen = true;
   }
 
-  private handlePickerConfirm(e: CustomEvent<{ selected: LNodeTypeEntry[] }>) {
-    const incoming = e.detail.selected.filter(
-      entry => !this.lnodes.some(l => l.id === entry.id)
+  private handlePickerConfirm(e: CustomEvent<{ lNodes: Element[] }>) {
+    const existingIds = new Set(
+      this.lnodes.map(lNodeType => lNodeTypeId(lNodeType))
     );
+    const incoming = e.detail.lNodes.filter(lNodeType => {
+      const id = lNodeTypeId(lNodeType);
+      return id ? !existingIds.has(id) : !this.lnodes.includes(lNodeType);
+    });
     this.lnodes = [...this.lnodes, ...incoming];
     this.pickerOpen = false;
   }
@@ -369,7 +375,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
             ? html`
                 <lnode-picker
                   .library=${this.library}
-                  .existingIds=${this.lnodes.map(l => l.id)}
+                  .existingIds=${this.lnodes
+                    .map(lNodeType => lNodeTypeId(lNodeType))
+                    .filter(id => id)}
                   @lnode-picker-confirm=${this.handlePickerConfirm}
                   @lnode-picker-cancel=${this.handlePickerCancel}
                 ></lnode-picker>
@@ -387,14 +395,20 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
                         lnode => html`
                           <oscd-list-item
                             type="button"
-                            ?selected=${this.selectedLNode === lnode.id}
-                            @click=${() => this.handleSelectLNode(lnode.id)}
+                            ?selected=${this.selectedLNode ===
+                            lNodeTypeId(lnode)}
+                            @click=${() =>
+                              this.handleSelectLNode(lNodeTypeId(lnode))}
                           >
-                            <span slot="headline">${lnode.lnClass}</span>
-                            <span slot="supporting-text"
-                              >${lnode.desc ?? lnode.id}</span
+                            <span slot="headline"
+                              >${lNodeTypeClass(lnode)}</span
                             >
-                            ${this.selectedLNode === lnode.id
+                            <span slot="supporting-text"
+                              >${lNodeTypeDesc(lnode) ??
+                              lNodeTypeId(lnode) ??
+                              ''}</span
+                            >
+                            ${this.selectedLNode === lNodeTypeId(lnode)
                               ? html`<oscd-icon slot="end">check</oscd-icon>`
                               : nothing}
                           </oscd-list-item>

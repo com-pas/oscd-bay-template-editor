@@ -36,19 +36,35 @@ describe('LNodePicker', () => {
     expect(element.shadowRoot?.querySelector('oscd-list')).to.exist;
   });
 
-  it('emits lnode-picker-confirm with selected entries on confirm', async () => {
+  it('emits only selected LNodeType elements on confirm', async () => {
     const confirmSpy = sinon.spy();
     element.addEventListener('lnode-picker-confirm', confirmSpy);
-    element.dispatchEvent(
-      new CustomEvent('lnode-picker-confirm', {
-        detail: { selected: ['entry1', 'entry2'] },
-      })
-    );
-    expect(confirmSpy.calledOnce).to.be.true;
-    expect(confirmSpy.args[0][0].detail.selected).to.deep.equal([
-      'entry1',
-      'entry2',
+
+    (element as any).selectedIds = new Set([
+      'TVTR$oscd$_a0be960c8dfd3708',
+      'TCTR$oscd$_defaa767081f017d',
     ]);
+
+    (element as any).handleConfirm();
+
+    expect(confirmSpy.calledOnce).to.be.true;
+
+    const selected = confirmSpy.args[0][0].detail.lNodes;
+    expect(selected).to.have.length(2);
+    expect(
+      selected.map((entry: Element) => entry.getAttribute('id'))
+    ).to.deep.equal([
+      'TVTR$oscd$_a0be960c8dfd3708',
+      'TCTR$oscd$_defaa767081f017d',
+    ]);
+    expect(selected.every((entry: Element) => entry.tagName === 'LNodeType')).to
+      .be.true;
+    expect(
+      selected.some(
+        (entry: Element) =>
+          entry.getAttribute('id') === 'XSWI$oscd$_74c3c9de7d5cdfad'
+      )
+    ).to.be.false;
   });
 
   it('filters entries based on search query', async () => {

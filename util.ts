@@ -1,5 +1,6 @@
 import { getReference } from '@openscd/scl-lib';
 import { EditV2 } from '@openscd/oscd-api';
+import { createElement } from '@compas-oscd/xml';
 
 export const privType = 'OpenSCD-SLD-Layout';
 export const sldNs = 'https://openscd.org/SCL/SSD/SLD/v0';
@@ -45,16 +46,43 @@ export const singleTerminal = new Set([
   'VTR',
 ]);
 
-export interface LNodeData {
-  lnClass: string;
-  desc: string | null;
-}
-
 export interface SubfunctionData {
   name: string;
   description: string | null;
   type: string | null;
-  lnodes: LNodeData[] | null;
+  lnodes: Element[] | null;
+}
+
+export function lNodeTypeClass(lNodeType: Element): string {
+  return lNodeType.getAttribute('lnClass') ?? '';
+}
+
+export function lNodeTypeDesc(lNodeType: Element): string | null {
+  return lNodeType.getAttribute('desc');
+}
+
+export function lNodeTypeId(lNodeType: Element): string {
+  return lNodeType.getAttribute('id') ?? '';
+}
+
+export function createLNodeFromType(
+  doc: XMLDocument,
+  lNodeType: Element
+): Element {
+  return createElement(doc, 'LNode', {
+    lnClass: lNodeTypeClass(lNodeType),
+    lnType: lNodeTypeId(lNodeType),
+  });
+}
+
+export function uniqueLNodeTypes(lNodeTypes: Element[]): Element[] {
+  const seenIds = new Set<string>();
+  return lNodeTypes.filter(lt => {
+    const id = lNodeTypeId(lt);
+    if (!id || seenIds.has(id)) return false;
+    seenIds.add(id);
+    return true;
+  });
 }
 
 function sections(element: Element): Element[] {
