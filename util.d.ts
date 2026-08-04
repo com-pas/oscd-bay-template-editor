@@ -12,16 +12,17 @@ export type EqType = (typeof eqTypes)[number];
 export declare function isEqType(str: string): str is EqType;
 export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
-export interface LNodeData {
-    lnClass: string;
-    desc: string | null;
-}
 export interface SubfunctionData {
     name: string;
     description: string | null;
     type: string | null;
-    lnodes: LNodeData[] | null;
+    lnodes: Element[] | null;
 }
+export declare function lNodeTypeClass(lNodeType: Element): string;
+export declare function lNodeTypeDesc(lNodeType: Element): string | null;
+export declare function lNodeTypeId(lNodeType: Element): string;
+export declare function createLNodeFromType(doc: XMLDocument, lNodeType: Element): Element;
+export declare function uniqueLNodeTypes(lNodeTypes: Element[]): Element[];
 export declare function setSLDAttributes(element: Element, nsPrefix: string, values: Record<string, string>): void;
 export declare function getSLDAttributes(element: Element, key: string): string | null;
 export declare function updateSLDAttributes(element: Element, nsPrefix: string, values: Partial<Record<string, string | null>>): EditV2;

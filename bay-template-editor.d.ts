@@ -3,7 +3,7 @@ import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFill
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { SldEditor } from '@omicronenergy/oscd-editor-sld/sld-editor.js';
-import { type SubfunctionData, type LNodeData } from './util.js';
+import { type SubfunctionData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
@@ -93,7 +93,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         description: string | null;
         type: string | null;
         subfunctions: SubfunctionData[];
-        lnodes: LNodeData[];
+        lnodes: Element[];
     }>): void;
     private renderTransformerButtons;
     private renderSubstationHighlight;

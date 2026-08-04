@@ -10,7 +10,6 @@ import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
-import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 import type { SubfunctionData } from '../../util.js';
 export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
@@ -51,7 +50,7 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private confirmVariant;
     private confirmConfirmLabel;
     private confirmCancelLabel;
-    lnodes: LNodeTypeEntry[];
+    lnodes: Element[];
     selectedLNode: string | null;
     pickerOpen: boolean;
     private formGroup;

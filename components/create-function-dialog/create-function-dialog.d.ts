@@ -10,7 +10,6 @@ import { type SubfunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
-import type { LNodeTypeEntry } from '../lnode-picker/lnode-picker.js';
 import { EditList } from '../edit-list/edit-list.js';
 export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
@@ -56,7 +55,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private confirmConfirmLabel;
     private confirmCancelLabel;
     lnPickerOpen: boolean;
-    lnodes: LNodeTypeEntry[];
+    lnodes: Element[];
+    private get selectedLNodeTypeIds();
     private get isEqFunction();
     private get elementName();
     private get subFunctionName();
