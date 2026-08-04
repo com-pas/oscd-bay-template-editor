@@ -64,7 +64,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private readonly eqFunctionHostTags;
     private resolveFunctionTags;
     get showLabels(): boolean;
-    private updateLNodeLibrary;
     private loadLNodeLibrary;
     connectedCallback(): void;
     disconnectedCallback(): void;
