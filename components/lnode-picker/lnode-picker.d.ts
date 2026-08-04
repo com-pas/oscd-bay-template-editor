@@ -4,18 +4,14 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-export interface LNodeTypeEntry {
-    id: string;
-    lnClass: string;
-    desc: string | null;
-}
 declare const LNodePicker_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 /**
  * Inline LNode type picker.
  *
  * Parses all `LNodeType` elements from the provided SCL `library` document,
  * presents them as a searchable multi-select list, and emits
- * `lnode-picker-confirm` with the selected entries when the user confirms.
+ * `lnode-picker-confirm` with the selected `LNodeType` elements when the user
+ * confirms.
  *
  * @fires lnode-picker-confirm
  * @fires lnode-picker-cancel
@@ -32,10 +28,10 @@ export declare class LNodePicker extends LNodePicker_base {
     existingIds: string[];
     private query;
     private selectedIds;
-    private entriesCache;
     private get allEntries();
-    private parseEntries;
+    private get lNodeTypes();
     private get filteredEntries();
+    private parseEntries;
     private handleSearchInput;
     private handleToggle;
     private handleConfirm;
