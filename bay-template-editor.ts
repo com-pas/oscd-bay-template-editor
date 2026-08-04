@@ -196,19 +196,18 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     libraryApi
       .loadLNodeLibrary()
       .then(library => {
-        if (this.compasApi?.lNodeLibrary === libraryApi) {
-          this.lnodeLibrary = library ?? null;
-        }
+        this.lnodeLibrary = library ?? null;
       })
-      .catch(() => {
-        if (this.compasApi?.lNodeLibrary === libraryApi) {
-          this.lnodeLibrary = null;
-        }
+      .catch(error => {
+        this.lnodeLibrary = null;
+        throw error;
       });
   }
 
   connectedCallback() {
     super.connectedCallback();
+
+    this.loadLNodeLibrary();
 
     window.addEventListener('keydown', this.handleKeydown);
     window.addEventListener('resize', this.onResize);
