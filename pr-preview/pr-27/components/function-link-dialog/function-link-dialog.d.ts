@@ -4,6 +4,7 @@ import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
+import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { OscdFilledSelect } from '@omicronenergy/oscd-ui/select/OscdFilledSelect.js';
@@ -21,6 +22,7 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
         'oscd-filled-text-field': typeof OscdFilledTextField;
         'oscd-divider': typeof OscdDivider;
         'oscd-icon': typeof OscdIcon;
+        'oscd-icon-button': typeof OscdIconButton;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
         'oscd-filled-select': typeof OscdFilledSelect;
@@ -44,6 +46,7 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private get selectedReferences();
     private get canConnect();
     private handleSearchInput;
+    private clearSearchFilter;
     private handleServiceChange;
     private handleToggleReference;
     private handleConnect;
