@@ -5,7 +5,6 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -42,7 +41,12 @@ import { FunctionsLayer } from './components/functions-layer/functions-layer.js'
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
+import { buildSourceRefAttributes } from './components/function-link-dialog/object-references.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
+import type {
+  LinkService,
+  ObjectReferenceItem,
+} from './components/function-link-dialog/object-references.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
@@ -183,18 +187,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   get showLabels(): boolean {
     if (this.labelToggle) return !this.labelToggle.selected;
     return true;
-  }
-
-  private updateLNodeLibrary(library: Document | null) {
-    if (library === null && this.lnodeLibrary !== null) {
-      return;
-    }
-
-    this.lnodeLibrary = library;
-
-    if (this.createFunctionDialog) {
-      this.createFunctionDialog.lnodeLibrary = this.lnodeLibrary;
-    }
   }
 
   private loadLNodeLibrary() {
