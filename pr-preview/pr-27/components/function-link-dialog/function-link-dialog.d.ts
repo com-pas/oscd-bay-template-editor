@@ -31,7 +31,7 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private readonly dialog;
     sourceFunctionName: string;
     sourceFunctionPath: string;
-    private allGroups;
+    private objectReferenceGroups;
     private filterQuery;
     private selectedService;
     private selectedReferenceIds;
