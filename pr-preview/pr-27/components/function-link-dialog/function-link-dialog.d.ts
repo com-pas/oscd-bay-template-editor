@@ -33,10 +33,12 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private filterQuery;
     private selectedService;
     private selectedReferenceIds;
+    private readonly boundHandleDocumentKeydown;
     get open(): boolean;
     show(): void;
     showForSourceFunction(sourceFunction: Element, sclRoot: Document | null): void;
     close(): void;
+    disconnectedCallback(): void;
     private resetSelectionState;
     private get filteredGroups();
     private get selectedReferences();
@@ -47,6 +49,8 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private handleConnect;
     private dispatchCloseEvent;
     private handleDialogClosed;
+    private handleCancel;
+    private handleDocumentKeydown;
     private renderReferenceRow;
     private renderReferenceList;
     render(): import("lit-html").TemplateResult<1>;
