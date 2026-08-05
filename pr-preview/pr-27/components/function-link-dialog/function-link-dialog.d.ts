@@ -38,7 +38,7 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
     private readonly boundHandleDocumentKeydown;
     get open(): boolean;
     show(): void;
-    showForSourceFunction(sourceFunction: Element, sclRoot: Document | null): void;
+    showForSourceFunction(sourceFunction: Element, doc: Document): void;
     close(): void;
     disconnectedCallback(): void;
     private resetSelectionState;

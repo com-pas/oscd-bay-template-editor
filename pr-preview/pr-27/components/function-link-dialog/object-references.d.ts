@@ -23,7 +23,7 @@ export interface SourceRefAttributes {
     pDO: string;
     pDA: string;
 }
-export declare function buildObjectReferences(sourceFunction: Element, sclRoot: Document | Element | null): ObjectReferenceGroup[];
+export declare function buildObjectReferences(sourceFunction: Element, doc: Document | Element): ObjectReferenceGroup[];
 export declare function filterObjectReferenceGroups(groups: ObjectReferenceGroup[], query: string): ObjectReferenceGroup[];
 export declare function buildSourceRefAttributes(selectedRef: ObjectReferenceItem): SourceRefAttributes;
 export declare function selectedReferencesSummary(selectedCount: number): string;
