@@ -1078,5 +1078,137 @@ describe('Bay Template Editor Plugin', () => {
       expect(dialog.sourceFunctionName).to.equal('F2');
       expect(dialog.sourceFunctionPath).to.equal('S1/V1/B1/F2');
     });
+
+    it('creates SourceRef link with service GOOSE and expected attributes', async () => {
+      const doc = new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="Sink">
+                  <LNode lnClass="CSWI" lnInst="1" />
+                </Function>
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const sinkFunction = doc.querySelector('Function[name="Sink"]')!;
+      const sinkLNode = sinkFunction.querySelector('LNode')!;
+
+      (element as any).pendingLinkContext = {
+        functionElement: sinkFunction,
+        subFunctionElement: null,
+        lNodeElement: sinkLNode,
+      };
+
+      const dispatchSpy = spy(element, 'dispatchEvent');
+
+      (element as any).handleConnectFunctionLink({
+        detail: {
+          service: 'GOOSE',
+          selectedReferences: [
+            {
+              id: 'ref-1',
+              groupKey: 'function|TCTR1',
+              groupLabel: 'TCTR1 · function level',
+              lnodeName: 'TCTR1',
+              lnClass: 'TCTR',
+              lnInst: '1',
+              doName: 'Amp',
+              daPath: 'instMag.f',
+              shortPath: 'Amp.instMag.f',
+              fullSource: 'S1/V1/B1/Source/TCTR1.Amp.instMag.f',
+            },
+          ],
+        },
+      } as CustomEvent);
+
+      const editCall = dispatchSpy.args.find(
+        args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
+      );
+      expect(editCall, 'Expected oscd-edit-v2 event').to.exist;
+
+      const { edit } = (editCall![0] as CustomEvent).detail;
+      const createEdit = Array.isArray(edit) ? edit[0] : edit;
+      const privateElement = createEdit.node as Element;
+      const sourceRefContainer = Array.from(
+        privateElement.querySelectorAll('*')
+      ).find(node => node.localName === 'LNodeInputs') as Element;
+      const sourceRef = Array.from(privateElement.querySelectorAll('*')).find(
+        node => node.localName === 'SourceRef'
+      ) as Element;
+
+      expect(sourceRefContainer).to.exist;
+      expect(sourceRef).to.exist;
+      expect(sourceRef.getAttribute('service')).to.equal('GOOSE');
+      expect(sourceRef.getAttribute('source')).to.equal(
+        'S1/V1/B1/Source/TCTR1.Amp.instMag.f'
+      );
+      expect(sourceRef.getAttribute('input')).to.equal('TCTR1.Amp.instMag.f');
+      expect(sourceRef.getAttribute('pLN')).to.equal('TCTR');
+      expect(sourceRef.getAttribute('pDO')).to.equal('Amp');
+      expect(sourceRef.getAttribute('pDA')).to.equal('instMag.f');
+
+      dispatchSpy.restore();
+    });
+
+    it('does not create a link when function-link dialog is closed', async () => {
+      const doc = new DOMParser().parseFromString(
+        `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="Sink">
+                  <LNode lnClass="CSWI" lnInst="1" />
+                </Function>
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const sinkFunction = doc.querySelector('Function[name="Sink"]')!;
+      const sinkLNode = sinkFunction.querySelector('LNode')!;
+
+      (element as any).pendingLinkContext = {
+        functionElement: sinkFunction,
+        subFunctionElement: null,
+        lNodeElement: sinkLNode,
+      };
+      (element as any).selectingLinkSource = true;
+      (element as any).linkSourceCandidates = [sinkFunction];
+
+      const dispatchSpy = spy(element, 'dispatchEvent');
+
+      const dialog = element.shadowRoot?.querySelector('function-link-dialog');
+      dialog?.dispatchEvent(
+        new CustomEvent('close-function-link-dialog', {
+          bubbles: true,
+          composed: true,
+        })
+      );
+
+      await element.updateComplete;
+
+      const editCall = dispatchSpy.args.find(
+        args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
+      );
+      expect(editCall).to.not.exist;
+      expect((element as any).pendingLinkContext).to.equal(null);
+      expect((element as any).selectingLinkSource).to.be.false;
+      expect((element as any).linkSourceCandidates).to.deep.equal([]);
+
+      dispatchSpy.restore();
+    });
   });
 });

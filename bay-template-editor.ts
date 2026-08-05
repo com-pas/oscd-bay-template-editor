@@ -5,6 +5,7 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
+import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -32,14 +33,20 @@ import {
   highlightBusbars,
   clearBusbarHighlights,
   eTr6100Ns,
-  getProcessPath,
   createLNodeFromType,
   uniqueLNodeTypes,
+  eTr6100PrivType,
   type SubfunctionData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import { buildSourceRefAttributes } from './components/function-link-dialog/object-references.js';
+import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
+import type {
+  LinkService,
+  ObjectReferenceItem,
+} from './components/function-link-dialog/object-references.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
@@ -151,6 +158,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @state()
   private lnodeLibrary: Document | null = null;
 
+  @state()
+  private pendingLinkContext: LNodeSelectionContext | null = null;
+
   private readonly onResize = () => this.calculateSldBounds();
 
   private readonly eqFunctionHostTags = new Set([
@@ -177,18 +187,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   get showLabels(): boolean {
     if (this.labelToggle) return !this.labelToggle.selected;
     return true;
-  }
-
-  private updateLNodeLibrary(library: Document | null) {
-    if (library === null && this.lnodeLibrary !== null) {
-      return;
-    }
-
-    this.lnodeLibrary = library;
-
-    if (this.createFunctionDialog) {
-      this.createFunctionDialog.lnodeLibrary = this.lnodeLibrary;
-    }
   }
 
   private loadLNodeLibrary() {
@@ -301,6 +299,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     const bay = context.functionElement.closest('Bay');
     if (!bay) return;
 
+    this.pendingLinkContext = context;
     this.linkSourceCandidates = Array.from(
       bay.querySelectorAll('Function, EqFunction')
     );
@@ -317,16 +316,180 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     }
 
     this.selectingLinkSource = false;
-
-    this.functionLinkDialog.showForSourceFunction(
-      sourceFunction.getAttribute('name') ?? '',
-      getProcessPath(sourceFunction)
-    );
+    this.functionLinkDialog.showForSourceFunction(sourceFunction, this.doc!);
   };
 
   private resetLinkingState = () => {
     this.selectingLinkSource = false;
     this.linkSourceCandidates = [];
+    this.pendingLinkContext = null;
+  };
+
+  private getPrivateContainer(sinkLNode: Element) {
+    const existingPrivate = Array.from(
+      sinkLNode.querySelectorAll(':scope > Private')
+    ).find(priv => priv.getAttribute('type') === eTr6100PrivType);
+
+    if (existingPrivate)
+      return { privateElement: existingPrivate, created: false };
+
+    const privateElement = this.doc!.createElementNS(
+      this.doc!.documentElement.namespaceURI,
+      'Private'
+    );
+    privateElement.setAttribute('type', eTr6100PrivType);
+
+    return { privateElement, created: true };
+  }
+
+  private getLNodeInputsContainer(
+    privateElement: Element,
+    nsp: string
+  ): Element {
+    const existingInputsContainer = Array.from(privateElement.children).find(
+      child =>
+        child.namespaceURI === eTr6100Ns && child.localName === 'LNodeInputs'
+    );
+
+    if (existingInputsContainer) return existingInputsContainer;
+
+    return this.doc!.createElementNS(eTr6100Ns, `${nsp}:LNodeInputs`);
+  }
+
+  private buildSourceRefs(
+    selectedReferences: ObjectReferenceItem[],
+    service: LinkService,
+    nsp: string,
+    existingKeys: Set<string>
+  ): Element[] {
+    return selectedReferences
+      .map(selectedReference => {
+        const attrs = buildSourceRefAttributes(selectedReference);
+        const dedupeKey = `${attrs.source}|${service}`;
+        if (existingKeys.has(dedupeKey)) return null;
+
+        const sourceRef = this.doc!.createElementNS(
+          eTr6100Ns,
+          `${nsp}:SourceRef`
+        );
+        sourceRef.setAttribute('source', attrs.source);
+        sourceRef.setAttribute('input', attrs.input);
+        sourceRef.setAttribute('pLN', attrs.pLN);
+        sourceRef.setAttribute('pDO', attrs.pDO);
+        sourceRef.setAttribute('pDA', attrs.pDA);
+        sourceRef.setAttribute('service', service);
+        existingKeys.add(dedupeKey);
+        return sourceRef;
+      })
+      .filter((sourceRef): sourceRef is Element => sourceRef !== null);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private buildEditsForNewSourceRefs(
+    sinkLNode: Element,
+    privateElement: Element,
+    lNodeInputsElement: Element,
+    newSourceRefs: Element[],
+    createdPrivate: boolean,
+    createdInputsContainer: boolean
+  ): EditV2[] {
+    const edits: EditV2[] = [];
+
+    if (createdPrivate) {
+      edits.push({
+        parent: sinkLNode,
+        node: privateElement,
+        reference: getReference(sinkLNode, 'Private'),
+      });
+    }
+
+    if (createdInputsContainer) {
+      privateElement.appendChild(lNodeInputsElement);
+      edits.push({
+        parent: privateElement,
+        node: lNodeInputsElement,
+        reference: null,
+      });
+    }
+
+    newSourceRefs.forEach(sourceRef => {
+      lNodeInputsElement.appendChild(sourceRef);
+      edits.push({
+        parent: lNodeInputsElement,
+        node: sourceRef,
+        reference: null,
+      });
+    });
+
+    return edits;
+  }
+
+  private handleConnectFunctionLink = (
+    e: CustomEvent<CreateFunctionLinkEventDetail>
+  ) => {
+    if (!this.doc || !this.pendingLinkContext) return;
+
+    const { service, selectedReferences } = e.detail;
+    const sinkLNode = this.pendingLinkContext.lNodeElement;
+    const nsp =
+      this.doc.documentElement.lookupPrefix(eTr6100Ns) ?? eTr6100PrivType;
+
+    if (!this.doc.documentElement.lookupPrefix(eTr6100Ns)) {
+      this.doc.documentElement.setAttributeNS(
+        xmlnsNs,
+        `xmlns:${eTr6100PrivType}`,
+        eTr6100Ns
+      );
+    }
+
+    const { privateElement, created: createdPrivate } =
+      this.getPrivateContainer(sinkLNode);
+    const lNodeInputsElement = this.getLNodeInputsContainer(
+      privateElement,
+      nsp
+    );
+    const createdInputsContainer = !Array.from(privateElement.children).some(
+      child =>
+        child.namespaceURI === eTr6100Ns && child.localName === 'LNodeInputs'
+    );
+
+    const existingKeys = new Set(
+      Array.from(lNodeInputsElement.children)
+        .filter(
+          child =>
+            child.localName === 'SourceRef' && child.namespaceURI === eTr6100Ns
+        )
+        .map(
+          sourceRef =>
+            `${sourceRef.getAttribute('source') ?? ''}|${
+              sourceRef.getAttribute('service') ?? ''
+            }`
+        )
+    );
+
+    const newSourceRefs = this.buildSourceRefs(
+      selectedReferences,
+      service,
+      nsp,
+      existingKeys
+    );
+
+    if (!newSourceRefs.length) {
+      this.pendingLinkContext = null;
+      return;
+    }
+
+    const edits = this.buildEditsForNewSourceRefs(
+      sinkLNode,
+      privateElement,
+      lNodeInputsElement,
+      newSourceRefs,
+      createdPrivate,
+      createdInputsContainer
+    );
+
+    this.dispatchEvent(newEditEventV2(edits));
+    this.pendingLinkContext = null;
   };
 
   private getElementFromProcessPath(path: string): Element | null {
@@ -975,6 +1138,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             @save=${this.createFunction}
           ></create-function-dialog>
           <function-link-dialog
+            @create-function-link=${this.handleConnectFunctionLink}
             @close-function-link-dialog=${this.resetLinkingState}
           ></function-link-dialog>
         `
