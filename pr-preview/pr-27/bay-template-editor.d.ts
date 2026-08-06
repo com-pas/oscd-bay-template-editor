@@ -75,10 +75,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private handleCreateFunctionLink;
     private handleSelectSourceFunction;
     private resetLinkingState;
-    private getPrivateContainer;
-    private getLNodeInputsContainer;
-    private buildSourceRefs;
-    private buildEditsForNewSourceRefs;
     private handleConnectFunctionLink;
     private getElementFromProcessPath;
     get inAction(): boolean;
