@@ -4,7 +4,6 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
-import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
@@ -32,7 +31,6 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
       'oscd-dialog': OscdDialog,
       'oscd-filled-button': OscdFilledButton,
       'oscd-filled-text-field': OscdFilledTextField,
-      'oscd-divider': OscdDivider,
       'oscd-icon': OscdIcon,
       'oscd-icon-button': OscdIconButton,
       'oscd-list': OscdList,
@@ -245,20 +243,16 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
       >
         <div slot="headline">Create Function Link</div>
         <div slot="content" class="content">
-          <oscd-filled-text-field
-            label="Source function"
-            readonly
-            .value=${this.sourceFunctionName}
-            disabled
-          ></oscd-filled-text-field>
-          <oscd-filled-text-field
-            label="Source function path"
-            readonly
-            .value=${this.sourceFunctionPath}
-            disabled
-          ></oscd-filled-text-field>
-
-          <oscd-divider></oscd-divider>
+          <dl class="source-summary">
+            <div>
+              <dt>Source function</dt>
+              <dd>${this.sourceFunctionName}</dd>
+            </div>
+            <div>
+              <dt>Source function path</dt>
+              <dd>${this.sourceFunctionPath}</dd>
+            </div>
+          </dl>
 
           <div class="filters-row">
             <oscd-filled-text-field
@@ -328,15 +322,39 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
 
   static styles = css`
     oscd-dialog {
-      max-height: min(80vh, 720px);
+      max-height: min(90vh, 775px);
       width: 600px;
     }
 
     .content {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
       min-width: 480px;
+    }
+
+    .source-summary {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .source-summary div {
+      display: grid;
+      gap: 2px;
+    }
+
+    .source-summary dt {
+      color: var(--md-sys-color-on-surface-variant, #6a656f);
+      font-size: 12px;
+    }
+
+    .source-summary dd {
+      color: var(--md-sys-color-on-surface, #1d1b20);
+      font-size: 14px;
+      margin: 0;
+      overflow-wrap: anywhere;
     }
 
     .filters-row {
@@ -347,6 +365,12 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
 
     .search-field {
       flex: 1;
+      --md-filled-text-field-container-height: 48px;
+    }
+
+    oscd-filled-select {
+      --md-filled-select-text-field-container-height: 48px;
+      --md-filled-field-container-height: 48px;
     }
 
     .clear-search-button {
@@ -363,13 +387,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
     .service-select-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 6px;
       min-width: 170px;
-    }
-
-    .service-label {
-      font-size: 12px;
-      color: var(--md-sys-color-on-surface-variant, #49454f);
     }
 
     .reference-list-shell {
@@ -381,7 +399,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
     }
 
     .reference-list {
-      max-height: 480px;
+      max-height: 420px;
       overflow-y: auto;
       --md-list-container-color: transparent;
       padding: 0;

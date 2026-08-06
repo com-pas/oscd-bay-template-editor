@@ -41,12 +41,8 @@ import {
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
-import { buildSourceRefAttributes } from './components/function-link-dialog/object-references.js';
+import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
-import type {
-  LinkService,
-  ObjectReferenceItem,
-} from './components/function-link-dialog/object-references.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
@@ -325,105 +321,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.pendingLinkContext = null;
   };
 
-  private getPrivateContainer(sinkLNode: Element) {
-    const existingPrivate = Array.from(
-      sinkLNode.querySelectorAll(':scope > Private')
-    ).find(priv => priv.getAttribute('type') === eTr6100PrivType);
-
-    if (existingPrivate)
-      return { privateElement: existingPrivate, created: false };
-
-    const privateElement = this.doc!.createElementNS(
-      this.doc!.documentElement.namespaceURI,
-      'Private'
-    );
-    privateElement.setAttribute('type', eTr6100PrivType);
-
-    return { privateElement, created: true };
-  }
-
-  private getLNodeInputsContainer(
-    privateElement: Element,
-    nsp: string
-  ): Element {
-    const existingInputsContainer = Array.from(privateElement.children).find(
-      child =>
-        child.namespaceURI === eTr6100Ns && child.localName === 'LNodeInputs'
-    );
-
-    if (existingInputsContainer) return existingInputsContainer;
-
-    return this.doc!.createElementNS(eTr6100Ns, `${nsp}:LNodeInputs`);
-  }
-
-  private buildSourceRefs(
-    selectedReferences: ObjectReferenceItem[],
-    service: LinkService,
-    nsp: string,
-    existingKeys: Set<string>
-  ): Element[] {
-    return selectedReferences
-      .map(selectedReference => {
-        const attrs = buildSourceRefAttributes(selectedReference);
-        const dedupeKey = `${attrs.source}|${service}`;
-        if (existingKeys.has(dedupeKey)) return null;
-
-        const sourceRef = this.doc!.createElementNS(
-          eTr6100Ns,
-          `${nsp}:SourceRef`
-        );
-        sourceRef.setAttribute('source', attrs.source);
-        sourceRef.setAttribute('input', attrs.input);
-        sourceRef.setAttribute('pLN', attrs.pLN);
-        sourceRef.setAttribute('pDO', attrs.pDO);
-        sourceRef.setAttribute('pDA', attrs.pDA);
-        sourceRef.setAttribute('service', service);
-        existingKeys.add(dedupeKey);
-        return sourceRef;
-      })
-      .filter((sourceRef): sourceRef is Element => sourceRef !== null);
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private buildEditsForNewSourceRefs(
-    sinkLNode: Element,
-    privateElement: Element,
-    lNodeInputsElement: Element,
-    newSourceRefs: Element[],
-    createdPrivate: boolean,
-    createdInputsContainer: boolean
-  ): EditV2[] {
-    const edits: EditV2[] = [];
-
-    if (createdPrivate) {
-      edits.push({
-        parent: sinkLNode,
-        node: privateElement,
-        reference: getReference(sinkLNode, 'Private'),
-      });
-    }
-
-    if (createdInputsContainer) {
-      privateElement.appendChild(lNodeInputsElement);
-      edits.push({
-        parent: privateElement,
-        node: lNodeInputsElement,
-        reference: null,
-      });
-    }
-
-    newSourceRefs.forEach(sourceRef => {
-      lNodeInputsElement.appendChild(sourceRef);
-      edits.push({
-        parent: lNodeInputsElement,
-        node: sourceRef,
-        reference: null,
-      });
-    });
-
-    return edits;
-  }
-
   private handleConnectFunctionLink = (
     e: CustomEvent<CreateFunctionLinkEventDetail>
   ) => {
@@ -442,51 +339,18 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       );
     }
 
-    const { privateElement, created: createdPrivate } =
-      this.getPrivateContainer(sinkLNode);
-    const lNodeInputsElement = this.getLNodeInputsContainer(
-      privateElement,
-      nsp
-    );
-    const createdInputsContainer = !Array.from(privateElement.children).some(
-      child =>
-        child.namespaceURI === eTr6100Ns && child.localName === 'LNodeInputs'
-    );
-
-    const existingKeys = new Set(
-      Array.from(lNodeInputsElement.children)
-        .filter(
-          child =>
-            child.localName === 'SourceRef' && child.namespaceURI === eTr6100Ns
-        )
-        .map(
-          sourceRef =>
-            `${sourceRef.getAttribute('source') ?? ''}|${
-              sourceRef.getAttribute('service') ?? ''
-            }`
-        )
-    );
-
-    const newSourceRefs = this.buildSourceRefs(
+    const edits = buildFunctionLinkEdits({
+      doc: this.doc,
+      sinkLNode,
       selectedReferences,
       service,
-      nsp,
-      existingKeys
-    );
+      namespacePrefix: nsp,
+    });
 
-    if (!newSourceRefs.length) {
+    if (!edits.length) {
       this.pendingLinkContext = null;
       return;
     }
-
-    const edits = this.buildEditsForNewSourceRefs(
-      sinkLNode,
-      privateElement,
-      lNodeInputsElement,
-      newSourceRefs,
-      createdPrivate,
-      createdInputsContainer
-    );
 
     this.dispatchEvent(newEditEventV2(edits));
     this.pendingLinkContext = null;
