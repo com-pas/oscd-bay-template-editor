@@ -399,7 +399,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
     }
 
     .reference-list {
-      max-height: 480px;
+      max-height: 420px;
       overflow-y: auto;
       --md-list-container-color: transparent;
       padding: 0;

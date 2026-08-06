@@ -41,12 +41,7 @@ import { FunctionsLayer } from './components/functions-layer/functions-layer.js'
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
-import { buildSourceRefAttributes } from './components/function-link-dialog/object-references.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
-import type {
-  LinkService,
-  ObjectReferenceItem,
-} from './components/function-link-dialog/object-references.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
