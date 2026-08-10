@@ -107,6 +107,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   showFunctions: boolean = false;
 
   @state()
+  showFunctionLinks = true;
+
+  @state()
   templateElements: Record<string, Element> = {};
 
   @state()
@@ -848,6 +851,26 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           ${functionsOffIcon}
           <span slot="selected">${functionsIcon}</span>
         </oscd-icon-button>`
+      : nothing}
+    ${this.doc.querySelector('Function, EqFunction')
+      ? html`<oscd-icon-button
+          id="function-links"
+          ?selected=${this.showFunctionLinks}
+          ?disabled=${!this.showFunctions}
+          toggle="true"
+          label=${this.showFunctionLinks
+            ? 'Hide Function Links'
+            : 'Show Function Links'}
+          title=${this.showFunctionLinks
+            ? 'Hide Function Links'
+            : 'Show Function Links'}
+          @click=${() => {
+            this.showFunctionLinks = !this.showFunctionLinks;
+          }}
+        >
+          <oscd-icon>link_off</oscd-icon>
+          <oscd-icon slot="selected">link</oscd-icon>
+        </oscd-icon-button>`
       : nothing}${this.doc.querySelector('Substation')
       ? html`<oscd-icon-button
             label="Zoom In"
@@ -991,6 +1014,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .onSelectSourceFunction=${this.handleSelectSourceFunction}
                     .linkSourceCandidates=${this.linkSourceCandidates}
                     .selectingLinkSource=${this.selectingLinkSource}
+                    .showLinks=${this.showFunctionLinks}
                   ></functions-layer>`
                 )
               : nothing}

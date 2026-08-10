@@ -35,3 +35,10 @@ export const SOURCE_CANDIDATE_HIGHLIGHT_STYLE = {
   stroke: '#1a7f37',
   fill: '#d9f2e3',
 } as const;
+
+/** Colours associated with each LinkService type */
+export const LINK_SERVICE_COLORS = {
+  GOOSE: '#2e7d32',
+  SMV: '#c62828',
+  Internal: '#1565c0',
+};
