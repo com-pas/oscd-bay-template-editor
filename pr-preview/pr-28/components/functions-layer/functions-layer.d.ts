@@ -24,6 +24,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private contextMenu?;
     private readonly FUNCTION_BOX;
     private readonly FUNCTION_COLORS;
+    private readonly FUNCTION_OVERVIEW_GAP;
     doc?: XMLDocument;
     substation?: Element;
     editCount: number;
