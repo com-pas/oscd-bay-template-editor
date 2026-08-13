@@ -77,6 +77,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     STROKE: 'currentColor',
   } as const;
 
+  private readonly FUNCTION_OVERVIEW_GAP = 12;
+
   @property({ attribute: false })
   doc?: XMLDocument;
 
@@ -487,8 +489,32 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     const selectedLink = links.find(link => link.id === this.selectedLink);
     if (!selectedLink) return nothing;
 
+    const sourceFn = this.functions.find(
+      fn => fn.element === selectedLink.sourceFunction
+    );
+    const sinkFn = this.functions.find(
+      fn => fn.element === selectedLink.sinkFunction
+    );
+
+    let overviewStyle = '';
+    if (sourceFn && sinkFn) {
+      const lowestBottom = Math.max(
+        this.getFunctionBoxGeometry(sourceFn).bottom,
+        this.getFunctionBoxGeometry(sinkFn).bottom
+      );
+      const top =
+        this.sldOffsetTop +
+        lowestBottom * this.gridSize +
+        this.FUNCTION_OVERVIEW_GAP;
+      overviewStyle = `top: ${top}px; bottom: auto;`;
+    }
+
     return html`
-      <div class="link-overview" data-testid="function-link-overview">
+      <div
+        class="link-overview"
+        data-testid="function-link-overview"
+        style="${overviewStyle}"
+      >
         <div class="link-overview-list">
           <div
             class="link-overview-columns"
@@ -932,7 +958,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
-      max-height: 180px;
+      max-height: 240px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
