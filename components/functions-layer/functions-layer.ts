@@ -9,6 +9,7 @@ import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import { OscdMenu } from '@omicronenergy/oscd-ui/menu/OscdMenu.js';
 import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
+import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import {
   getSLDAttributes,
   updateSLDAttributes,
@@ -17,6 +18,7 @@ import {
 import {
   buildFunctionLinks,
   buildSourceRefDisplay,
+  buildSourceRefKey,
   buildFunctionLinkPath,
   type FunctionLink,
   FunctionBoxGeometry,
@@ -25,6 +27,7 @@ import {
   FunctionContentPanel,
   type LNodeSelectionContext,
 } from './function-content-panel.js';
+import { buildRemoveSourceRefEdits } from '../function-link-dialog/link-edits.js';
 import {
   LINK_SERVICE_COLORS,
   SELECTED_PSR_HIGHLIGHT_STYLE,
@@ -48,6 +51,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       'oscd-menu': OscdMenu,
       'oscd-menu-item': OscdMenuItem,
       'oscd-icon': OscdIcon,
+      'oscd-filled-button': OscdFilledButton,
     };
   }
 
@@ -154,6 +158,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   @state()
   private expandedOverviewDetails = true;
+
+  @state()
+  private pendingDeleteSelectedLink = false;
+
+  @state()
+  private pendingRemovedSourceRefKeys: string[] = [];
 
   @query('svg')
   svg!: SVGSVGElement;
@@ -430,15 +440,99 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   private handleLinkClick(linkId: string) {
+    if (this.selectedLink !== linkId) {
+      this.clearPendingLinkOverviewChanges();
+    }
+
     this.selectedLink = linkId;
   }
 
   private closeLinkOverview() {
+    this.clearPendingLinkOverviewChanges();
     this.selectedLink = null;
+  }
+
+  private clearPendingLinkOverviewChanges() {
+    this.pendingDeleteSelectedLink = false;
+    this.pendingRemovedSourceRefKeys = [];
   }
 
   private toggleOverviewLinkDetails() {
     this.expandedOverviewDetails = !this.expandedOverviewDetails;
+  }
+
+  private hasPendingSourceRefDeletion(sourceRef: Element): boolean {
+    const sourceRefKey = buildSourceRefKey(sourceRef);
+    return this.pendingRemovedSourceRefKeys.includes(sourceRefKey);
+  }
+
+  private getVisibleSourceRefs(sourceRefs: Element[]): Element[] {
+    return sourceRefs.filter(
+      sourceRef => !this.hasPendingSourceRefDeletion(sourceRef)
+    );
+  }
+
+  private deleteOverviewLink() {
+    this.pendingDeleteSelectedLink = true;
+  }
+
+  private deleteOverviewSourceRef(sourceRefs: Element[], sourceRef: Element) {
+    const sourceRefKey = buildSourceRefKey(sourceRef);
+    if (this.pendingRemovedSourceRefKeys.includes(sourceRefKey)) return;
+
+    this.pendingRemovedSourceRefKeys = [
+      ...this.pendingRemovedSourceRefKeys,
+      sourceRefKey,
+    ];
+
+    const remainingSourceRefs = sourceRefs.filter(
+      sourceReference =>
+        buildSourceRefKey(sourceReference) !== sourceRefKey &&
+        !this.hasPendingSourceRefDeletion(sourceReference)
+    );
+
+    if (!remainingSourceRefs.length) {
+      this.deleteOverviewLink();
+    }
+  }
+
+  private saveLinkOverviewChanges(links: FunctionLink[]) {
+    if (!this.selectedLink) {
+      this.closeLinkOverview();
+      return;
+    }
+
+    const selectedLink = links.find(link => link.id === this.selectedLink);
+    if (!selectedLink) {
+      this.closeLinkOverview();
+      return;
+    }
+
+    const removedSourceRefsByKey = new Map<string, Element>();
+
+    selectedLink.sourceRefs.forEach(sourceRef => {
+      const sourceRefKey = buildSourceRefKey(sourceRef);
+      if (
+        this.pendingDeleteSelectedLink ||
+        this.pendingRemovedSourceRefKeys.includes(sourceRefKey)
+      ) {
+        removedSourceRefsByKey.set(sourceRefKey, sourceRef);
+      }
+    });
+
+    const edits = buildRemoveSourceRefEdits(
+      Array.from(removedSourceRefsByKey.values())
+    );
+
+    if (edits.length) {
+      this.dispatchEvent(
+        newEditEventV2(edits, {
+          title: 'Update Function Links',
+        })
+      );
+    }
+
+    this.closeLinkOverview();
   }
 
   private renderFunctionLink(link: FunctionLink) {
@@ -527,90 +621,145 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               </button></span
             >
           </div>
-          <div class="link-overview-item">
-            <div class="link-overview-item-main" data-testid="link-level-1-row">
-              <button
-                class="link-overview-source-button"
-                type="button"
-                @click=${() => this.toggleOverviewLinkDetails()}
-                title="Toggle source references"
-              >
-                <oscd-icon class="link-overview-expand-icon"
-                  >${this.expandedOverviewDetails
-                    ? 'expand_more'
-                    : 'chevron_right'}</oscd-icon
-                >
-                <span class="link-overview-title"
-                  >${selectedLink.sourceFunction.getAttribute('name')}</span
-                >
-              </button>
-
-              <span class="link-overview-service">${selectedLink.service}</span>
-
-              <span class="link-overview-description"
-                >${selectedLink.sourceFunction.getAttribute('desc') ?? ''}</span
-              >
-
-              <div class="link-overview-actions-cell" aria-label="Link actions">
-                <button
-                  class="link-overview-row-action"
-                  type="button"
-                  title="Delete link"
-                  data-testid="main-row-delete-button"
-                >
-                  <oscd-icon>delete</oscd-icon>
-                </button>
-              </div>
-            </div>
-
-            ${this.expandedOverviewDetails
-              ? html`<div
-                  class="link-overview-details"
-                  data-testid="link-details"
-                >
-                  ${selectedLink.sourceRefs.map(
-                    sourceRef => html`
-                      <div
-                        class="link-overview-detail-row"
-                        data-testid="link-level-2-row"
-                      >
-                        <span class="link-overview-detail-ref"
-                          >${buildSourceRefDisplay(sourceRef)}</span
-                        >
-                        <span class="link-overview-detail-service"
-                          >${selectedLink.service}</span
-                        >
-                        <span class="link-overview-detail-description"></span>
-                        <div
-                          class="link-overview-actions-cell"
-                          aria-label="Data reference actions"
-                        >
-                          <button
-                            class="link-overview-row-action"
-                            type="button"
-                            title="Reference info"
-                            data-testid="detail-row-info-button"
-                          >
-                            <oscd-icon>info</oscd-icon>
-                          </button>
-                          <button
-                            class="link-overview-row-action"
-                            type="button"
-                            title="Delete data reference"
-                            data-testid="detail-row-delete-button"
-                          >
-                            <oscd-icon>delete</oscd-icon>
-                          </button>
-                        </div>
-                      </div>
-                    `
-                  )}
-                </div>`
-              : nothing}
-          </div>
+          ${this.renderSelectedLinkOverviewItem(selectedLink)}
+        </div>
+        <div class="link-overview-footer">
+          <oscd-filled-button
+            data-testid="link-overview-cancel-button"
+            @click=${() => this.closeLinkOverview()}
+          >
+            Cancel
+          </oscd-filled-button>
+          <oscd-filled-button
+            data-testid="link-overview-save-button"
+            class=${classMap({
+              'link-overview-danger-button': this.pendingDeleteSelectedLink,
+            })}
+            @click=${() => this.saveLinkOverviewChanges(links)}
+          >
+            ${this.pendingDeleteSelectedLink ? 'Delete link' : 'Save'}
+          </oscd-filled-button>
         </div>
       </div>
     `;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private renderLinkOverviewDeleteWarning(selectedLink: FunctionLink) {
+    const sourceName = selectedLink.sourceFunction.getAttribute('name');
+    const sinkName = selectedLink.sinkFunction.getAttribute('name');
+
+    return html`
+      <div
+        class="link-overview-warning"
+        data-testid="link-overview-delete-warning"
+      >
+        <div class="link-overview-warning-badge">
+          <oscd-icon class="link-overview-warning-icon">warning</oscd-icon>
+        </div>
+        <p class="link-overview-warning-headline">This will delete the link</p>
+        <p class="link-overview-warning-body">
+          All source references between <strong>${sourceName}</strong> and
+          <strong>${sinkName}</strong> have been removed. Saving now will delete
+          the link entirely.
+        </p>
+      </div>
+    `;
+  }
+
+  private renderSelectedLinkOverviewItem(selectedLink: FunctionLink) {
+    if (this.pendingDeleteSelectedLink) {
+      return this.renderLinkOverviewDeleteWarning(selectedLink);
+    }
+
+    const visibleSourceRefs = this.getVisibleSourceRefs(
+      selectedLink.sourceRefs
+    );
+
+    if (!visibleSourceRefs.length) return nothing;
+
+    return html`<div class="link-overview-item">
+      <div class="link-overview-item-main" data-testid="link-level-1-row">
+        <button
+          class="link-overview-source-button"
+          type="button"
+          @click=${() => this.toggleOverviewLinkDetails()}
+          title="Toggle source references"
+        >
+          <oscd-icon class="link-overview-expand-icon"
+            >${this.expandedOverviewDetails
+              ? 'expand_more'
+              : 'chevron_right'}</oscd-icon
+          >
+          <span class="link-overview-title"
+            >${selectedLink.sourceFunction.getAttribute('name')}</span
+          >
+        </button>
+
+        <span class="link-overview-service">${selectedLink.service}</span>
+
+        <span class="link-overview-description"
+          >${selectedLink.sourceFunction.getAttribute('desc') ?? ''}</span
+        >
+
+        <div class="link-overview-actions-cell" aria-label="Link actions">
+          <button
+            class="link-overview-row-action"
+            type="button"
+            title="Delete link"
+            data-testid="main-row-delete-button"
+            @click=${() => this.deleteOverviewLink()}
+          >
+            <oscd-icon>delete</oscd-icon>
+          </button>
+        </div>
+      </div>
+
+      ${this.expandedOverviewDetails
+        ? html`<div class="link-overview-details" data-testid="link-details">
+            ${visibleSourceRefs.map(
+              sourceRef => html` <div
+                class="link-overview-detail-row"
+                data-testid="link-level-2-row"
+              >
+                <span class="link-overview-detail-ref"
+                  >${buildSourceRefDisplay(sourceRef)}</span
+                >
+                <span class="link-overview-detail-service"
+                  >${selectedLink.service}</span
+                >
+                <span class="link-overview-detail-description"></span>
+                <div
+                  class="link-overview-actions-cell"
+                  aria-label="Data reference actions"
+                >
+                  <button
+                    class="link-overview-row-action"
+                    type="button"
+                    title="Reference info"
+                    data-testid="detail-row-info-button"
+                  >
+                    <oscd-icon>info</oscd-icon>
+                  </button>
+                  <button
+                    class="link-overview-row-action"
+                    type="button"
+                    title="Delete data reference"
+                    data-testid="detail-row-delete-button"
+                    @click=${() =>
+                      this.deleteOverviewSourceRef(
+                        selectedLink.sourceRefs,
+                        sourceRef
+                      )}
+                  >
+                    <oscd-icon>delete</oscd-icon>
+                  </button>
+                </div>
+              </div>`
+            )}
+          </div>`
+        : nothing}
+    </div>`;
   }
 
   private renderFunction(fn: FunctionData, preview = false) {
@@ -980,6 +1129,15 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       flex-direction: column;
     }
 
+    .link-overview-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 14px 12px;
+      border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
+      background: #fff;
+    }
+
     .link-overview-columns {
       display: grid;
       grid-template-columns: var(--link-overview-cols);
@@ -1134,6 +1292,60 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     .link-overview-detail-description {
       color: var(--md-sys-color-on-surface-variant, #6a656f);
       min-height: 1em;
+    }
+
+    .link-overview-warning {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      padding: 28px 24px;
+    }
+
+    .link-overview-warning-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--md-sys-color-warning-container, #fbe6c8);
+      margin-bottom: 4px;
+    }
+
+    .link-overview-warning-icon {
+      color: var(--md-sys-color-on-warning-container, #b06a00);
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+
+    .link-overview-warning-headline {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-surface, #1d1b20);
+    }
+
+    .link-overview-warning-body {
+      margin: 0;
+      max-width: 520px;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--md-sys-color-on-surface-variant, #6a656f);
+    }
+
+    .link-overview-danger-button {
+      --md-filled-button-container-color: var(--md-sys-color-error, #b3261e);
+      --md-filled-button-label-text-color: var(
+        --md-sys-color-on-error,
+        #ffffff
+      );
+      --md-filled-button-hover-container-color: var(
+        --md-sys-color-error,
+        #b3261e
+      );
     }
 
     oscd-menu {

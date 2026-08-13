@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import { html } from 'lit';
 import sinon, { spy } from 'sinon';
-import { fixture, expect } from '@open-wc/testing';
+import { fixture, expect, oneEvent } from '@open-wc/testing';
 import { FunctionsLayer } from './functions-layer.js';
 import { SELECTED_PSR_HIGHLIGHT_STYLE } from '../../const.js';
 import {
@@ -177,6 +177,222 @@ describe('FunctionsLayer', () => {
             '[data-testid="link-level-2-row"]'
           ).length
         ).to.equal(0);
+      });
+
+      it('removes only one detail row when deleting a data reference', async () => {
+        const doc = element.doc!;
+        const sourceRefNs = 'http://www.iec.ch/61850/2019/SCL/6-100';
+        const inputs = doc.querySelector(
+          'Function[name="Sink"] LNode > Private[type="eIEC61850-6-100"] > *'
+        ) as Element;
+
+        const extraSourceRef = doc.createElementNS(
+          sourceRefNs,
+          'eIEC61850-6-100:SourceRef'
+        );
+        extraSourceRef.setAttribute(
+          'source',
+          'S1/V1/B1/Source/LLN01.Beh.stVal'
+        );
+        extraSourceRef.setAttribute('input', 'LLN01.Beh.stVal');
+        extraSourceRef.setAttribute('pLN', 'LLN0');
+        extraSourceRef.setAttribute('pDO', 'Beh');
+        extraSourceRef.setAttribute('pDA', 'stVal');
+        extraSourceRef.setAttribute('service', 'GOOSE');
+        inputs.appendChild(extraSourceRef);
+
+        element.editCount += 1;
+        await element.updateComplete;
+
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-2-row"]'
+          ).length
+        ).to.equal(2);
+
+        const deleteButtons = Array.from(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="detail-row-delete-button"]'
+          ) ?? []
+        ) as HTMLButtonElement[];
+        deleteButtons[0].click();
+        await element.updateComplete;
+
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-2-row"]'
+          ).length
+        ).to.equal(1);
+      });
+
+      it('discards pending deletions when cancel is clicked', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const mainDeleteButton = element.shadowRoot?.querySelector(
+          '[data-testid="main-row-delete-button"]'
+        ) as HTMLButtonElement;
+        mainDeleteButton.click();
+        await element.updateComplete;
+
+        const cancelButton = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-cancel-button"]'
+        ) as HTMLButtonElement;
+        cancelButton.click();
+        await element.updateComplete;
+
+        expect(element.shadowRoot?.querySelector('.function-link-visible')).to
+          .exist;
+        expect(
+          element.shadowRoot?.querySelector(
+            '[data-testid="function-link-overview"]'
+          )
+        ).to.not.exist;
+      });
+
+      it('shows the delete-link warning after the group-level delete removes the last reference', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const mainDeleteButton = element.shadowRoot?.querySelector(
+          '[data-testid="main-row-delete-button"]'
+        ) as HTMLButtonElement;
+        mainDeleteButton.click();
+        await element.updateComplete;
+
+        const warning = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-delete-warning"]'
+        );
+        expect(warning).to.exist;
+        expect(warning?.textContent).to.include('This will delete the link');
+        expect(warning?.textContent).to.include('Source');
+        expect(warning?.textContent).to.include('Sink');
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-1-row"]'
+          ).length
+        ).to.equal(0);
+
+        const saveButton = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-save-button"]'
+        ) as HTMLButtonElement;
+        expect(saveButton.textContent?.trim()).to.equal('Delete link');
+        expect(saveButton.classList.contains('link-overview-danger-button')).to
+          .be.true;
+      });
+
+      it('shows the delete-link warning after deleting references one at a time until none remain', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const detailDeleteButton = element.shadowRoot?.querySelector(
+          '[data-testid="detail-row-delete-button"]'
+        ) as HTMLButtonElement;
+        detailDeleteButton.click();
+        await element.updateComplete;
+
+        const warning = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-delete-warning"]'
+        );
+        expect(warning).to.exist;
+
+        const saveButton = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-save-button"]'
+        ) as HTMLButtonElement;
+        expect(saveButton.textContent?.trim()).to.equal('Delete link');
+      });
+
+      it('reverts to the normal reference list when cancel is clicked from the delete-link warning', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const mainDeleteButton = element.shadowRoot?.querySelector(
+          '[data-testid="main-row-delete-button"]'
+        ) as HTMLButtonElement;
+        mainDeleteButton.click();
+        await element.updateComplete;
+
+        const cancelButton = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-cancel-button"]'
+        ) as HTMLButtonElement;
+        cancelButton.click();
+        await element.updateComplete;
+
+        expect(
+          element.shadowRoot?.querySelector(
+            '[data-testid="function-link-overview"]'
+          )
+        ).to.not.exist;
+
+        const hitboxAgain = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitboxAgain.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        expect(
+          element.shadowRoot?.querySelector(
+            '[data-testid="link-overview-delete-warning"]'
+          )
+        ).to.not.exist;
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-1-row"]'
+          ).length
+        ).to.equal(1);
+      });
+
+      it('dispatches remove edits and closes overview when save is clicked', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const mainDeleteButton = element.shadowRoot?.querySelector(
+          '[data-testid="main-row-delete-button"]'
+        ) as HTMLButtonElement;
+        mainDeleteButton.click();
+        await element.updateComplete;
+
+        const saveButton = element.shadowRoot?.querySelector(
+          '[data-testid="link-overview-save-button"]'
+        ) as HTMLButtonElement;
+
+        const editEventPromise = oneEvent(element, 'oscd-edit-v2');
+        saveButton.click();
+        const editEvent = (await editEventPromise) as CustomEvent;
+        const edits = editEvent.detail.edit;
+        const removeEdits = Array.isArray(edits) ? edits : [edits];
+
+        expect(removeEdits.length).to.equal(1);
+        expect(removeEdits[0].node).to.exist;
+        expect((removeEdits[0].node as Element).localName).to.equal('Private');
+
+        await element.updateComplete;
+        expect(
+          element.shadowRoot?.querySelector(
+            '[data-testid="function-link-overview"]'
+          )
+        ).to.not.exist;
       });
 
       it('renders both directional links when source and sink are reversed', async () => {

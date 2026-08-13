@@ -1,6 +1,9 @@
 import { expect } from '@open-wc/testing';
 import type { EditV2 } from '@openscd/oscd-api';
-import { buildFunctionLinkEdits } from './link-edits.js';
+import {
+  buildFunctionLinkEdits,
+  buildRemoveSourceRefEdits,
+} from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
 import { docWithSinkFunction, docWithFunctionLink } from '../../testfiles.js';
 
@@ -91,5 +94,76 @@ describe('link-edits helpers', () => {
     });
 
     expect(edits).to.deep.equal([]);
+  });
+});
+
+describe('buildRemoveSourceRefEdits', () => {
+  function buildLNode(sourceRefCount: number, extraPrivateSibling = false) {
+    const sourceRefsXml = Array.from(
+      { length: sourceRefCount },
+      (_, index) => `
+        <eIEC61850-6-100:SourceRef
+          source="S1/V1/B1/Source/LLN0${index}1.Pos.stVal"
+          input="LLN01.Pos.stVal"
+          pLN="LLN0"
+          pDO="Pos"
+          pDA="stVal"
+          service="GOOSE"
+        />`
+    ).join('');
+
+    const doc = new DOMParser().parseFromString(
+      `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+        xmlns:eIEC61850-6-100="${eTr6100Ns}">
+        <Function name="Sink">
+          <LNode lnClass="CSWI" lnInst="1">
+            <Private type="${eTr6100PrivType}">
+              ${extraPrivateSibling ? '<Other xmlns="urn:example" />' : ''}
+              <eIEC61850-6-100:LNodeInputs>${sourceRefsXml}</eIEC61850-6-100:LNodeInputs>
+            </Private>
+          </LNode>
+        </Function>
+      </SCL>`,
+      'application/xml'
+    );
+
+    const lNode = doc.querySelector('LNode')!;
+    const privateElement = lNode.querySelector('Private')!;
+    const lNodeInputsElement = Array.from(privateElement.children).find(
+      child => child.localName === 'LNodeInputs'
+    )!;
+    const sourceRefs = Array.from(lNodeInputsElement.children).filter(
+      child => child.localName === 'SourceRef'
+    );
+
+    return { privateElement, lNodeInputsElement, sourceRefs };
+  }
+
+  it('removes only the targeted SourceRef when siblings remain', () => {
+    const { sourceRefs } = buildLNode(2);
+
+    const edits = buildRemoveSourceRefEdits([sourceRefs[0]]);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(sourceRefs[0]);
+  });
+
+  it('removes the Private element when every SourceRef and the LNodeInputs would become empty', () => {
+    const { privateElement, sourceRefs } = buildLNode(2);
+
+    const edits = buildRemoveSourceRefEdits(sourceRefs);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(privateElement);
+  });
+
+  it('removes only the LNodeInputs element when the Private has other children', () => {
+    const { lNodeInputsElement, sourceRefs } = buildLNode(1, true);
+
+    const edits = buildRemoveSourceRefEdits(sourceRefs);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(lNodeInputsElement);
   });
 });
