@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import type { EditV2 } from '@openscd/oscd-api';
 import { buildFunctionLinkEdits } from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
+import { docWithSinkFunction, docWithFunctionLink } from '../../testfiles.js';
 
 function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
   return 'node' in edit;
@@ -10,18 +11,7 @@ function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
 describe('link-edits helpers', () => {
   it('creates Private, LNodeInputs and SourceRef edits for a new link', () => {
     const doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B1">
-              <Function name="Sink">
-                <LNode lnClass="CSWI" lnInst="1" />
-              </Function>
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-      </SCL>`,
+      docWithSinkFunction,
       'application/xml'
     );
 
@@ -73,27 +63,7 @@ describe('link-edits helpers', () => {
 
   it('does not create edits for duplicate source/service combinations', () => {
     const doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B1">
-              <Function name="Sink">
-                <LNode lnClass="CSWI" lnInst="1">
-                  <Private type="eIEC61850-6-100">
-                    <eIEC61850-6-100:LNodeInputs xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100">
-                      <eIEC61850-6-100:SourceRef
-                        source="S1/V1/B1/Source/TCTR1.Amp.instMag.f"
-                        service="GOOSE"
-                      />
-                    </eIEC61850-6-100:LNodeInputs>
-                  </Private>
-                </LNode>
-              </Function>
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-      </SCL>`,
+      docWithFunctionLink,
       'application/xml'
     );
 

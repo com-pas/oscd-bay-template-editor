@@ -322,7 +322,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
 
   static styles = css`
     oscd-dialog {
-      max-height: min(90vh, 775px);
+      max-height: min(90vh, 800px);
       width: 600px;
     }
 
@@ -454,21 +454,6 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
     .selection-summary {
       color: var(--md-sys-color-on-surface-variant, #6a656f);
       font-size: 13px;
-    }
-
-    @media (max-width: 680px) {
-      .content {
-        min-width: 0;
-      }
-
-      .filters-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .service-select-wrapper {
-        min-width: 0;
-      }
     }
   `;
 }

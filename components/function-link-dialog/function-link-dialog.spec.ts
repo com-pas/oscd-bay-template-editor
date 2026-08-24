@@ -3,6 +3,7 @@ import { html } from 'lit';
 import { fixture, expect, waitUntil } from '@open-wc/testing';
 import { spy } from 'sinon';
 import { FunctionLinkDialog } from './function-link-dialog.js';
+import { docWithSubFunctionLNode } from '../../testfiles.js';
 
 if (!customElements.get('function-link-dialog')) {
   customElements.define('function-link-dialog', FunctionLinkDialog);
@@ -15,44 +16,7 @@ describe('FunctionLinkDialog', () => {
 
   beforeEach(async () => {
     doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B2">
-              <Function name="TEST2">
-                <LNode lnClass="XSWI" lnInst="1" lnType="XSWI_TYPE"/>
-                <SubFunction name="ESF1">
-                  <LNode lnClass="TCTR" lnInst="1" lnType="TCTR_TYPE"/>
-                </SubFunction>
-              </Function>
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-        <DataTypeTemplates>
-          <LNodeType id="XSWI_TYPE" lnClass="XSWI">
-            <DO name="Pos" type="DOT_POS"/>
-            <DO name="Loc" type="DOT_LOC"/>
-          </LNodeType>
-          <LNodeType id="TCTR_TYPE" lnClass="TCTR">
-            <DO name="Amp" type="DOT_AMP"/>
-          </LNodeType>
-          <DOType id="DOT_POS" cdc="DPC">
-            <DA name="stVal" bType="Enum" fc="ST"/>
-            <DA name="q" bType="Quality" fc="ST"/>
-          </DOType>
-          <DOType id="DOT_LOC" cdc="SPC">
-            <DA name="stVal" bType="BOOLEAN" fc="ST"/>
-          </DOType>
-          <DOType id="DOT_AMP" cdc="MV">
-            <SDO name="instMag" type="DOT_MAG"/>
-            <DA name="q" bType="Quality" fc="MX"/>
-          </DOType>
-          <DOType id="DOT_MAG" cdc="MV">
-            <DA name="f" bType="FLOAT32" fc="MX"/>
-          </DOType>
-        </DataTypeTemplates>
-      </SCL>`,
+      docWithSubFunctionLNode,
       'application/xml'
     );
     sourceFunction = doc.querySelector('Function[name="TEST2"]')!;

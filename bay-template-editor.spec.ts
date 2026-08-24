@@ -10,7 +10,10 @@ import {
   docWithBay,
   docWithBusBarBay,
   docWithElements,
-} from './bay-template-editor.testfiles.js';
+  docForFunctionLinkFlow,
+  docWithAllElements,
+  docWithSinkFunction,
+} from './testfiles.js';
 import { eqTypes, SubfunctionData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
@@ -965,18 +968,7 @@ describe('Bay Template Editor Plugin', () => {
   describe('function link flow', () => {
     it('collects Function and EqFunction source candidates in same bay from selected sink LNode', async () => {
       const doc = new DOMParser().parseFromString(
-        `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-          <Substation name="S1">
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Function name="F1"><LNode lnClass="LLN0" /></Function>
-                <Function name="F2" />
-                <EqFunction name="EF1" />
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+        docForFunctionLinkFlow,
         'application/xml'
       );
       element.doc = doc;
@@ -1002,19 +994,7 @@ describe('Bay Template Editor Plugin', () => {
 
     it('includes EqFunction nested under ConductingEquipment in source candidates', async () => {
       const doc = new DOMParser().parseFromString(
-        `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-          <Substation name="S1">
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Function name="F1"><LNode lnClass="LLN0" /></Function>
-                <ConductingEquipment name="Q1">
-                  <EqFunction name="Q1F" />
-                </ConductingEquipment>
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+        docWithAllElements,
         'application/xml'
       );
       element.doc = doc;
@@ -1033,22 +1013,12 @@ describe('Bay Template Editor Plugin', () => {
         (element as any).linkSourceCandidates.map((fn: Element) =>
           fn.getAttribute('name')
         )
-      ).to.deep.equal(['F1', 'Q1F']);
+      ).to.deep.equal(['F1', 'F2', 'EF1', 'Q1F']);
     });
 
     it('opens function link dialog after selecting an applicable source function', async () => {
       const doc = new DOMParser().parseFromString(
-        `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-          <Substation name="S1">
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Function name="F1"><LNode lnClass="LLN0" /></Function>
-                <Function name="F2" />
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+        docWithAllElements,
         'application/xml'
       );
       element.doc = doc;
@@ -1081,18 +1051,7 @@ describe('Bay Template Editor Plugin', () => {
 
     it('creates SourceRef link with service GOOSE and expected attributes', async () => {
       const doc = new DOMParser().parseFromString(
-        `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-          <Substation name="S1">
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Function name="Sink">
-                  <LNode lnClass="CSWI" lnInst="1" />
-                </Function>
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+        docWithSinkFunction,
         'application/xml'
       );
       element.doc = doc;
@@ -1160,18 +1119,7 @@ describe('Bay Template Editor Plugin', () => {
 
     it('does not create a link when function-link dialog is closed', async () => {
       const doc = new DOMParser().parseFromString(
-        `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-          <Substation name="S1">
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Function name="Sink">
-                  <LNode lnClass="CSWI" lnInst="1" />
-                </Function>
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+        docWithSinkFunction,
         'application/xml'
       );
       element.doc = doc;

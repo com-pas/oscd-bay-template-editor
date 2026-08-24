@@ -6,6 +6,7 @@ import {
   CreateSubfunctionDialog,
   CreateSubfunctionDialogStep,
 } from './create-subfunction-dialog.js';
+import { emptyDoc } from '../../testfiles.js';
 
 if (!customElements.get('add-subfunction-dialog')) {
   customElements.define('add-subfunction-dialog', CreateSubfunctionDialog);
@@ -16,10 +17,7 @@ describe('CreateSubfunctionDialog', () => {
   let doc: XMLDocument;
 
   beforeEach(async () => {
-    doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?><SCL></SCL>`,
-      'application/xml'
-    );
+    doc = new DOMParser().parseFromString(emptyDoc, 'application/xml');
     element = await fixture(
       html`<add-subfunction-dialog></add-subfunction-dialog>`
     );

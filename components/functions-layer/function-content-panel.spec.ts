@@ -7,7 +7,8 @@ import { FunctionContentPanel } from './function-content-panel.js';
 import {
   docWithBayAndFunctions,
   docWithNestedFunctions,
-} from './functions-layer-testfiles.js';
+  docWithSubFunctionLNode,
+} from '../../testfiles.js';
 
 if (!customElements.get('function-content-panel')) {
   customElements.define('function-content-panel', FunctionContentPanel);
@@ -211,20 +212,7 @@ describe('FunctionContentPanel', () => {
 
   it('supports create function link from subfunction LNode', async () => {
     const doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B1">
-              <Function name="F1">
-                <SubFunction name="SF1">
-                  <LNode id="1" lnClass="CSWI" desc="Switch Controller"></LNode>
-                </SubFunction>
-              </Function>
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-      </SCL>`,
+      docWithSubFunctionLNode,
       'text/xml'
     );
 
@@ -247,27 +235,13 @@ describe('FunctionContentPanel', () => {
 
     expect(startSpy.calledOnce).to.be.true;
     const { detail } = startSpy.firstCall.args[0];
-    expect(detail.subFunctionElement.getAttribute('name')).to.equal('SF1');
-    expect(detail.lNodeElement.getAttribute('lnClass')).to.equal('CSWI');
+    expect(detail.subFunctionElement.getAttribute('name')).to.equal('ESF1');
+    expect(detail.lNodeElement.getAttribute('lnClass')).to.equal('TCTR');
   });
 
   it('resets link mode UI when a different LNode is selected', async () => {
     const doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B1">
-              <Function name="F1">
-                <SubFunction name="SF1">
-                  <LNode id="1" lnClass="CSWI" desc="Switch Controller"></LNode>
-                </SubFunction>
-                <LNode id="2" lnClass="LLN0" desc="Logical Node 1"></LNode>
-              </Function>
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-      </SCL>`,
+      docWithSubFunctionLNode,
       'text/xml'
     );
 

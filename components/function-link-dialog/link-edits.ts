@@ -64,12 +64,12 @@ function buildSourceRefs(
   namespacePrefix: string,
   existingKeys: Set<string>
 ): Element[] {
-  return selectedReferences
-    .map(selectedReference => {
-      const attrs = buildSourceRefAttributes(selectedReference);
-      const dedupeKey = `${attrs.source}|${service}`;
-      if (existingKeys.has(dedupeKey)) return null;
+  const sourceRefs: Element[] = [];
 
+  for (const selectedReference of selectedReferences) {
+    const attrs = buildSourceRefAttributes(selectedReference);
+    const dedupeKey = `${attrs.source}|${service}`;
+    if (!existingKeys.has(dedupeKey)) {
       const sourceRef = doc.createElementNS(
         eTr6100Ns,
         `${namespacePrefix}:SourceRef`
@@ -81,9 +81,11 @@ function buildSourceRefs(
       sourceRef.setAttribute('pDA', attrs.pDA);
       sourceRef.setAttribute('service', service);
       existingKeys.add(dedupeKey);
-      return sourceRef;
-    })
-    .filter((sourceRef): sourceRef is Element => sourceRef !== null);
+      sourceRefs.push(sourceRef);
+    }
+  }
+
+  return sourceRefs;
 }
 
 function buildEditsForNewSourceRefs(

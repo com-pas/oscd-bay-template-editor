@@ -20,13 +20,13 @@ import {
   uniqueLNodeTypes,
 } from './util.js';
 
-import { docWithBayAndFunctions, lnodeTypeLibrary } from './util-testfiles.js';
+import { docWithBayAndEqFunctions, lnodeTypeLibrary } from './testfiles.js';
 
 describe('utils', () => {
   let doc: XMLDocument;
   beforeEach(() => {
     doc = new DOMParser().parseFromString(
-      docWithBayAndFunctions,
+      docWithBayAndEqFunctions,
       'application/xml'
     );
   });
