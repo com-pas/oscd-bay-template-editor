@@ -36,7 +36,7 @@
     "build:preview": "npm run compile && rollup -c rollup.preview.config.js",
     "start:build": "web-dev-server --root-dir dist --app-index index.html --open",
     "analyze": "cem analyze --litelement",
-    "start": "npm run compile && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start": "rimraf dist && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
     "deploy": "npm run build && gh-pages --dist 'dist'"
   },
   "dependencies": {
@@ -45,7 +45,7 @@
     "@omicronenergy/oscd-background-editv1": "^0.0.6",
     "@omicronenergy/oscd-background-wizard-events": "^0.0.1",
     "@omicronenergy/oscd-editor-sld": "1.0.0",
-    "@omicronenergy/oscd-editor-source": "^0.0.3",
+    "@omicronenergy/oscd-editor-source": "0.0.5",
     "@omicronenergy/oscd-menu-open": "^0.0.6",
     "@omicronenergy/oscd-menu-save": "^0.0.2",
     "@omicronenergy/oscd-scl-dialogs": "^0.0.12",
