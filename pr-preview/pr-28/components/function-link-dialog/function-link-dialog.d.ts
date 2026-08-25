@@ -2,7 +2,6 @@ import { LitElement } from 'lit';
 import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdFilledTextField } from '@omicronenergy/oscd-ui/textfield/OscdFilledTextField.js';
-import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
@@ -20,7 +19,6 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
         'oscd-dialog': typeof OscdDialog;
         'oscd-filled-button': typeof OscdFilledButton;
         'oscd-filled-text-field': typeof OscdFilledTextField;
-        'oscd-divider': typeof OscdDivider;
         'oscd-icon': typeof OscdIcon;
         'oscd-icon-button': typeof OscdIconButton;
         'oscd-list': typeof OscdList;
