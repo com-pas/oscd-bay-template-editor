@@ -10447,7 +10447,7 @@ class CS extends(St(mS)){}function hS(e,t){return Array.from(e.children).filter(
                   `:null}
             </oscd-filled-text-field>
 
-            <label
+            <div
               class="service-select-wrapper"
               data-testid="service-select-wrapper"
             >
@@ -10456,7 +10456,7 @@ class CS extends(St(mS)){}function hS(e,t){return Array.from(e.children).filter(
                 .value=${this.selectedService}
                 @change=${this.handleServiceChange}
               >
-                <oscd-select-option value="" disabled selected
+                <oscd-select-option value="" disabled
                   >Select service</oscd-select-option
                 >
                 <oscd-select-option value="GOOSE">GOOSE</oscd-select-option>
@@ -10465,7 +10465,7 @@ class CS extends(St(mS)){}function hS(e,t){return Array.from(e.children).filter(
                   >Internal</oscd-select-option
                 >
               </oscd-filled-select>
-            </label>
+            </div>
           </div>
 
           <div class="reference-list-shell">${this.renderReferenceList()}</div>
