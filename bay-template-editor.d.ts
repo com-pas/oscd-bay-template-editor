@@ -60,6 +60,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private linkSourceCandidates;
     private selectingLinkSource;
     private lnodeLibrary;
+    private pendingLinkContext;
     private readonly onResize;
     private readonly eqFunctionHostTags;
     private resolveFunctionTags;
@@ -74,6 +75,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private handleCreateFunctionLink;
     private handleSelectSourceFunction;
     private resetLinkingState;
+    private handleConnectFunctionLink;
     private getElementFromProcessPath;
     get inAction(): boolean;
     handleSldSelected: (event: CustomEvent<{
