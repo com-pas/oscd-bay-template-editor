@@ -13,6 +13,7 @@ import {
   docForFunctionLinkFlow,
   docWithAllElements,
   docWithSinkFunction,
+  docWithBayAndFunctions,
 } from './testfiles.js';
 import { eqTypes, SubfunctionData } from './util.js';
 
@@ -683,20 +684,9 @@ describe('Bay Template Editor Plugin', () => {
   });
 
   describe('function links toggle', () => {
-    const docWithFunctions = `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
-        <Substation name="S1">
-          <VoltageLevel name="V1">
-            <Bay name="B1">
-              <Function name="F1" />
-            </Bay>
-          </VoltageLevel>
-        </Substation>
-      </SCL>`;
-
     it('renders function links toggle when functions exist', async () => {
       const doc = new DOMParser().parseFromString(
-        docWithFunctions,
+        docWithBayAndFunctions,
         'application/xml'
       );
       element.doc = doc;
@@ -708,7 +698,7 @@ describe('Bay Template Editor Plugin', () => {
 
     it('toggles showFunctionLinks and passes it to functions-layer', async () => {
       const doc = new DOMParser().parseFromString(
-        docWithFunctions,
+        docWithBayAndFunctions,
         'application/xml'
       );
       element.doc = doc;

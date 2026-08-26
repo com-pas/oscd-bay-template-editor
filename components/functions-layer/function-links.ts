@@ -1,4 +1,4 @@
-import { getProcessPath } from '../../util.js';
+import { eTr6100Ns, getProcessPath } from '../../util.js';
 import type { LinkService } from '../function-link-dialog/object-references.js';
 
 export type FunctionLink = {
@@ -26,44 +26,17 @@ function isLinkService(service: string | null): service is LinkService {
   return service === 'GOOSE' || service === 'SMV' || service === 'Internal';
 }
 
-function getElementByProcessPath(doc: Document, path: string): Element | null {
-  const parts = path.split('/').filter(Boolean);
-  if (!parts.length) return null;
-
-  let current: Element | null = doc.querySelector(
-    `:root > Substation[name="${parts[0]}"]`
-  );
-
-  for (let index = 1; index < parts.length && current; index += 1) {
-    const part = parts[index];
-    current =
-      Array.from(current.children).find(
-        child => child.getAttribute('name') === part
-      ) ?? null;
+function getFunctionByPath(doc: Document, path: string): Element | null {
+  const segments = path.split('/');
+  let current: Element = doc.documentElement;
+  for (const seg of segments) {
+    const match = Array.from(current.children).find(
+      el => el.getAttribute('name') === seg
+    );
+    if (!match) return null;
+    current = match;
   }
-
-  return current;
-}
-
-function getFunctionAncestor(element: Element | null): Element | null {
-  let current = element;
-
-  while (current) {
-    if (
-      current.localName === 'Function' ||
-      current.localName === 'EqFunction'
-    ) {
-      return current;
-    }
-
-    current = current.parentElement;
-  }
-
-  return null;
-}
-
-function getFunctionPath(element: Element): string {
-  return getProcessPath(element);
+  return current.closest('EqFunction, Function');
 }
 
 function getSourceFunctionPath(sourceRef: Element): string | null {
@@ -86,10 +59,7 @@ export function buildFunctionLinks(
   if (!scope || !doc) return [];
 
   const sourceRefs = Array.from(scope.querySelectorAll('LNode')).flatMap(
-    lnode =>
-      Array.from(lnode.querySelectorAll('*')).filter(
-        child => child.localName === 'SourceRef'
-      )
+    lnode => Array.from(lnode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef'))
   );
 
   const directionalLinks = new Map<string, FunctionLink>();
@@ -98,21 +68,21 @@ export function buildFunctionLinks(
     const sinkLNode = sourceRef.closest('LNode');
     if (!sinkLNode) return;
 
-    const sinkFunction = getFunctionAncestor(sinkLNode);
+    const sinkFunction = sinkLNode.closest('EqFunction, Function');
     if (!sinkFunction) return;
 
     const sourcePath = getSourceFunctionPath(sourceRef);
     if (!sourcePath) return;
 
-    const sourceElement = getElementByProcessPath(doc, sourcePath);
-    const sourceFunction = getFunctionAncestor(sourceElement);
+    const sourceFunction = getFunctionByPath(doc, sourcePath);
     if (!sourceFunction) return;
 
     const service = sourceRef.getAttribute('service');
     if (!isLinkService(service)) return;
 
-    const sourceFunctionPath = getFunctionPath(sourceFunction);
-    const sinkFunctionPath = getFunctionPath(sinkFunction);
+    const sourceFunctionPath = getProcessPath(sourceFunction);
+    const sinkFunctionPath = getProcessPath(sinkFunction);
+
     const directionalKey = `${sourceFunctionPath}|${sinkFunctionPath}|${service}`;
     const existing = directionalLinks.get(directionalKey);
 
@@ -136,8 +106,8 @@ export function buildFunctionLinks(
 
   const groupedByPair = new Map<string, FunctionLink[]>();
   links.forEach(link => {
-    const sourcePath = getFunctionPath(link.sourceFunction);
-    const sinkPath = getFunctionPath(link.sinkFunction);
+    const sourcePath = getProcessPath(link.sourceFunction);
+    const sinkPath = getProcessPath(link.sinkFunction);
     const pairKey = [sourcePath, sinkPath].sort().join('|');
     const group = groupedByPair.get(pairKey) ?? [];
     group.push(link);
@@ -174,8 +144,9 @@ export function buildFunctionLinkPath(
   } = sourceBox;
   const { x: sinkX, y: sinkY, left: sinkLeft, right: sinkRight } = sinkBox;
 
+  // When sink and sourec Functions are the same, draw a loop
   if (sourceX === sinkX && sourceY === sinkY) {
-    const loopHeight = 1.8 + Math.abs(laneOffset) * 0.25;
+    const loopHeight = 1 + Math.abs(laneOffset) * 0.25;
     const loopWidth = Math.max(sourceWidth * 0.85, 2.5);
     const startY = sourceY + laneOffset;
     const topY = sourceTop - loopHeight + laneOffset;

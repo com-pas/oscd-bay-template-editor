@@ -77,8 +77,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     STROKE: 'currentColor',
   } as const;
 
-  private readonly FUNCTION_OVERVIEW_GAP = 12;
-
   @property({ attribute: false })
   doc?: XMLDocument;
 
@@ -500,10 +498,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
         this.getFunctionBoxGeometry(sourceFn).bottom,
         this.getFunctionBoxGeometry(sinkFn).bottom
       );
-      const top =
-        this.sldOffsetTop +
-        lowestBottom * this.gridSize +
-        this.FUNCTION_OVERVIEW_GAP;
+      const top = this.sldOffsetTop + lowestBottom * this.gridSize + 12;
       overviewStyle = `top: ${top}px; bottom: auto;`;
     }
 

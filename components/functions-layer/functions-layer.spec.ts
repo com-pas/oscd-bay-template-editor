@@ -10,6 +10,7 @@ import {
   docWithFunctionWithoutBay,
   docWithoutDimensions,
   docWithLongName,
+  docWithSourceRef,
 } from '../../testfiles.js';
 
 if (!customElements.get('functions-layer')) {
@@ -99,48 +100,7 @@ describe('FunctionsLayer', () => {
     describe('link rendering', () => {
       beforeEach(async () => {
         const doc = new DOMParser().parseFromString(
-          `<?xml version="1.0" encoding="UTF-8"?>
-        <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
-          xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100"
-          xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
-          <Substation name="S1">
-            <Private type="OpenSCD-SLD-Layout">
-              <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
-            </Private>
-            <VoltageLevel name="V1">
-              <Bay name="B1">
-                <Private type="OpenSCD-SLD-Layout">
-                  <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
-                </Private>
-                <Function name="Source">
-                  <Private type="OpenSCD-SLD-Layout">
-                    <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
-                  </Private>
-                  <LNode lnClass="LLN0" lnInst="1" />
-                </Function>
-                <Function name="Sink">
-                  <Private type="OpenSCD-SLD-Layout">
-                    <eosld:SLDAttributes eosld:x="18" eosld:y="13" />
-                  </Private>
-                  <LNode lnClass="CSWI" lnInst="1">
-                    <Private type="eIEC61850-6-100">
-                      <eIEC61850-6-100:LNodeInputs>
-                        <eIEC61850-6-100:SourceRef
-                          source="S1/V1/B1/Source/LLN01.Pos.stVal"
-                          input="LLN01.Pos.stVal"
-                          pLN="LLN0"
-                          pDO="Pos"
-                          pDA="stVal"
-                          service="GOOSE"
-                        />
-                      </eIEC61850-6-100:LNodeInputs>
-                    </Private>
-                  </LNode>
-                </Function>
-              </Bay>
-            </VoltageLevel>
-          </Substation>
-        </SCL>`,
+          docWithSourceRef,
           'application/xml'
         );
         element.doc = doc;
