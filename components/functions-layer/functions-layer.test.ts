@@ -3,7 +3,7 @@ import { fixture, html } from '@open-wc/testing';
 import { visualDiff } from '@web/test-runner-visual-regression';
 
 import { FunctionsLayer } from './functions-layer.js';
-import { docWithBayAndFunctions } from './functions-layer-testfiles.js';
+import { docWithBayAndFunctions } from '../../testfiles.js';
 
 window.customElements.define('functions-layer', FunctionsLayer);
 

@@ -2,6 +2,7 @@
 import { fixture, expect, html } from '@open-wc/testing';
 import sinon from 'sinon';
 import { LNodePicker } from './lnode-picker.js';
+import { lnodeTypeLibrary } from '../../testfiles.js';
 
 if (!customElements.get('lnode-picker')) {
   customElements.define('lnode-picker', LNodePicker);
@@ -13,15 +14,7 @@ describe('LNodePicker', () => {
 
   beforeEach(async () => {
     library = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-            <SCL>
-                <DataTypeTemplates>
-                    <LNodeType lnClass="TVTR" desc="Voltage Transformer" id="TVTR$oscd$_a0be960c8dfd3708" />
-                    <LNodeType lnClass="TCTR" desc="Current Transformer" id="TCTR$oscd$_defaa767081f017d" />
-                    <LNodeType lnClass="XSWI" desc="Switch" id="XSWI$oscd$_74c3c9de7d5cdfad" />
-                    <LNodeType lnClass="XCBR" desc="Circuit Breaker" id="XCBR$oscd$_b8418061c0b79b58" />
-                </DataTypeTemplates>
-            </SCL>`,
+      lnodeTypeLibrary,
       'application/xml'
     );
     element = await fixture(

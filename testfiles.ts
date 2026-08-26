@@ -1,4 +1,179 @@
+export const emptyDoc = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+</SCL>`;
+
+export const docWithSubstation = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+  <Substation name="S1" />
+</SCL>`;
+
+export const docWithVoltageLevel = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+  <Substation name="S1">
+    <VoltageLevel name="V1" />
+  </Substation>
+</SCL>`;
+
+export const docWithBay = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+  <Substation name="S1">
+    <VoltageLevel name="V1">
+      <Bay name="B1" />
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithBusBarBay = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+    <VoltageLevel name="110kV">
+      <Bay name="BB1">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="2" eosld:y="2" eosld:w="20" eosld:h="3"/>
+          <Section name="BUS1" eosld:bus="true" eosld:x="2" eosld:y="2"
+                   eosld:w="18" eosld:h="2"/>
+        </Private>
+      </Bay>
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithElements = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <ConductingEquipment name="CE1" type="CBR" />
+              <ConductingEquipment name="CE2" type="DIS" />
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+      </SCL>`;
+
+export const docWithAllElements = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+	xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+	<Substation name="S1">
+		<VoltageLevel name="V1">
+			<Bay name="B1">
+				<Function name="F1">
+					<LNode lnClass="LLN0" />
+				</Function>
+				<Function name="F2" />
+				<EqFunction name="EF1" />
+				<ConductingEquipment name="Q1" type="CBR">
+					<EqFunction name="Q1F" />
+				</ConductingEquipment>
+				<PowerTransformer name="PTR1">
+					<TransformerWinding name="W1" type="PTW" />
+				</PowerTransformer>
+			</Bay>
+			<Bay name="BB1">
+				<Private type="OpenSCD-SLD-Layout">
+					<eosld:SLDAttributes eosld:x="2" eosld:y="2" eosld:w="20" eosld:h="3" />
+					<Section name="BUS1" eosld:bus="true" eosld:x="2" eosld:y="2" eosld:w="18" eosld:h="2" />
+				</Private>
+			</Bay>
+		</VoltageLevel>
+	</Substation>
+</SCL>`;
+
 export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+    <Private type="OpenSCD-SLD-Layout">
+      <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
+    </Private>
+    <VoltageLevel name="V1">
+      <Bay name="B1">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
+        </Private>
+        <Function name="F1">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+          </Private>
+        </Function>
+        <Function name="F2">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="15" eosld:y="12" />
+          </Private>
+        </Function>
+        <ConductingEquipment name="CE1" />
+      </Bay>
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithoutFunctions = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+    <Private type="OpenSCD-SLD-Layout">
+      <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
+    </Private>
+    <VoltageLevel name="V1">
+      <Bay name="B1">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
+        </Private>
+      </Bay>
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithFunctionWithoutBay = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+    <Private type="OpenSCD-SLD-Layout">
+      <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
+    </Private>
+    <VoltageLevel name="V1">
+      <Function name="F1">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+        </Private>
+      </Function>
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithNestedFunctions = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+    <Private type="OpenSCD-SLD-Layout">
+      <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
+    </Private>
+    <VoltageLevel name="V1">
+      <Bay name="B1">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
+        </Private>
+        <Function name="F1">
+          <Private type="OpenSCD-SLD-Layout">
+            <eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+          </Private>
+          <SubFunction name="SF1">
+            <Private type="OpenSCD-SLD-Layout">
+              <eosld:SLDAttributes eosld:x="12" eosld:y="12" />
+            </Private>
+          </SubFunction>
+          <LNode id="LN1" lnClass="LLN0" desc="Logical Node 1">
+            <Private type="OpenSCD-SLD-Layout">
+              <eosld:SLDAttributes eosld:x="14" eosld:y="14" />
+            </Private>
+          </LNode>
+        </Function>
+      </Bay>
+    </VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithBayAndEqFunctions = `<?xml version="1.0" encoding="UTF-8"?>
 <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
   xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0"
   xmlns:eTr_6-100="http://www.iec.ch/61850/2019/SCL/6-100" version="2007" revision="B">
@@ -12,9 +187,9 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
           <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
         </Private>
         <ConductingEquipment type="CAB" name="CAB1">
-					<Private xmlns="" type="OpenSCD-SLD-Layout">
-						<eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:lx="6" eosld:ly="6"/>
-					</Private>
+			<Private xmlns="" type="OpenSCD-SLD-Layout">
+				<eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:lx="6" eosld:ly="6"/>
+			</Private>
           <EqFunction name="CABFunction">
             <Private type="OpenSCD-SLD-Layout">
               <eosld:SLDAttributes eosld:x="8" eosld:y="13"/>
@@ -55,6 +230,126 @@ export const docWithBayAndFunctions = `<?xml version="1.0" encoding="UTF-8"?>
     </VoltageLevel>
   </Substation>
 </SCL>`;
+
+export const docForFunctionLinkFlow = `<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="F1"><LNode lnClass="LLN0" /></Function>
+                <Function name="F2" />
+                <EqFunction name="EF1" />
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`;
+
+export const docWithoutDimensions = `<?xml version="1.0" encoding="UTF-8"?>
+		<SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+		  <Substation name="S1">
+			<VoltageLevel name="V1">
+			  <Bay name="B1">
+				<Function name="F1" />
+			  </Bay>
+			</VoltageLevel>
+		  </Substation>
+		</SCL>`;
+
+export const docWithLongName = `<?xml version="1.0" encoding="UTF-8"?>
+<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0" version="2007" revision="B">
+  <Substation name="S1">
+	<Private type="OpenSCD-SLD-Layout">
+	  <eosld:SLDAttributes eosld:w="50" eosld:h="25" />
+	</Private>
+	<VoltageLevel name="V1">
+	  <Bay name="B1">
+		<Private type="OpenSCD-SLD-Layout">
+		  <eosld:SLDAttributes eosld:x="5" eosld:y="5" eosld:w="20" eosld:h="15" />
+		</Private>
+		<Function name="VeryLongFunctionName">
+		  <Private type="OpenSCD-SLD-Layout">
+			<eosld:SLDAttributes eosld:x="10" eosld:y="10" />
+		  </Private>
+		</Function>
+	  </Bay>
+	</VoltageLevel>
+  </Substation>
+</SCL>`;
+
+export const docWithSubFunctionLNode = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B2">
+              <Function name="TEST2">
+                <LNode lnClass="XSWI" lnInst="1" lnType="XSWI_TYPE"/>
+                <SubFunction name="ESF1">
+                  <LNode lnClass="TCTR" lnInst="1" lnType="TCTR_TYPE"/>
+                </SubFunction>
+              </Function>
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+        <DataTypeTemplates>
+          <LNodeType id="XSWI_TYPE" lnClass="XSWI">
+            <DO name="Pos" type="DOT_POS"/>
+            <DO name="Loc" type="DOT_LOC"/>
+          </LNodeType>
+          <LNodeType id="TCTR_TYPE" lnClass="TCTR">
+            <DO name="Amp" type="DOT_AMP"/>
+          </LNodeType>
+          <DOType id="DOT_POS" cdc="DPC">
+            <DA name="stVal" bType="Enum" fc="ST"/>
+            <DA name="q" bType="Quality" fc="ST"/>
+          </DOType>
+          <DOType id="DOT_LOC" cdc="SPC">
+            <DA name="stVal" bType="BOOLEAN" fc="ST"/>
+          </DOType>
+          <DOType id="DOT_AMP" cdc="MV">
+            <SDO name="instMag" type="DOT_MAG"/>
+            <DA name="q" bType="Quality" fc="MX"/>
+          </DOType>
+          <DOType id="DOT_MAG" cdc="MV">
+            <DA name="f" bType="FLOAT32" fc="MX"/>
+          </DOType>
+        </DataTypeTemplates>
+      </SCL>`;
+
+export const docWithSinkFunction = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <Function name="Sink">
+                <LNode lnClass="CSWI" lnInst="1" />
+              </Function>
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+      </SCL>`;
+
+export const docWithFunctionLink = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <Function name="Sink">
+                <LNode lnClass="CSWI" lnInst="1">
+                  <Private type="eIEC61850-6-100">
+                    <eIEC61850-6-100:LNodeInputs xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100">
+                      <eIEC61850-6-100:SourceRef
+                        source="S1/V1/B1/Source/TCTR1.Amp.instMag.f"
+                        service="GOOSE"
+                      />
+                    </eIEC61850-6-100:LNodeInputs>
+                  </Private>
+                </LNode>
+              </Function>
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+      </SCL>`;
 
 export const lnodeTypeLibrary = `<SCL xmlns="http://www.iec.ch/61850/2003/SCL" xmlns:compas="https://www.lfenergy.org/compas/extension/v1" version="2007" revision="B" release="4">
 	<Private type="compas_scl">

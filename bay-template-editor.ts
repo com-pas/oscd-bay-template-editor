@@ -5,6 +5,7 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
+import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -32,14 +33,16 @@ import {
   highlightBusbars,
   clearBusbarHighlights,
   eTr6100Ns,
-  getProcessPath,
   createLNodeFromType,
   uniqueLNodeTypes,
+  eTr6100PrivType,
   type SubfunctionData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
+import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
   PSR_TAGS,
@@ -150,6 +153,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @state()
   private lnodeLibrary: Document | null = null;
+
+  @state()
+  private pendingLinkContext: LNodeSelectionContext | null = null;
 
   private readonly onResize = () => this.calculateSldBounds();
 
@@ -289,6 +295,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     const bay = context.functionElement.closest('Bay');
     if (!bay) return;
 
+    this.pendingLinkContext = context;
     this.linkSourceCandidates = Array.from(
       bay.querySelectorAll('Function, EqFunction')
     );
@@ -305,16 +312,48 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     }
 
     this.selectingLinkSource = false;
-
-    this.functionLinkDialog.showForSourceFunction(
-      sourceFunction.getAttribute('name') ?? '',
-      getProcessPath(sourceFunction)
-    );
+    this.functionLinkDialog.showForSourceFunction(sourceFunction, this.doc!);
   };
 
   private resetLinkingState = () => {
     this.selectingLinkSource = false;
     this.linkSourceCandidates = [];
+    this.pendingLinkContext = null;
+  };
+
+  private handleConnectFunctionLink = (
+    e: CustomEvent<CreateFunctionLinkEventDetail>
+  ) => {
+    if (!this.doc || !this.pendingLinkContext) return;
+
+    const { service, selectedReferences } = e.detail;
+    const sinkLNode = this.pendingLinkContext.lNodeElement;
+    const nsp =
+      this.doc.documentElement.lookupPrefix(eTr6100Ns) ?? eTr6100PrivType;
+
+    if (!this.doc.documentElement.lookupPrefix(eTr6100Ns)) {
+      this.doc.documentElement.setAttributeNS(
+        xmlnsNs,
+        `xmlns:${eTr6100PrivType}`,
+        eTr6100Ns
+      );
+    }
+
+    const edits = buildFunctionLinkEdits({
+      doc: this.doc,
+      sinkLNode,
+      selectedReferences,
+      service,
+      namespacePrefix: nsp,
+    });
+
+    if (!edits.length) {
+      this.pendingLinkContext = null;
+      return;
+    }
+
+    this.dispatchEvent(newEditEventV2(edits));
+    this.pendingLinkContext = null;
   };
 
   private getElementFromProcessPath(path: string): Element | null {
@@ -963,6 +1002,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             @save=${this.createFunction}
           ></create-function-dialog>
           <function-link-dialog
+            @create-function-link=${this.handleConnectFunctionLink}
             @close-function-link-dialog=${this.resetLinkingState}
           ></function-link-dialog>
         `
