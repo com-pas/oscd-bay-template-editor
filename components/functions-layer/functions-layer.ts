@@ -155,7 +155,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   private selectedLink: string | null = null;
 
   @state()
-  private expandedOverviewDetails = false;
+  private expandedOverviewDetails = true;
 
   @query('svg')
   svg!: SVGSVGElement;
@@ -433,12 +433,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   private handleLinkClick(linkId: string) {
     this.selectedLink = linkId;
-    this.expandedOverviewDetails = false;
   }
 
   private closeLinkOverview() {
     this.selectedLink = null;
-    this.expandedOverviewDetails = false;
   }
 
   private toggleOverviewLinkDetails() {
@@ -958,7 +956,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
-      max-height: 240px;
+      max-height: 280px;
       display: flex;
       flex-direction: column;
       overflow: hidden;

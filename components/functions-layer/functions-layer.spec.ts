@@ -195,7 +195,7 @@ describe('FunctionsLayer', () => {
           element.shadowRoot?.querySelectorAll(
             '[data-testid="link-level-2-row"]'
           ).length
-        ).to.equal(0);
+        ).to.equal(1);
         expect(overview?.textContent).to.include('Source');
         expect(overview?.textContent).to.include('GOOSE');
 
@@ -216,7 +216,7 @@ describe('FunctionsLayer', () => {
           element.shadowRoot?.querySelectorAll(
             '[data-testid="link-level-2-row"]'
           ).length
-        ).to.equal(1);
+        ).to.equal(0);
       });
 
       it('renders both directional links when source and sink are reversed', async () => {
