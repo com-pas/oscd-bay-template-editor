@@ -5,7 +5,6 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -106,6 +105,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   @state()
   showFunctions: boolean = false;
+
+  @state()
+  showFunctionLinks = true;
 
   @state()
   templateElements: Record<string, Element> = {};
@@ -849,6 +851,26 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           ${functionsOffIcon}
           <span slot="selected">${functionsIcon}</span>
         </oscd-icon-button>`
+      : nothing}
+    ${this.doc.querySelector('Function, EqFunction')
+      ? html`<oscd-icon-button
+          id="function-links"
+          ?selected=${this.showFunctionLinks}
+          ?disabled=${!this.showFunctions}
+          toggle="true"
+          label=${this.showFunctionLinks
+            ? 'Hide Function Links'
+            : 'Show Function Links'}
+          title=${this.showFunctionLinks
+            ? 'Hide Function Links'
+            : 'Show Function Links'}
+          @click=${() => {
+            this.showFunctionLinks = !this.showFunctionLinks;
+          }}
+        >
+          <oscd-icon>link_off</oscd-icon>
+          <oscd-icon slot="selected">link</oscd-icon>
+        </oscd-icon-button>`
       : nothing}${this.doc.querySelector('Substation')
       ? html`<oscd-icon-button
             label="Zoom In"
@@ -992,6 +1014,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .onSelectSourceFunction=${this.handleSelectSourceFunction}
                     .linkSourceCandidates=${this.linkSourceCandidates}
                     .selectingLinkSource=${this.selectingLinkSource}
+                    .showLinks=${this.showFunctionLinks}
                   ></functions-layer>`
                 )
               : nothing}

@@ -13,6 +13,7 @@ import {
   docForFunctionLinkFlow,
   docWithAllElements,
   docWithSinkFunction,
+  docWithBayAndFunctions,
 } from './testfiles.js';
 import { eqTypes, SubfunctionData } from './util.js';
 
@@ -679,6 +680,49 @@ describe('Bay Template Editor Plugin', () => {
 
       const toggle = element.shadowRoot?.querySelector('#labels');
       expect(toggle).to.exist;
+    });
+  });
+
+  describe('function links toggle', () => {
+    it('renders function links toggle when functions exist', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBayAndFunctions,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+
+      const toggle = element.shadowRoot?.querySelector('#function-links');
+      expect(toggle).to.exist;
+    });
+
+    it('toggles showFunctionLinks and passes it to functions-layer', async () => {
+      const doc = new DOMParser().parseFromString(
+        docWithBayAndFunctions,
+        'application/xml'
+      );
+      element.doc = doc;
+      element.showFunctions = true;
+      await element.updateComplete;
+
+      const toggle = element.shadowRoot?.querySelector(
+        '#function-links'
+      ) as HTMLElement;
+      expect(toggle).to.exist;
+
+      const layerBefore = element.shadowRoot?.querySelector(
+        'functions-layer'
+      ) as any;
+      expect(layerBefore.showLinks).to.be.true;
+
+      toggle.click();
+      await element.updateComplete;
+
+      expect(element.showFunctionLinks).to.be.false;
+      const layerAfter = element.shadowRoot?.querySelector(
+        'functions-layer'
+      ) as any;
+      expect(layerAfter.showLinks).to.be.false;
     });
   });
 

@@ -10,6 +10,7 @@ import {
   docWithFunctionWithoutBay,
   docWithoutDimensions,
   docWithLongName,
+  docWithSourceRef,
 } from '../../testfiles.js';
 
 if (!customElements.get('functions-layer')) {
@@ -96,6 +97,158 @@ describe('FunctionsLayer', () => {
       await element.updateComplete;
     });
 
+    describe('link rendering', () => {
+      beforeEach(async () => {
+        const doc = new DOMParser().parseFromString(
+          docWithSourceRef,
+          'application/xml'
+        );
+        element.doc = doc;
+        await element.updateComplete;
+      });
+
+      it('renders a visual link for existing SourceRef data', async () => {
+        const visiblePath = element.shadowRoot?.querySelector(
+          '.function-link-visible'
+        ) as SVGPathElement;
+
+        expect(visiblePath).to.exist;
+        expect(visiblePath.getAttribute('stroke')).to.equal('#2e7d32');
+        expect(visiblePath.getAttribute('d')).to.include('L');
+        expect(visiblePath.getAttribute('d')).to.not.include('C');
+      });
+
+      it('does not render links when showLinks is false', async () => {
+        element.showLinks = false;
+        await element.updateComplete;
+
+        const visiblePath = element.shadowRoot?.querySelector(
+          '.function-link-visible'
+        );
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        );
+
+        expect(visiblePath).to.not.exist;
+        expect(hitbox).to.not.exist;
+      });
+
+      it('opens the link overview when the visual link is clicked', async () => {
+        const hitbox = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-hitbox"]'
+        ) as SVGPathElement;
+
+        expect(hitbox).to.exist;
+        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const overview = element.shadowRoot?.querySelector(
+          '[data-testid="function-link-overview"]'
+        );
+        expect(overview).to.exist;
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-1-row"]'
+          ).length
+        ).to.equal(1);
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-2-row"]'
+          ).length
+        ).to.equal(1);
+        expect(overview?.textContent).to.include('Source');
+        expect(overview?.textContent).to.include('GOOSE');
+
+        const descriptionCell = element.shadowRoot?.querySelector(
+          '.link-overview-description'
+        ) as HTMLSpanElement;
+        expect(descriptionCell).to.exist;
+        expect(descriptionCell.textContent?.trim()).to.not.equal(undefined);
+
+        const sourceButton = element.shadowRoot?.querySelector(
+          '.link-overview-source-button'
+        ) as HTMLButtonElement;
+        expect(sourceButton).to.exist;
+        sourceButton.click();
+        await element.updateComplete;
+
+        expect(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="link-level-2-row"]'
+          ).length
+        ).to.equal(0);
+      });
+
+      it('renders both directional links when source and sink are reversed', async () => {
+        const doc = element.doc!;
+        const sourceRefNs = 'http://www.iec.ch/61850/2019/SCL/6-100';
+        const sourceFunction = doc.querySelector('Function[name="Source"]')!;
+
+        const lNode = doc.createElementNS(
+          'http://www.iec.ch/61850/2003/SCL',
+          'LNode'
+        );
+        lNode.setAttribute('lnClass', 'LLN0');
+        lNode.setAttribute('lnInst', '1');
+
+        const privateElement = doc.createElementNS(
+          'http://www.iec.ch/61850/2003/SCL',
+          'Private'
+        );
+        privateElement.setAttribute('type', 'eIEC61850-6-100');
+
+        const inputs = doc.createElementNS(
+          sourceRefNs,
+          'eIEC61850-6-100:LNodeInputs'
+        );
+
+        const reverseSourceRef = doc.createElementNS(
+          sourceRefNs,
+          'eIEC61850-6-100:SourceRef'
+        );
+        reverseSourceRef.setAttribute(
+          'source',
+          'S1/V1/B1/Sink/CSWI1.Pos.stVal'
+        );
+        reverseSourceRef.setAttribute('input', 'CSWI1.Pos.stVal');
+        reverseSourceRef.setAttribute('pLN', 'CSWI');
+        reverseSourceRef.setAttribute('pDO', 'Pos');
+        reverseSourceRef.setAttribute('pDA', 'stVal');
+        reverseSourceRef.setAttribute('service', 'GOOSE');
+
+        inputs.appendChild(reverseSourceRef);
+        privateElement.appendChild(inputs);
+        lNode.appendChild(privateElement);
+        sourceFunction.appendChild(lNode);
+
+        element.editCount += 1;
+        await element.updateComplete;
+
+        const visiblePaths = Array.from(
+          element.shadowRoot?.querySelectorAll('.function-link-visible') ?? []
+        ) as SVGPathElement[];
+
+        expect(visiblePaths.length).to.equal(2);
+        expect(visiblePaths[0].getAttribute('d')).to.not.equal(
+          visiblePaths[1].getAttribute('d')
+        );
+
+        const hitboxes = Array.from(
+          element.shadowRoot?.querySelectorAll(
+            '[data-testid="function-link-hitbox"]'
+          ) ?? []
+        ) as SVGPathElement[];
+        expect(hitboxes.length).to.equal(2);
+
+        hitboxes[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        await element.updateComplete;
+
+        const overviewRows = element.shadowRoot?.querySelectorAll(
+          '.link-overview-item'
+        );
+        expect(overviewRows?.length).to.equal(1);
+      });
+    });
     it('updates mouse position on mousemove', async () => {
       const svg = element.shadowRoot?.querySelector('svg') as SVGSVGElement;
       expect(svg).to.exist;
