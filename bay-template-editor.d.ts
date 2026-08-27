@@ -38,6 +38,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     functionsInAction: boolean;
     addingFunction: boolean;
     showFunctions: boolean;
+    showFunctionLinks: boolean;
     templateElements: Record<string, Element>;
     nsp: string;
     placingFunction?: Element;
