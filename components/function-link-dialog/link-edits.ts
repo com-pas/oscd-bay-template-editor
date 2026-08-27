@@ -180,9 +180,13 @@ export function buildFunctionLinkEdits({
 export function buildRemoveSourceRefEdits(
   sourceRefsToRemove: Element[]
 ): EditV2[] {
+  const [firstSourceRef] = sourceRefsToRemove;
+  const parentElement = firstSourceRef?.parentElement ?? null;
+
   const lNodeInputsElement =
-    sourceRefsToRemove[0].parentElement?.tagName.includes('LNodeInputs')
-      ? sourceRefsToRemove[0].parentElement
+    parentElement?.localName === 'LNodeInputs' &&
+    parentElement.namespaceURI === eTr6100Ns
+      ? parentElement
       : null;
 
   const removingAllSourceRefs =

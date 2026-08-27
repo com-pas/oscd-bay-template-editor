@@ -5,7 +5,11 @@ import {
   buildRemoveSourceRefEdits,
 } from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
-import { docWithSinkFunction, docWithFunctionLink } from '../../testfiles.js';
+import {
+  docWithSinkFunction,
+  docWithFunctionLink,
+  docWithMultipleSourceRefs,
+} from '../../testfiles.js';
 
 function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
   return 'node' in edit;
@@ -98,50 +102,14 @@ describe('link-edits helpers', () => {
 });
 
 describe('buildRemoveSourceRefEdits', () => {
-  function buildLNode(sourceRefCount: number, extraPrivateSibling = false) {
-    const sourceRefsXml = Array.from(
-      { length: sourceRefCount },
-      (_, index) => `
-        <eIEC61850-6-100:SourceRef
-          source="S1/V1/B1/Source/LLN0${index}1.Pos.stVal"
-          input="LLN01.Pos.stVal"
-          pLN="LLN0"
-          pDO="Pos"
-          pDA="stVal"
-          service="GOOSE"
-        />`
-    ).join('');
-
+  it('removes only the targeted SourceRef when siblings remain', () => {
     const doc = new DOMParser().parseFromString(
-      `<?xml version="1.0" encoding="UTF-8"?>
-      <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
-        xmlns:eIEC61850-6-100="${eTr6100Ns}">
-        <Function name="Sink">
-          <LNode lnClass="CSWI" lnInst="1">
-            <Private type="${eTr6100PrivType}">
-              ${extraPrivateSibling ? '<Other xmlns="urn:example" />' : ''}
-              <eIEC61850-6-100:LNodeInputs>${sourceRefsXml}</eIEC61850-6-100:LNodeInputs>
-            </Private>
-          </LNode>
-        </Function>
-      </SCL>`,
+      docWithMultipleSourceRefs,
       'application/xml'
     );
-
-    const lNode = doc.querySelector('LNode')!;
-    const privateElement = lNode.querySelector('Private')!;
-    const lNodeInputsElement = Array.from(privateElement.children).find(
-      child => child.localName === 'LNodeInputs'
-    )!;
-    const sourceRefs = Array.from(lNodeInputsElement.children).filter(
-      child => child.localName === 'SourceRef'
-    );
-
-    return { privateElement, lNodeInputsElement, sourceRefs };
-  }
-
-  it('removes only the targeted SourceRef when siblings remain', () => {
-    const { sourceRefs } = buildLNode(2);
+    const sourceRefs = Array.from(
+      doc.querySelector('LNodeInputs')!.children
+    ).filter(child => child.localName === 'SourceRef');
 
     const edits = buildRemoveSourceRefEdits([sourceRefs[0]]);
 
@@ -150,7 +118,16 @@ describe('buildRemoveSourceRefEdits', () => {
   });
 
   it('removes the Private element when every SourceRef and the LNodeInputs would become empty', () => {
-    const { privateElement, sourceRefs } = buildLNode(2);
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceRefs = Array.from(
+      doc.querySelector('LNodeInputs')!.children
+    ).filter(child => child.localName === 'SourceRef');
+    const privateElement = doc.querySelector(
+      'Private[type="eIEC61850-6-100"]'
+    )!;
 
     const edits = buildRemoveSourceRefEdits(sourceRefs);
 
@@ -159,7 +136,16 @@ describe('buildRemoveSourceRefEdits', () => {
   });
 
   it('removes only the LNodeInputs element when the Private has other children', () => {
-    const { lNodeInputsElement, sourceRefs } = buildLNode(1, true);
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const lNodeInputsElement = doc.querySelector(
+      'Function[name="Sink2"] > LNode > Private[type="eIEC61850-6-100"] > LNodeInputs'
+    )!;
+    const sourceRefs = Array.from(lNodeInputsElement.children).filter(
+      child => child.localName === 'SourceRef'
+    );
 
     const edits = buildRemoveSourceRefEdits(sourceRefs);
 
