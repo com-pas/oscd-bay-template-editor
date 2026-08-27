@@ -26,7 +26,6 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private contextMenu?;
     private readonly FUNCTION_BOX;
     private readonly FUNCTION_COLORS;
-    private readonly FUNCTION_OVERVIEW_GAP;
     doc?: XMLDocument;
     substation?: Element;
     editCount: number;
@@ -55,7 +54,6 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private expandedOverviewDetails;
     private pendingDeleteSelectedLink;
     private pendingRemovedSourceRefKeys;
-    private selectedSourceRefInfoKey;
     svg: SVGSVGElement;
     private readonly menuAnchor;
     coordinatesRef: Ref<HTMLElement>;
@@ -89,13 +87,12 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private toggleOverviewLinkDetails;
     private hasPendingSourceRefDeletion;
     private getVisibleSourceRefs;
-    private getVisibleLinks;
     private deleteOverviewLink;
     private deleteOverviewSourceRef;
-    private toggleSourceRefInfo;
     private saveLinkOverviewChanges;
     private renderFunctionLink;
     private renderFunctionLinkOverview;
+    private renderLinkOverviewDeleteWarning;
     private renderSelectedLinkOverviewItem;
     private renderFunction;
     render(): import("lit-html").TemplateResult<1>;
