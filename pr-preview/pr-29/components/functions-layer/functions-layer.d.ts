@@ -5,6 +5,7 @@ import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { FunctionContentPanel, type LNodeSelectionContext } from './function-content-panel.js';
+import { FunctionLinkOverview } from './function-link-overview.js';
 type Point = [number, number];
 type FunctionData = {
     element: Element;
@@ -17,6 +18,7 @@ declare const FunctionsLayer_base: typeof LitElement & import("@open-wc/dedupe-m
 export declare class FunctionsLayer extends FunctionsLayer_base {
     static get scopedElements(): {
         'function-content-panel': typeof FunctionContentPanel;
+        'function-link-overview': typeof FunctionLinkOverview;
         'oscd-menu': typeof OscdMenu;
         'oscd-menu-item': typeof OscdMenuItem;
         'oscd-icon': typeof OscdIcon;
@@ -80,6 +82,8 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private handleFunctionMouseEnter;
     private handleFunctionMouseLeave;
     private getFunctionLinks;
+    private getSelectedLink;
+    private getLinkOverviewTop;
     private getFunctionBoxGeometry;
     private handleLinkClick;
     private closeLinkOverview;
@@ -89,11 +93,9 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private getVisibleSourceRefs;
     private deleteOverviewLink;
     private deleteOverviewSourceRef;
+    private handleOverviewSourceRefDelete;
     private saveLinkOverviewChanges;
     private renderFunctionLink;
-    private renderFunctionLinkOverview;
-    private renderLinkOverviewDeleteWarning;
-    private renderSelectedLinkOverviewItem;
     private renderFunction;
     render(): import("lit-html").TemplateResult<1>;
     static styles: import("lit").CSSResult;
