@@ -25,3 +25,9 @@ export declare const SOURCE_CANDIDATE_HIGHLIGHT_STYLE: {
     readonly stroke: "#1a7f37";
     readonly fill: "#d9f2e3";
 };
+/** Colours associated with each LinkService type */
+export declare const LINK_SERVICE_COLORS: {
+    GOOSE: string;
+    SMV: string;
+    Internal: string;
+};
