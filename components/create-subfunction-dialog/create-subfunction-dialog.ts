@@ -85,27 +85,6 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   step: CreateSubfunctionDialogStep =
     CreateSubfunctionDialogStep.SubfunctionAttributes;
 
-  @state()
-  confirmAction: 'cancel' | null = null;
-
-  @state()
-  private confirmHeadline = 'Confirmation';
-
-  @state()
-  private confirmDescription = '';
-
-  @state()
-  private confirmIcon = 'help';
-
-  @state()
-  private confirmVariant: 'danger' | 'warning' | 'primary' = 'primary';
-
-  @state()
-  private confirmConfirmLabel = 'Confirm';
-
-  @state()
-  private confirmCancelLabel = 'Cancel';
-
   lnodes: Element[] = [];
 
   @state()
@@ -143,18 +122,24 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   close() {
-    this.confirmAction = 'cancel';
-    this.confirmHeadline = 'Cancel without saving?';
-    this.confirmDescription =
-      'Are you sure you want to cancel? All changes will be lost.';
-    this.confirmIcon = 'warning';
-    this.confirmVariant = 'danger';
-    this.confirmConfirmLabel = 'Yes, cancel';
-    this.confirmCancelLabel = 'No, go back';
-    this.confirmDialog.show();
+    this.confirmDialog
+      .show({
+        headline: 'Cancel without saving?',
+        description:
+          'Are you sure you want to cancel? All changes will be lost.',
+        icon: 'warning',
+        variant: 'danger',
+        confirmLabel: 'Yes, cancel',
+        cancelLabel: 'No, go back',
+      })
+      .then(confirmed => {
+        if (confirmed) {
+          this.handleCloseConfirmed();
+        }
+      });
   }
 
-  private closeWithoutConfirm() {
+  private handleCloseConfirmed() {
     document.removeEventListener(
       'keydown',
       this.boundHandleDocumentKeydown,
@@ -244,13 +229,6 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     );
 
     this.dialog.close();
-  }
-
-  private handleConfirm() {
-    if (this.confirmAction === 'cancel') {
-      this.closeWithoutConfirm();
-    }
-    this.confirmAction = null;
   }
 
   private handleSelectLNode(id: string) {
@@ -449,15 +427,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
           : this.renderSubfunctionContent()}
       </oscd-dialog>
 
-      <confirm-dialog
-        .headline=${this.confirmHeadline}
-        .description=${this.confirmDescription}
-        .confirmLabel=${this.confirmConfirmLabel}
-        .cancelLabel=${this.confirmCancelLabel}
-        .icon=${this.confirmIcon}
-        .variant=${this.confirmVariant}
-        @confirm-dialog-confirm=${this.handleConfirm}
-      ></confirm-dialog>
+      <confirm-dialog></confirm-dialog>
     `;
   }
 

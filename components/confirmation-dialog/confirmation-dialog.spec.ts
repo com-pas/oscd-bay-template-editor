@@ -40,9 +40,27 @@ describe('ConfirmDialog', () => {
     expect(dialog.close.calledOnce).to.be.true;
   });
 
-  it('emits confirm event on confirm click', async () => {
-    const confirmSpy = sinon.spy();
-    element.addEventListener('confirm-dialog-confirm', confirmSpy);
+  it('applies the passed options', async () => {
+    element.show({
+      headline: 'Delete?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Keep',
+      icon: 'delete',
+      variant: 'warning',
+    });
+    await element.updateComplete;
+
+    expect(element.headline).to.equal('Delete?');
+    expect(element.description).to.equal('This cannot be undone.');
+    expect(element.confirmLabel).to.equal('Delete');
+    expect(element.cancelLabel).to.equal('Keep');
+    expect(element.icon).to.equal('delete');
+    expect(element.variant).to.equal('warning');
+  });
+
+  it('resolves the promise with true on confirm click', async () => {
+    const resultPromise = element.show();
 
     const confirmButton = element.shadowRoot?.querySelector(
       'oscd-filled-button[data-testid="confirm-button"]'
@@ -50,12 +68,11 @@ describe('ConfirmDialog', () => {
     confirmButton.click();
     await element.updateComplete;
 
-    expect(confirmSpy.calledOnce).to.be.true;
+    expect(await resultPromise).to.be.true;
   });
 
-  it('emits cancel event on cancel click', async () => {
-    const cancelSpy = sinon.spy();
-    element.addEventListener('confirm-dialog-cancel', cancelSpy);
+  it('resolves the promise with false on cancel click', async () => {
+    const resultPromise = element.show();
 
     const cancelButton = element.shadowRoot?.querySelector(
       'oscd-filled-button[data-testid="cancel-button"]'
@@ -63,6 +80,6 @@ describe('ConfirmDialog', () => {
     cancelButton.click();
     await element.updateComplete;
 
-    expect(cancelSpy.calledOnce).to.be.true;
+    expect(await resultPromise).to.be.false;
   });
 });

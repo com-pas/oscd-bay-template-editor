@@ -5,12 +5,17 @@ import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 
+export interface ConfirmDialogOptions {
+  headline?: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  icon?: string;
+  variant?: 'danger' | 'warning' | 'primary';
+}
+
 /**
  * A reusable confirmation dialog component.
- *
- * @fires confirm-dialog-confirm - Fired when the user confirms the action.
- * @fires confirm-dialog-cancel  - Fired when the user cancels or dismisses the dialog.
- *
  */
 export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
@@ -42,37 +47,42 @@ export class ConfirmDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-dialog')
   private readonly dialog!: OscdDialog;
 
-  show() {
+  private resolveShow: ((confirmed: boolean) => void) | null = null;
+
+  show(options: ConfirmDialogOptions = {}): Promise<boolean> {
+    this.headline = options.headline ?? 'Cancel without saving?';
+    this.description = options.description ?? '';
+    this.confirmLabel = options.confirmLabel ?? 'Confirm';
+    this.cancelLabel = options.cancelLabel ?? 'Cancel';
+    this.icon = options.icon ?? '';
+    this.variant = options.variant ?? 'danger';
     this.dialog.show();
+    return new Promise<boolean>(resolve => {
+      this.resolveShow = resolve;
+    });
   }
 
   close() {
     this.dialog.close();
   }
 
-  private handleConfirm() {
-    this.dispatchEvent(
-      new CustomEvent('confirm-dialog-confirm', {
-        bubbles: true,
-        composed: true,
-      })
-    );
+  private resolveAndClose(confirmed: boolean) {
+    this.resolveShow?.(confirmed);
+    this.resolveShow = null;
     this.close();
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  private handleConfirm() {
+    this.resolveAndClose(true);
+  }
+
   private handleCancel(e: Event) {
     e.preventDefault();
+    this.resolveAndClose(false);
   }
 
   private handleCancelClick() {
-    this.dispatchEvent(
-      new CustomEvent('confirm-dialog-cancel', {
-        bubbles: true,
-        composed: true,
-      })
-    );
-    this.close();
+    this.resolveAndClose(false);
   }
 
   render() {

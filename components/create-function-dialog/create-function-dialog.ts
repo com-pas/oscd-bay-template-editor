@@ -97,29 +97,6 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   tempSubfunctions: SubfunctionData[] = [];
 
-  subfunctionToDelete: SubfunctionData | null = null;
-
-  @state()
-  confirmAction: 'cancel' | 'delete-subfunction' | null = null;
-
-  @state()
-  private confirmHeadline = 'Confirmation';
-
-  @state()
-  private confirmDescription = '';
-
-  @state()
-  private confirmIcon = 'help';
-
-  @state()
-  private confirmVariant: 'danger' | 'warning' | 'primary' = 'primary';
-
-  @state()
-  private confirmConfirmLabel = 'Confirm';
-
-  @state()
-  private confirmCancelLabel = 'Cancel';
-
   @state()
   lnPickerOpen = false;
 
@@ -178,18 +155,24 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   close() {
-    this.confirmAction = 'cancel';
-    this.confirmHeadline = 'Cancel without saving?';
-    this.confirmDescription =
-      'Are you sure you want to cancel? All changes will be lost.';
-    this.confirmIcon = 'warning';
-    this.confirmVariant = 'danger';
-    this.confirmConfirmLabel = 'Yes, cancel';
-    this.confirmCancelLabel = 'No, go back';
-    this.confirmDialog.show();
+    this.confirmDialog
+      .show({
+        headline: 'Cancel without saving?',
+        description:
+          'Are you sure you want to cancel? All changes will be lost.',
+        icon: 'warning',
+        variant: 'danger',
+        confirmLabel: 'Yes, cancel',
+        cancelLabel: 'No, go back',
+      })
+      .then(confirmed => {
+        if (confirmed) {
+          this.handleCloseConfirmed();
+        }
+      });
   }
 
-  private closeWithoutConfirm() {
+  private handleCloseConfirmed() {
     document.removeEventListener(
       'keydown',
       this.boundHandleDocumentKeydown,
@@ -296,31 +279,22 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleDeleteSubfunction(subfunctionToDelete: SubfunctionData) {
-    this.subfunctionToDelete = subfunctionToDelete;
-
-    this.confirmAction = 'delete-subfunction';
-    this.confirmHeadline = 'Delete SubFunction?';
-    this.confirmDescription = `Are you sure you want to delete "${this.subfunctionToDelete.name}"? This action cannot be undone.`;
-    this.confirmIcon = 'delete';
-    this.confirmVariant = 'danger';
-    this.confirmConfirmLabel = 'Delete';
-    this.confirmCancelLabel = 'Cancel';
-    this.confirmDialog.show();
-  }
-
-  private handleConfirm() {
-    if (this.confirmAction === 'cancel') {
-      this.closeWithoutConfirm();
-    } else if (this.confirmAction === 'delete-subfunction') {
-      if (this.subfunctionToDelete === null) return;
-
-      const index = this.tempSubfunctions.findIndex(
-        sf => sf === this.subfunctionToDelete
-      );
-      this.tempSubfunctions.splice(index, 1);
-      this.subfunctionToDelete = null;
-    }
-    this.confirmAction = null;
+    this.confirmDialog
+      .show({
+        headline: 'Delete SubFunction?',
+        description: `Are you sure you want to delete "${subfunctionToDelete.name}"? This action cannot be undone.`,
+        icon: 'delete',
+        variant: 'danger',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+      })
+      .then(confirmed => {
+        if (!confirmed) return;
+        const index = this.tempSubfunctions.findIndex(
+          sf => sf === subfunctionToDelete
+        );
+        this.tempSubfunctions.splice(index, 1);
+      });
   }
 
   private handleAddLNode() {
@@ -523,15 +497,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         @save-subfunction=${this.handleSaveSubfunction}
       ></create-subfunction-dialog>
 
-      <confirm-dialog
-        .headline=${this.confirmHeadline}
-        .description=${this.confirmDescription}
-        .confirmLabel=${this.confirmConfirmLabel}
-        .cancelLabel=${this.confirmCancelLabel}
-        .icon=${this.confirmIcon}
-        .variant=${this.confirmVariant}
-        @confirm-dialog-confirm=${this.handleConfirm}
-      ></confirm-dialog>
+      <confirm-dialog></confirm-dialog>
     `;
   }
 
