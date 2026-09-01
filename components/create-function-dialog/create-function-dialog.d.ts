@@ -46,14 +46,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     type: string | null;
     step: CreateFunctionDialogStep;
     tempSubfunctions: SubfunctionData[];
-    subfunctionToDelete: SubfunctionData | null;
-    confirmAction: 'cancel' | 'delete-subfunction' | null;
-    private confirmHeadline;
-    private confirmDescription;
-    private confirmIcon;
-    private confirmVariant;
-    private confirmConfirmLabel;
-    private confirmCancelLabel;
     lnPickerOpen: boolean;
     lnodes: Element[];
     private get selectedLNodeTypeIds();
@@ -65,7 +57,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private readonly boundHandleDocumentKeydown;
     show(): void;
     close(): void;
-    private closeWithoutConfirm;
+    private handleCloseConfirmed;
     reset(): void;
     private handleClosed;
     private handleCancel;
@@ -76,7 +68,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleAddSubfunction;
     private handleSaveSubfunction;
     private handleDeleteSubfunction;
-    private handleConfirm;
     private handleAddLNode;
     private handleRemoveLNode;
     private handleLNodePickerCancel;

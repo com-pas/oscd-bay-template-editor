@@ -43,13 +43,6 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     description: string | null;
     type: string | null;
     step: CreateSubfunctionDialogStep;
-    confirmAction: 'cancel' | null;
-    private confirmHeadline;
-    private confirmDescription;
-    private confirmIcon;
-    private confirmVariant;
-    private confirmConfirmLabel;
-    private confirmCancelLabel;
     lnodes: Element[];
     selectedLNode: string | null;
     pickerOpen: boolean;
@@ -57,7 +50,7 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private readonly boundHandleDocumentKeydown;
     show(): void;
     close(): void;
-    private closeWithoutConfirm;
+    private handleCloseConfirmed;
     reset(): void;
     private handleClosed;
     private handleCancel;
@@ -66,7 +59,6 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private handleNext;
     private handleBack;
     private handleSave;
-    private handleConfirm;
     private handleSelectLNode;
     private handleRemoveLNode;
     private handleAddLNode;
