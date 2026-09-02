@@ -19,5 +19,6 @@ export type FunctionBoxGeometry = {
     bottom: number;
 };
 export declare function buildSourceRefDisplay(sourceRef: Element): string;
+export declare function buildSourceRefKey(sourceRef: Element): string;
 export declare function buildFunctionLinks(scope: Element | Document | null, doc?: XMLDocument): FunctionLink[];
 export declare function buildFunctionLinkPath(sourceBox: FunctionBoxGeometry, sinkBox: FunctionBoxGeometry, laneOffset?: number): string;
