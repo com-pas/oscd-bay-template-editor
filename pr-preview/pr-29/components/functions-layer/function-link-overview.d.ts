@@ -15,7 +15,6 @@ export declare class FunctionLinkOverview extends FunctionLinkOverview_base {
     pendingDelete: boolean;
     overviewTop?: number;
     pendingRemovedSourceRefKeys: string[];
-    private dispatchAction;
     private hasPendingSourceRefDeletion;
     private getVisibleSourceRefs;
     private renderDeleteWarning;

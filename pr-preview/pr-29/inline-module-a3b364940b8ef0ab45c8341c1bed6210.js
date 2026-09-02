@@ -9042,7 +9042,7 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
       flex-shrink: 0;
       font-size: 1.25rem;
     }
-  `,e([it({attribute:!1})],AE.prototype,"functionElement",void 0),e([it({attribute:!1})],AE.prototype,"selectingLinkSource",void 0),e([ot()],AE.prototype,"selectedLNode",void 0),e([ot()],AE.prototype,"selectedSubFunction",void 0),e([ot()],AE.prototype,"resetLinkSelectionUi",void 0);class PE extends(St(Ye)){constructor(){super(...arguments),this.expandedDetails=!0,this.pendingDelete=!1,this.pendingRemovedSourceRefKeys=[]}static get scopedElements(){return{"oscd-icon":pb,"oscd-filled-button":CE,"oscd-icon-button":yE}}dispatchAction(e,t){this.dispatchEvent(new CustomEvent(e,{bubbles:!0,composed:!0,detail:t}))}hasPendingSourceRefDeletion(e){return this.pendingRemovedSourceRefKeys.includes(bE(e))}getVisibleSourceRefs(e){return e.filter((e=>!this.hasPendingSourceRefDeletion(e)))}renderDeleteWarning(){const e=this.selectedLink?.sourceFunction.getAttribute("name"),t=this.selectedLink?.sinkFunction.getAttribute("name");return Te`
+  `,e([it({attribute:!1})],AE.prototype,"functionElement",void 0),e([it({attribute:!1})],AE.prototype,"selectingLinkSource",void 0),e([ot()],AE.prototype,"selectedLNode",void 0),e([ot()],AE.prototype,"selectedSubFunction",void 0),e([ot()],AE.prototype,"resetLinkSelectionUi",void 0);class PE extends(St(Ye)){constructor(){super(...arguments),this.expandedDetails=!0,this.pendingDelete=!1,this.pendingRemovedSourceRefKeys=[]}static get scopedElements(){return{"oscd-icon":pb,"oscd-filled-button":CE,"oscd-icon-button":yE}}hasPendingSourceRefDeletion(e){return this.pendingRemovedSourceRefKeys.includes(bE(e))}getVisibleSourceRefs(e){return e.filter((e=>!this.hasPendingSourceRefDeletion(e)))}renderDeleteWarning(){const e=this.selectedLink?.sourceFunction.getAttribute("name"),t=this.selectedLink?.sinkFunction.getAttribute("name");return Te`
       <div
         class="link-overview-warning"
         data-testid="link-overview-delete-warning"
@@ -9062,7 +9062,7 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
         <button
           class="link-overview-source-button"
           type="button"
-          @click=${()=>this.dispatchAction("toggle-details")}
+          @click=${()=>this.dispatchEvent(new CustomEvent("toggle-details",{bubbles:!0,composed:!0}))}
           title="Toggle source references"
         >
           <oscd-icon class="link-overview-expand-icon"
@@ -9081,7 +9081,7 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
             class="link-overview-row-action"
             title="Delete link"
             data-testid="main-row-delete-button"
-            @click=${()=>this.dispatchAction("delete-link")}
+            @click=${()=>this.dispatchEvent(new CustomEvent("delete-link",{bubbles:!0,composed:!0}))}
           >
             <oscd-icon>delete</oscd-icon>
           </oscd-icon-button>
@@ -9114,7 +9114,7 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
                     class="link-overview-row-action"
                     title="Delete data reference"
                     data-testid="detail-row-delete-button"
-                    @click=${()=>this.dispatchAction("delete-source-ref",t)}
+                    @click=${()=>this.dispatchEvent(new CustomEvent("delete-source-ref",{bubbles:!0,composed:!0,detail:t}))}
                   >
                     <oscd-icon>delete</oscd-icon>
                   </oscd-icon-button>
@@ -9142,14 +9142,14 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
         <div class="link-overview-footer">
           <oscd-filled-button
             data-testid="link-overview-cancel-button"
-            @click=${()=>this.dispatchAction("close")}
+            @click=${()=>this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}
           >
             Cancel
           </oscd-filled-button>
           <oscd-filled-button
             data-testid="link-overview-save-button"
             class=${this.pendingDelete?"link-overview-danger-button":""}
-            @click=${()=>this.dispatchAction("save")}
+            @click=${()=>this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0}))}
           >
             ${this.pendingDelete?"Delete link":"Save"}
           </oscd-filled-button>
