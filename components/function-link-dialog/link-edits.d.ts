@@ -8,4 +8,5 @@ interface BuildFunctionLinkEditsParams {
     namespacePrefix: string;
 }
 export declare function buildFunctionLinkEdits({ doc, sinkLNode, selectedReferences, service, namespacePrefix, }: BuildFunctionLinkEditsParams): EditV2[];
+export declare function buildRemoveSourceRefEdits(sourceRefsToRemove: Element[]): EditV2[];
 export {};
