@@ -43,6 +43,9 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
   @query('oscd-dialog')
   private readonly dialog!: OscdDialog;
 
+  @query('oscd-filled-select')
+  private readonly serviceSelect?: OscdFilledSelect;
+
   @property({ type: String })
   sourceFunctionName = '';
 
@@ -96,8 +99,10 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
 
   private resetSelectionState() {
     this.filterQuery = '';
-    this.selectedService = '';
     this.selectedReferenceIds = new Set();
+    this.selectedService = '';
+    this.serviceSelect?.reset();
+    this.serviceSelect?.requestUpdate();
   }
 
   private get filteredGroups(): ObjectReferenceGroup[] {
@@ -155,6 +160,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
       })
     );
 
+    this.resetSelectionState();
     this.close();
   }
 
@@ -253,7 +259,6 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
               <dd>${this.sourceFunctionPath}</dd>
             </div>
           </dl>
-
           <div class="filters-row">
             <oscd-filled-text-field
               class="search-field"
