@@ -76,9 +76,12 @@ describe('FunctionLinkOverview', () => {
     expect(toggleSpy.calledOnce).to.be.true;
   });
 
-  it('removes one pending source reference', async () => {
-    const { sourceRefs } = element.selectedLink!;
-    element.pendingRemovedSourceRefKeys = [buildSourceRefKey(sourceRefs[0])];
+  it('removes one pending source reference locally when its delete button is clicked', async () => {
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="detail-row-delete-button"]'
+      ) as HTMLElement
+    ).click();
     await element.updateComplete;
 
     expect(
@@ -86,8 +89,12 @@ describe('FunctionLinkOverview', () => {
     ).to.have.length(0);
   });
 
-  it('shows the delete warning when the link is pending deletion', async () => {
-    element.pendingDelete = true;
+  it('shows the delete warning when the delete-link button is clicked', async () => {
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="main-row-delete-button"]'
+      ) as HTMLElement
+    ).click();
     await element.updateComplete;
 
     const warning = element.shadowRoot?.querySelector(
@@ -109,36 +116,71 @@ describe('FunctionLinkOverview', () => {
       .true;
   });
 
-  it('dispatches close and delete actions', () => {
-    const actions = sinon.spy();
-    ['close', 'delete-link', 'save'].forEach(action =>
-      element.addEventListener(action, actions)
-    );
+  it('dispatches a close action without pending-delete details when cancel is clicked', () => {
+    const closeSpy = sinon.spy();
+    const saveSpy = sinon.spy();
+    element.addEventListener('close', closeSpy);
+    element.addEventListener('save', saveSpy);
 
-    (
-      element.shadowRoot!.querySelector(
-        '[data-testid="link-overview-cancel-button"]'
-      ) as HTMLElement
-    ).click();
     (
       element.shadowRoot!.querySelector(
         '[data-testid="main-row-delete-button"]'
       ) as HTMLElement
     ).click();
-    expect(actions.callCount).to.equal(2);
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="link-overview-cancel-button"]'
+      ) as HTMLElement
+    ).click();
+
+    expect(closeSpy.calledOnce).to.be.true;
+    expect(saveSpy.called).to.be.false;
   });
 
-  it('dispatches the source-reference delete action', () => {
-    const listener = sinon.spy();
-    element.addEventListener('delete-source-ref', listener);
+  it('dispatches a save action with the pending whole-link deletion', async () => {
+    const saveSpy = sinon.spy();
+    element.addEventListener('save', saveSpy);
 
-    element
-      .shadowRoot!.querySelector('[data-testid="detail-row-delete-button"]')!
-      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="main-row-delete-button"]'
+      ) as HTMLElement
+    ).click();
+    await element.updateComplete;
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="link-overview-save-button"]'
+      ) as HTMLElement
+    ).click();
 
-    expect(listener.calledOnce).to.be.true;
-    expect(listener.firstCall.args[0].detail).to.equal(
-      element.selectedLink!.sourceRefs[0]
-    );
+    expect(saveSpy.calledOnce).to.be.true;
+    expect(saveSpy.firstCall.args[0].detail).to.deep.equal({
+      deleteWholeLink: true,
+      removedSourceRefKeys: [],
+    });
+  });
+
+  it('dispatches a save action with the pending source-reference deletions', async () => {
+    const saveSpy = sinon.spy();
+    element.addEventListener('save', saveSpy);
+    const sourceRefKey = buildSourceRefKey(element.selectedLink!.sourceRefs[0]);
+
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="detail-row-delete-button"]'
+      ) as HTMLElement
+    ).click();
+    await element.updateComplete;
+    (
+      element.shadowRoot!.querySelector(
+        '[data-testid="link-overview-save-button"]'
+      ) as HTMLElement
+    ).click();
+
+    expect(saveSpy.calledOnce).to.be.true;
+    expect(saveSpy.firstCall.args[0].detail).to.deep.equal({
+      deleteWholeLink: true,
+      removedSourceRefKeys: [sourceRefKey],
+    });
   });
 });

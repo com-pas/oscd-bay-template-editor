@@ -27,7 +27,10 @@ import {
   type LNodeSelectionContext,
 } from './function-content-panel.js';
 import { buildRemoveSourceRefEdits } from '../function-link-dialog/link-edits.js';
-import { FunctionLinkOverview } from './function-link-overview.js';
+import {
+  FunctionLinkOverview,
+  type FunctionLinkOverviewSaveDetail,
+} from './function-link-overview.js';
 import {
   LINK_SERVICE_COLORS,
   SELECTED_PSR_HIGHLIGHT_STYLE,
@@ -159,12 +162,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   @state()
   private expandedOverviewDetails = true;
-
-  @state()
-  private pendingDeleteSelectedLink = false;
-
-  @state()
-  private pendingRemovedSourceRefKeys: string[] = [];
 
   @query('svg')
   svg!: SVGSVGElement;
@@ -463,73 +460,21 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   private handleLinkClick(linkId: string) {
-    if (this.selectedLink !== linkId) {
-      this.clearPendingLinkOverviewChanges();
-    }
-
     this.selectedLink = linkId;
   }
 
   private closeLinkOverview() {
-    this.clearPendingLinkOverviewChanges();
     this.selectedLink = null;
-  }
-
-  private clearPendingLinkOverviewChanges() {
-    this.pendingDeleteSelectedLink = false;
-    this.pendingRemovedSourceRefKeys = [];
   }
 
   private toggleOverviewLinkDetails() {
     this.expandedOverviewDetails = !this.expandedOverviewDetails;
   }
 
-  private hasPendingSourceRefDeletion(sourceRef: Element): boolean {
-    const sourceRefKey = buildSourceRefKey(sourceRef);
-    return this.pendingRemovedSourceRefKeys.includes(sourceRefKey);
-  }
-
-  private getVisibleSourceRefs(sourceRefs: Element[]): Element[] {
-    return sourceRefs.filter(
-      sourceRef => !this.hasPendingSourceRefDeletion(sourceRef)
-    );
-  }
-
-  private deleteOverviewLink() {
-    this.pendingDeleteSelectedLink = true;
-  }
-
-  private deleteOverviewSourceRef(sourceRefs: Element[], sourceRef: Element) {
-    const sourceRefKey = buildSourceRefKey(sourceRef);
-    if (this.pendingRemovedSourceRefKeys.includes(sourceRefKey)) return;
-
-    this.pendingRemovedSourceRefKeys = [
-      ...this.pendingRemovedSourceRefKeys,
-      sourceRefKey,
-    ];
-
-    const remainingSourceRefs = sourceRefs.filter(
-      sourceReference =>
-        buildSourceRefKey(sourceReference) !== sourceRefKey &&
-        !this.hasPendingSourceRefDeletion(sourceReference)
-    );
-
-    if (!remainingSourceRefs.length) {
-      this.deleteOverviewLink();
-    }
-  }
-
-  private handleOverviewSourceRefDelete(sourceRef: Element) {
-    if (!this.selectedLink) return;
-    const selectedLink = this.getFunctionLinks().find(
-      link => link.id === this.selectedLink
-    );
-    if (selectedLink?.sourceRefs.includes(sourceRef)) {
-      this.deleteOverviewSourceRef(selectedLink.sourceRefs, sourceRef);
-    }
-  }
-
-  private saveLinkOverviewChanges(links: FunctionLink[]) {
+  private saveLinkOverviewChanges(
+    links: FunctionLink[],
+    detail: FunctionLinkOverviewSaveDetail
+  ) {
     if (!this.selectedLink) {
       this.closeLinkOverview();
       return;
@@ -546,8 +491,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     selectedLink.sourceRefs.forEach(sourceRef => {
       const sourceRefKey = buildSourceRefKey(sourceRef);
       if (
-        this.pendingDeleteSelectedLink ||
-        this.pendingRemovedSourceRefKeys.includes(sourceRefKey)
+        detail.deleteWholeLink ||
+        detail.removedSourceRefKeys.includes(sourceRefKey)
       ) {
         removedSourceRefsByKey.set(sourceRefKey, sourceRef);
       }
@@ -872,14 +817,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             ? this.getLinkOverviewTop(selectedLink)
             : undefined}
           .expandedDetails=${this.expandedOverviewDetails}
-          .pendingDelete=${this.pendingDeleteSelectedLink}
-          .pendingRemovedSourceRefKeys=${this.pendingRemovedSourceRefKeys}
           @close=${() => this.closeLinkOverview()}
           @toggle-details=${() => this.toggleOverviewLinkDetails()}
-          @delete-link=${() => this.deleteOverviewLink()}
-          @delete-source-ref=${(e: CustomEvent<Element>) =>
-            this.handleOverviewSourceRefDelete(e.detail)}
-          @save=${() => this.saveLinkOverviewChanges(functionLinks)}
+          @save=${(e: CustomEvent<FunctionLinkOverviewSaveDetail>) =>
+            this.saveLinkOverviewChanges(functionLinks, e.detail)}
         ></function-link-overview>
         ${this.selectedFunctionElement
           ? html`<div class="sidebar">

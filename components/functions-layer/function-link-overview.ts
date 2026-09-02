@@ -1,5 +1,5 @@
-import { LitElement, html, css, nothing } from 'lit';
-import { property } from 'lit/decorators.js';
+import { LitElement, html, css, nothing, PropertyValues } from 'lit';
+import { property, state } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
@@ -9,6 +9,11 @@ import {
   buildSourceRefKey,
   type FunctionLink,
 } from './function-links.js';
+
+export type FunctionLinkOverviewSaveDetail = {
+  deleteWholeLink: boolean;
+  removedSourceRefKeys: string[];
+};
 
 export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
@@ -25,14 +30,69 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean })
   expandedDetails = true;
 
-  @property({ type: Boolean })
-  pendingDelete = false;
-
   @property({ type: Number })
   overviewTop?: number;
 
-  @property({ attribute: false })
-  pendingRemovedSourceRefKeys: string[] = [];
+  @state()
+  private pendingDeleteSelectedLink = false;
+
+  @state()
+  private pendingRemovedSourceRefKeys: string[] = [];
+
+  protected willUpdate(changedProperties: PropertyValues): void {
+    if (changedProperties.has('selectedLink')) {
+      const previousLink = changedProperties.get('selectedLink');
+      if (previousLink?.id !== this.selectedLink?.id) {
+        this.resetPendingChanges();
+      }
+    }
+  }
+
+  private resetPendingChanges(): void {
+    this.pendingDeleteSelectedLink = false;
+    this.pendingRemovedSourceRefKeys = [];
+  }
+
+  private deleteLink(): void {
+    this.pendingDeleteSelectedLink = true;
+  }
+
+  private deleteSourceRef(sourceRef: Element): void {
+    const sourceRefKey = buildSourceRefKey(sourceRef);
+    if (this.pendingRemovedSourceRefKeys.includes(sourceRefKey)) return;
+
+    this.pendingRemovedSourceRefKeys = [
+      ...this.pendingRemovedSourceRefKeys,
+      sourceRefKey,
+    ];
+
+    if (
+      !this.getVisibleSourceRefs(this.selectedLink?.sourceRefs ?? []).length
+    ) {
+      this.deleteLink();
+    }
+  }
+
+  private closeOverview(): void {
+    this.resetPendingChanges();
+    this.dispatchEvent(
+      new CustomEvent('close', { bubbles: true, composed: true })
+    );
+  }
+
+  private saveOverview(): void {
+    this.dispatchEvent(
+      new CustomEvent<FunctionLinkOverviewSaveDetail>('save', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          deleteWholeLink: this.pendingDeleteSelectedLink,
+          removedSourceRefKeys: this.pendingRemovedSourceRefKeys,
+        },
+      })
+    );
+    this.resetPendingChanges();
+  }
 
   private hasPendingSourceRefDeletion(sourceRef: Element): boolean {
     return this.pendingRemovedSourceRefKeys.includes(
@@ -70,7 +130,8 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
 
   private renderSelectedLink() {
     const { selectedLink } = this;
-    if (!selectedLink || this.pendingDelete) return this.renderDeleteWarning();
+    if (!selectedLink || this.pendingDeleteSelectedLink)
+      return this.renderDeleteWarning();
 
     const visibleSourceRefs = this.getVisibleSourceRefs(
       selectedLink.sourceRefs
@@ -108,13 +169,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
             class="link-overview-row-action"
             title="Delete link"
             data-testid="main-row-delete-button"
-            @click=${() =>
-              this.dispatchEvent(
-                new CustomEvent('delete-link', {
-                  bubbles: true,
-                  composed: true,
-                })
-              )}
+            @click=${() => this.deleteLink()}
           >
             <oscd-icon>delete</oscd-icon>
           </oscd-icon-button>
@@ -149,14 +204,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
                     class="link-overview-row-action"
                     title="Delete data reference"
                     data-testid="detail-row-delete-button"
-                    @click=${() =>
-                      this.dispatchEvent(
-                        new CustomEvent('delete-source-ref', {
-                          bubbles: true,
-                          composed: true,
-                          detail: sourceRef,
-                        })
-                      )}
+                    @click=${() => this.deleteSourceRef(sourceRef)}
                   >
                     <oscd-icon>delete</oscd-icon>
                   </oscd-icon-button>
@@ -194,28 +242,18 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
         <div class="link-overview-footer">
           <oscd-filled-button
             data-testid="link-overview-cancel-button"
-            @click=${() =>
-              this.dispatchEvent(
-                new CustomEvent('close', {
-                  bubbles: true,
-                  composed: true,
-                })
-              )}
+            @click=${() => this.closeOverview()}
           >
             Cancel
           </oscd-filled-button>
           <oscd-filled-button
             data-testid="link-overview-save-button"
-            class=${this.pendingDelete ? 'link-overview-danger-button' : ''}
-            @click=${() =>
-              this.dispatchEvent(
-                new CustomEvent('save', {
-                  bubbles: true,
-                  composed: true,
-                })
-              )}
+            class=${this.pendingDeleteSelectedLink
+              ? 'link-overview-danger-button'
+              : ''}
+            @click=${() => this.saveOverview()}
           >
-            ${this.pendingDelete ? 'Delete link' : 'Save'}
+            ${this.pendingDeleteSelectedLink ? 'Delete link' : 'Save'}
           </oscd-filled-button>
         </div>
       </div>
