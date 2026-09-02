@@ -9156,9 +9156,6 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
         </div>
       </div>
     `:we}}PE.styles=R`
-    :host {
-      display: contents;
-    }
     .link-overview {
       --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
       position: absolute;
