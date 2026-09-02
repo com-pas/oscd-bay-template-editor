@@ -52,6 +52,17 @@ export function buildSourceRefDisplay(sourceRef: Element): string {
   return source.split('/').pop() ?? source;
 }
 
+export function buildSourceRefKey(sourceRef: Element): string {
+  return [
+    sourceRef.getAttribute('source') ?? '',
+    sourceRef.getAttribute('service') ?? '',
+    sourceRef.getAttribute('input') ?? '',
+    sourceRef.getAttribute('pLN') ?? '',
+    sourceRef.getAttribute('pDO') ?? '',
+    sourceRef.getAttribute('pDA') ?? '',
+  ].join('|');
+}
+
 export function buildFunctionLinks(
   scope: Element | Document | null,
   doc?: XMLDocument

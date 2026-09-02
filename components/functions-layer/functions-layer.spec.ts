@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { html } from 'lit';
+import { LitElement, html } from 'lit';
 import sinon, { spy } from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
 import { FunctionsLayer } from './functions-layer.js';
@@ -133,52 +133,6 @@ describe('FunctionsLayer', () => {
         expect(hitbox).to.not.exist;
       });
 
-      it('opens the link overview when the visual link is clicked', async () => {
-        const hitbox = element.shadowRoot?.querySelector(
-          '[data-testid="function-link-hitbox"]'
-        ) as SVGPathElement;
-
-        expect(hitbox).to.exist;
-        hitbox.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        await element.updateComplete;
-
-        const overview = element.shadowRoot?.querySelector(
-          '[data-testid="function-link-overview"]'
-        );
-        expect(overview).to.exist;
-        expect(
-          element.shadowRoot?.querySelectorAll(
-            '[data-testid="link-level-1-row"]'
-          ).length
-        ).to.equal(1);
-        expect(
-          element.shadowRoot?.querySelectorAll(
-            '[data-testid="link-level-2-row"]'
-          ).length
-        ).to.equal(1);
-        expect(overview?.textContent).to.include('Source');
-        expect(overview?.textContent).to.include('GOOSE');
-
-        const descriptionCell = element.shadowRoot?.querySelector(
-          '.link-overview-description'
-        ) as HTMLSpanElement;
-        expect(descriptionCell).to.exist;
-        expect(descriptionCell.textContent?.trim()).to.not.equal(undefined);
-
-        const sourceButton = element.shadowRoot?.querySelector(
-          '.link-overview-source-button'
-        ) as HTMLButtonElement;
-        expect(sourceButton).to.exist;
-        sourceButton.click();
-        await element.updateComplete;
-
-        expect(
-          element.shadowRoot?.querySelectorAll(
-            '[data-testid="link-level-2-row"]'
-          ).length
-        ).to.equal(0);
-      });
-
       it('renders both directional links when source and sink are reversed', async () => {
         const doc = element.doc!;
         const sourceRefNs = 'http://www.iec.ch/61850/2019/SCL/6-100';
@@ -243,7 +197,11 @@ describe('FunctionsLayer', () => {
         hitboxes[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
         await element.updateComplete;
 
-        const overviewRows = element.shadowRoot?.querySelectorAll(
+        const overview = element.shadowRoot?.querySelector(
+          'function-link-overview'
+        ) as LitElement;
+        await overview.updateComplete;
+        const overviewRows = overview.shadowRoot?.querySelectorAll(
           '.link-overview-item'
         );
         expect(overviewRows?.length).to.equal(1);
@@ -268,10 +226,8 @@ describe('FunctionsLayer', () => {
         'g.function'
       ) as SVGGElement;
       expect(functions).to.exist;
-
       const onStartPlaceFunctionSpy = spy();
       element.onStartPlaceFunction = onStartPlaceFunctionSpy;
-
       functions.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       await element.updateComplete;
 

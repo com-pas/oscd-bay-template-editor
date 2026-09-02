@@ -284,12 +284,10 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
             >
               <oscd-filled-select
                 data-testid="service-select"
+                label="Select service"
                 .value=${this.selectedService}
                 @change=${this.handleServiceChange}
               >
-                <oscd-select-option value="" disabled
-                  >Select service</oscd-select-option
-                >
                 <oscd-select-option value="GOOSE">GOOSE</oscd-select-option>
                 <oscd-select-option value="SMV">SMV</oscd-select-option>
                 <oscd-select-option value="Internal"

@@ -9,6 +9,7 @@ import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
 import { OscdMenu } from '@omicronenergy/oscd-ui/menu/OscdMenu.js';
 import { OscdMenuItem } from '@omicronenergy/oscd-ui/menu/OscdMenuItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
+import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import {
   getSLDAttributes,
   updateSLDAttributes,
@@ -16,7 +17,7 @@ import {
 } from '../../util.js';
 import {
   buildFunctionLinks,
-  buildSourceRefDisplay,
+  buildSourceRefKey,
   buildFunctionLinkPath,
   type FunctionLink,
   FunctionBoxGeometry,
@@ -25,6 +26,11 @@ import {
   FunctionContentPanel,
   type LNodeSelectionContext,
 } from './function-content-panel.js';
+import { buildRemoveSourceRefEdits } from '../function-link-dialog/link-edits.js';
+import {
+  FunctionLinkOverview,
+  type FunctionLinkOverviewSaveDetail,
+} from './function-link-overview.js';
 import {
   LINK_SERVICE_COLORS,
   SELECTED_PSR_HIGHLIGHT_STYLE,
@@ -45,9 +51,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       'function-content-panel': FunctionContentPanel,
+      'function-link-overview': FunctionLinkOverview,
       'oscd-menu': OscdMenu,
       'oscd-menu-item': OscdMenuItem,
       'oscd-icon': OscdIcon,
+      'oscd-filled-button': OscdFilledButton,
     };
   }
 
@@ -415,6 +423,28 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     return buildFunctionLinks(scope, this.doc);
   }
 
+  private getSelectedLink(
+    functionLinks: FunctionLink[]
+  ): FunctionLink | undefined {
+    return functionLinks.find(link => link.id === this.selectedLink);
+  }
+
+  private getLinkOverviewTop(selectedLink: FunctionLink): number | undefined {
+    const sourceFn = this.functions.find(
+      fn => fn.element === selectedLink.sourceFunction
+    );
+    const sinkFn = this.functions.find(
+      fn => fn.element === selectedLink.sinkFunction
+    );
+    if (!sourceFn || !sinkFn) return undefined;
+
+    const lowestBottom = Math.max(
+      this.getFunctionBoxGeometry(sourceFn).bottom,
+      this.getFunctionBoxGeometry(sinkFn).bottom
+    );
+    return this.sldOffsetTop + lowestBottom * this.gridSize + 12;
+  }
+
   private getFunctionBoxGeometry(fn: FunctionData): FunctionBoxGeometry {
     const width = this.calculateFunctionBoxWidth(fn.name);
     return {
@@ -439,6 +469,48 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   private toggleOverviewLinkDetails() {
     this.expandedOverviewDetails = !this.expandedOverviewDetails;
+  }
+
+  private saveLinkOverviewChanges(
+    links: FunctionLink[],
+    detail: FunctionLinkOverviewSaveDetail
+  ) {
+    if (!this.selectedLink) {
+      this.closeLinkOverview();
+      return;
+    }
+
+    const selectedLink = this.getSelectedLink(links);
+    if (!selectedLink) {
+      this.closeLinkOverview();
+      return;
+    }
+
+    const removedSourceRefsByKey = new Map<string, Element>();
+
+    selectedLink.sourceRefs.forEach(sourceRef => {
+      const sourceRefKey = buildSourceRefKey(sourceRef);
+      if (
+        detail.deleteWholeLink ||
+        detail.removedSourceRefKeys.includes(sourceRefKey)
+      ) {
+        removedSourceRefsByKey.set(sourceRefKey, sourceRef);
+      }
+    });
+
+    const edits = buildRemoveSourceRefEdits(
+      Array.from(removedSourceRefsByKey.values())
+    );
+
+    if (edits.length) {
+      this.dispatchEvent(
+        newEditEventV2(edits, {
+          title: 'Update Function Links',
+        })
+      );
+    }
+
+    this.closeLinkOverview();
   }
 
   private renderFunctionLink(link: FunctionLink) {
@@ -476,140 +548,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           }}
         ></path>
       </g>
-    `;
-  }
-
-  private renderFunctionLinkOverview(links: FunctionLink[]) {
-    if (!links.length || !this.selectedLink) return nothing;
-
-    const selectedLink = links.find(link => link.id === this.selectedLink);
-    if (!selectedLink) return nothing;
-
-    const sourceFn = this.functions.find(
-      fn => fn.element === selectedLink.sourceFunction
-    );
-    const sinkFn = this.functions.find(
-      fn => fn.element === selectedLink.sinkFunction
-    );
-
-    let overviewStyle = '';
-    if (sourceFn && sinkFn) {
-      const lowestBottom = Math.max(
-        this.getFunctionBoxGeometry(sourceFn).bottom,
-        this.getFunctionBoxGeometry(sinkFn).bottom
-      );
-      const top = this.sldOffsetTop + lowestBottom * this.gridSize + 12;
-      overviewStyle = `top: ${top}px; bottom: auto;`;
-    }
-
-    return html`
-      <div
-        class="link-overview"
-        data-testid="function-link-overview"
-        style="${overviewStyle}"
-      >
-        <div class="link-overview-list">
-          <div
-            class="link-overview-columns"
-            data-testid="link-overview-columns"
-          >
-            <span>Source</span>
-            <span>Service</span>
-            <span>Description</span>
-            <span class="link-overview-actions-cell"
-              ><button
-                class="link-overview-close"
-                type="button"
-                title="Close link overview"
-                @click=${() => this.closeLinkOverview()}
-              >
-                <oscd-icon>close</oscd-icon>
-              </button></span
-            >
-          </div>
-          <div class="link-overview-item">
-            <div class="link-overview-item-main" data-testid="link-level-1-row">
-              <button
-                class="link-overview-source-button"
-                type="button"
-                @click=${() => this.toggleOverviewLinkDetails()}
-                title="Toggle source references"
-              >
-                <oscd-icon class="link-overview-expand-icon"
-                  >${this.expandedOverviewDetails
-                    ? 'expand_more'
-                    : 'chevron_right'}</oscd-icon
-                >
-                <span class="link-overview-title"
-                  >${selectedLink.sourceFunction.getAttribute('name')}</span
-                >
-              </button>
-
-              <span class="link-overview-service">${selectedLink.service}</span>
-
-              <span class="link-overview-description"
-                >${selectedLink.sourceFunction.getAttribute('desc') ?? ''}</span
-              >
-
-              <div class="link-overview-actions-cell" aria-label="Link actions">
-                <button
-                  class="link-overview-row-action"
-                  type="button"
-                  title="Delete link"
-                  data-testid="main-row-delete-button"
-                >
-                  <oscd-icon>delete</oscd-icon>
-                </button>
-              </div>
-            </div>
-
-            ${this.expandedOverviewDetails
-              ? html`<div
-                  class="link-overview-details"
-                  data-testid="link-details"
-                >
-                  ${selectedLink.sourceRefs.map(
-                    sourceRef => html`
-                      <div
-                        class="link-overview-detail-row"
-                        data-testid="link-level-2-row"
-                      >
-                        <span class="link-overview-detail-ref"
-                          >${buildSourceRefDisplay(sourceRef)}</span
-                        >
-                        <span class="link-overview-detail-service"
-                          >${selectedLink.service}</span
-                        >
-                        <span class="link-overview-detail-description"></span>
-                        <div
-                          class="link-overview-actions-cell"
-                          aria-label="Data reference actions"
-                        >
-                          <button
-                            class="link-overview-row-action"
-                            type="button"
-                            title="Reference info"
-                            data-testid="detail-row-info-button"
-                          >
-                            <oscd-icon>info</oscd-icon>
-                          </button>
-                          <button
-                            class="link-overview-row-action"
-                            type="button"
-                            title="Delete data reference"
-                            data-testid="detail-row-delete-button"
-                          >
-                            <oscd-icon>delete</oscd-icon>
-                          </button>
-                        </div>
-                      </div>
-                    `
-                  )}
-                </div>`
-              : nothing}
-          </div>
-        </div>
-      </div>
     `;
   }
 
@@ -711,6 +649,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
 
   render() {
     const functionLinks = this.showLinks ? this.getFunctionLinks() : [];
+    const selectedLink = this.getSelectedLink(functionLinks);
     const placingFn = this.functions.find(fn => fn.element === this.placing);
     const { width, height } = this.getSvgDimensions();
 
@@ -871,7 +810,18 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           </svg>
           ${coordinateTooltip}
         </div>
-        ${contextMenuTemplate} ${this.renderFunctionLinkOverview(functionLinks)}
+        ${contextMenuTemplate}
+        <function-link-overview
+          .selectedLink=${selectedLink}
+          .overviewTop=${selectedLink
+            ? this.getLinkOverviewTop(selectedLink)
+            : undefined}
+          .expandedDetails=${this.expandedOverviewDetails}
+          @close=${() => this.closeLinkOverview()}
+          @toggle-details=${() => this.toggleOverviewLinkDetails()}
+          @save=${(e: CustomEvent<FunctionLinkOverviewSaveDetail>) =>
+            this.saveLinkOverviewChanges(functionLinks, e.detail)}
+        ></function-link-overview>
         ${this.selectedFunctionElement
           ? html`<div class="sidebar">
               <function-content-panel
@@ -936,204 +886,6 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       height: 100%;
       position: relative;
       z-index: 1;
-    }
-
-    .link-overview {
-      --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      bottom: 8px;
-      max-width: 1000px;
-      pointer-events: auto;
-      z-index: 4;
-      background: #fff;
-      border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
-      max-height: 280px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .link-overview-close {
-      border: 0;
-      background: transparent;
-      color: inherit;
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .link-overview-close:hover {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    .link-overview-list {
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .link-overview-columns {
-      display: grid;
-      grid-template-columns: var(--link-overview-cols);
-      gap: 12px;
-      align-items: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      background: #fff;
-      padding: 8px 14px;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      border-bottom: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
-    }
-
-    .link-overview-columns > .link-overview-close {
-      justify-self: end;
-    }
-
-    .link-overview-item {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
-    }
-
-    .link-overview-item:last-child {
-      border-bottom: none;
-    }
-
-    .link-overview-item-main {
-      display: grid;
-      grid-template-columns: var(--link-overview-cols);
-      gap: 12px;
-      align-items: center;
-    }
-
-    .link-overview-title {
-      font-size: 14px;
-      color: var(--md-sys-color-on-surface, #1d1b20);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .link-overview-source-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 0;
-      background: transparent;
-      font: inherit;
-      padding: 0;
-      cursor: pointer;
-      min-width: 0;
-      justify-self: start;
-    }
-
-    .link-overview-expand-icon {
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-
-    .link-overview-service {
-      display: block;
-      font-size: 13px;
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      justify-self: start;
-    }
-
-    .link-overview-description {
-      font-size: 13px;
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .link-overview-actions-cell {
-      width: 52px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex: none;
-      justify-self: flex-end;
-      justify-content: flex-end;
-    }
-
-    .link-overview-row-action {
-      border: 0;
-      background: transparent;
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      width: 24px;
-      height: 24px;
-      border-radius: 999px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-
-    .link-overview-row-action:hover {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    .link-overview-row-action oscd-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-
-    .link-overview-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-left: 0;
-    }
-
-    .link-overview-detail-row {
-      display: grid;
-      grid-template-columns: var(--link-overview-cols);
-      gap: 12px;
-      align-items: center;
-      font-size: 12px;
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      padding: 7px 0;
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
-      background: transparent;
-    }
-
-    .link-overview-detail-row:first-child {
-      border-top: none;
-    }
-
-    .link-overview-detail-ref {
-      color: var(--md-sys-color-on-surface, #1d1b20);
-      padding-left: 24px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .link-overview-detail-service {
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-    }
-
-    .link-overview-detail-description {
-      color: var(--md-sys-color-on-surface-variant, #6a656f);
-      min-height: 1em;
     }
 
     oscd-menu {
