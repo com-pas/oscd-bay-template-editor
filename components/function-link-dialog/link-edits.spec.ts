@@ -1,8 +1,15 @@
 import { expect } from '@open-wc/testing';
 import type { EditV2 } from '@openscd/oscd-api';
-import { buildFunctionLinkEdits } from './link-edits.js';
+import {
+  buildFunctionLinkEdits,
+  buildRemoveSourceRefEdits,
+} from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
-import { docWithSinkFunction, docWithFunctionLink } from '../../testfiles.js';
+import {
+  docWithSinkFunction,
+  docWithFunctionLink,
+  docWithMultipleSourceRefs,
+} from '../../testfiles.js';
 
 function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
   return 'node' in edit;
@@ -91,5 +98,58 @@ describe('link-edits helpers', () => {
     });
 
     expect(edits).to.deep.equal([]);
+  });
+});
+
+describe('buildRemoveSourceRefEdits', () => {
+  it('removes only the targeted SourceRef when siblings remain', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceRefs = Array.from(
+      doc.querySelector('LNodeInputs')!.children
+    ).filter(child => child.localName === 'SourceRef');
+
+    const edits = buildRemoveSourceRefEdits([sourceRefs[0]]);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(sourceRefs[0]);
+  });
+
+  it('removes the Private element when every SourceRef and the LNodeInputs would become empty', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceRefs = Array.from(
+      doc.querySelector('LNodeInputs')!.children
+    ).filter(child => child.localName === 'SourceRef');
+    const privateElement = doc.querySelector(
+      'Private[type="eIEC61850-6-100"]'
+    )!;
+
+    const edits = buildRemoveSourceRefEdits(sourceRefs);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(privateElement);
+  });
+
+  it('removes only the LNodeInputs element when the Private has other children', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const lNodeInputsElement = doc.querySelector(
+      'Function[name="Sink2"] > LNode > Private[type="eIEC61850-6-100"] > LNodeInputs'
+    )!;
+    const sourceRefs = Array.from(lNodeInputsElement.children).filter(
+      child => child.localName === 'SourceRef'
+    );
+
+    const edits = buildRemoveSourceRefEdits(sourceRefs);
+
+    expect(edits.length).to.equal(1);
+    expect((edits[0] as { node: Node }).node).to.equal(lNodeInputsElement);
   });
 });

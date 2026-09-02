@@ -52,6 +52,17 @@ export function buildSourceRefDisplay(sourceRef: Element): string {
   return source.split('/').pop() ?? source;
 }
 
+export function buildSourceRefKey(sourceRef: Element): string {
+  return [
+    sourceRef.getAttribute('source') ?? '',
+    sourceRef.getAttribute('service') ?? '',
+    sourceRef.getAttribute('input') ?? '',
+    sourceRef.getAttribute('pLN') ?? '',
+    sourceRef.getAttribute('pDO') ?? '',
+    sourceRef.getAttribute('pDA') ?? '',
+  ].join('|');
+}
+
 export function buildFunctionLinks(
   scope: Element | Document | null,
   doc?: XMLDocument
@@ -183,4 +194,30 @@ export function buildFunctionLinkPath(
   const outerX = Math.min(sourceLeft, sinkLeft) - 1.2 - lanePadding;
   const endX = sinkLeft;
   return `M ${startX} ${startY} L ${outerX} ${startY} L ${outerX} ${endY} L ${endX} ${endY}`;
+}
+
+export function isSourceFunction(lnode: Element): boolean {
+  const functionElement = lnode.closest('EqFunction, Function');
+  const doc = functionElement?.ownerDocument;
+  if (!functionElement || !doc) return false;
+
+  const lnodeName = `${lnode.getAttribute('lnClass') ?? ''}${
+    lnode.getAttribute('lnInst') ?? ''
+  }`;
+  const subFunction = lnode.closest('EqSubFunction, SubFunction');
+  const lnodePath = [
+    getProcessPath(functionElement),
+    subFunction?.getAttribute('name'),
+    lnodeName,
+  ]
+    .filter(Boolean)
+    .join('/');
+
+  return Array.from(doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).some(
+    sourceRef => sourceRef.getAttribute('source')?.startsWith(`${lnodePath}.`)
+  );
+}
+
+export function isSinkFunction(lnode: Element): boolean {
+  return lnode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef').length > 0;
 }

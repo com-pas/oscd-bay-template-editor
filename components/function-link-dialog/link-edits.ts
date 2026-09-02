@@ -176,3 +176,42 @@ export function buildFunctionLinkEdits({
     createdInputsContainer
   );
 }
+
+export function buildRemoveSourceRefEdits(
+  sourceRefsToRemove: Element[]
+): EditV2[] {
+  const [firstSourceRef] = sourceRefsToRemove;
+  const parentElement = firstSourceRef?.parentElement ?? null;
+
+  const lNodeInputsElement =
+    parentElement?.localName === 'LNodeInputs' &&
+    parentElement.namespaceURI === eTr6100Ns
+      ? parentElement
+      : null;
+
+  const removingAllSourceRefs =
+    lNodeInputsElement?.querySelectorAll('SourceRef').length ===
+    sourceRefsToRemove.length;
+
+  if (!removingAllSourceRefs) {
+    return lNodeInputsElement?.querySelectorAll('SourceRef')
+      ? Array.from(lNodeInputsElement.querySelectorAll('SourceRef'))
+          .filter(child => sourceRefsToRemove.includes(child))
+          .map(sourceRef => ({ node: sourceRef }))
+      : [];
+  }
+
+  const privateElement = lNodeInputsElement!.parentElement;
+  const privateBecomesEmpty =
+    privateElement?.localName === 'Private' &&
+    privateElement.getAttribute('type') === eTr6100PrivType &&
+    privateElement.children.length === 1;
+
+  return [
+    {
+      node: privateBecomesEmpty
+        ? (privateElement as Element)
+        : lNodeInputsElement,
+    },
+  ];
+}
