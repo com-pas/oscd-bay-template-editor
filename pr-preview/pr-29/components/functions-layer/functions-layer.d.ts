@@ -54,8 +54,6 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private hoveredFunction;
     private selectedLink;
     private expandedOverviewDetails;
-    private pendingDeleteSelectedLink;
-    private pendingRemovedSourceRefKeys;
     svg: SVGSVGElement;
     private readonly menuAnchor;
     coordinatesRef: Ref<HTMLElement>;
@@ -87,13 +85,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private getFunctionBoxGeometry;
     private handleLinkClick;
     private closeLinkOverview;
-    private clearPendingLinkOverviewChanges;
     private toggleOverviewLinkDetails;
-    private hasPendingSourceRefDeletion;
-    private getVisibleSourceRefs;
-    private deleteOverviewLink;
-    private deleteOverviewSourceRef;
-    private handleOverviewSourceRefDelete;
     private saveLinkOverviewChanges;
     private renderFunctionLink;
     private renderFunction;
