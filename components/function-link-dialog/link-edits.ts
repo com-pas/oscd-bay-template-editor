@@ -57,12 +57,53 @@ function getLNodeInputsContainer(
   };
 }
 
+const maxInputInst = 99;
+const inputInstRange = Array(maxInputInst)
+  .fill(1)
+  .map((_, i) => `${i + 1}`);
+
+function getSourceRefElements(parent: Element): Element[] {
+  return Array.from(parent.getElementsByTagNameNS(eTr6100Ns, 'SourceRef'));
+}
+
+function sourceRefInstGenerator(
+  parent: Element
+): (input: string) => string | undefined {
+  const generators = new Map<string, () => string | undefined>();
+
+  return (input: string) => {
+    if (!generators.has(input)) {
+      const usedInputInsts = new Set(
+        getSourceRefElements(parent)
+          .filter(sourceRef => sourceRef.getAttribute('input') === input)
+          .map(sourceRef => sourceRef.getAttribute('inputInst') ?? '')
+      );
+
+      generators.set(input, () => {
+        if (!usedInputInsts.size) {
+          usedInputInsts.add('');
+          return undefined;
+        }
+
+        const uniqueInputInst = inputInstRange.find(
+          value => !usedInputInsts.has(value)
+        );
+        if (uniqueInputInst) usedInputInsts.add(uniqueInputInst);
+        return uniqueInputInst;
+      });
+    }
+
+    return generators.get(input)!();
+  };
+}
+
 function buildSourceRefs(
   doc: XMLDocument,
   selectedReferences: ObjectReferenceItem[],
   service: LinkService,
   namespacePrefix: string,
-  existingKeys: Set<string>
+  existingKeys: Set<string>,
+  getInputInst: (input: string) => string | undefined
 ): Element[] {
   const sourceRefs: Element[] = [];
 
@@ -76,6 +117,8 @@ function buildSourceRefs(
       );
       sourceRef.setAttribute('source', attrs.source);
       sourceRef.setAttribute('input', attrs.input);
+      const inputInst = getInputInst(attrs.input);
+      if (inputInst) sourceRef.setAttribute('inputInst', inputInst);
       sourceRef.setAttribute('pLN', attrs.pLN);
       sourceRef.setAttribute('pDO', attrs.pDO);
       sourceRef.setAttribute('pDA', attrs.pDA);
@@ -155,12 +198,16 @@ export function buildFunctionLinkEdits({
       )
   );
 
+  const functionScope = sinkLNode.closest('EqFunction, Function') ?? sinkLNode;
+  const getInputInst = sourceRefInstGenerator(functionScope);
+
   const newSourceRefs = buildSourceRefs(
     doc,
     selectedReferences,
     service,
     namespacePrefix,
-    existingKeys
+    existingKeys,
+    getInputInst
   );
 
   if (!newSourceRefs.length) {

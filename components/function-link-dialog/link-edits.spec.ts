@@ -99,6 +99,63 @@ describe('link-edits helpers', () => {
 
     expect(edits).to.deep.equal([]);
   });
+
+  it('assigns unique inputInst values for colliding input names created in the same call', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSinkFunction,
+      'application/xml'
+    );
+
+    const sinkLNode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    const edits = buildFunctionLinkEdits({
+      doc,
+      sinkLNode,
+      service: 'GOOSE',
+      namespacePrefix: 'eIEC61850-6-100',
+      selectedReferences: [
+        {
+          id: 'ref-1',
+          groupKey: 'function|TCTR1',
+          groupLabel: 'TCTR1 function level',
+          lnodeName: 'TCTR1',
+          lnClass: 'TCTR',
+          lnInst: '1',
+          doName: 'Amp',
+          daPath: 'instMag.f',
+          shortPath: 'Amp.instMag.f',
+          fullSource: 'S1/V1/B1/Source1/TCTR1.Amp.instMag.f',
+        },
+        {
+          id: 'ref-2',
+          groupKey: 'function|TCTR1',
+          groupLabel: 'TCTR1 function level',
+          lnodeName: 'TCTR1',
+          lnClass: 'TCTR',
+          lnInst: '1',
+          doName: 'Amp',
+          daPath: 'instMag.f',
+          shortPath: 'Amp.instMag.f',
+          fullSource: 'S1/V1/B1/Source2/TCTR1.Amp.instMag.f',
+        },
+      ],
+    });
+
+    const sourceRefElements = edits
+      .filter(isCreateEdit)
+      .map(edit => edit.node as Element)
+      .filter(node => node.localName === 'SourceRef');
+
+    expect(sourceRefElements.length).to.equal(2);
+    expect(sourceRefElements[0].getAttribute('input')).to.equal(
+      'TCTR1.Amp.instMag.f'
+    );
+    expect(sourceRefElements[0].getAttribute('inputInst')).to.equal(null);
+    expect(sourceRefElements[1].getAttribute('input')).to.equal(
+      'TCTR1.Amp.instMag.f'
+    );
+    expect(sourceRefElements[1].getAttribute('inputInst')).to.equal('1');
+  });
 });
 
 describe('buildRemoveSourceRefEdits', () => {
