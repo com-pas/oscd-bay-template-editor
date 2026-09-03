@@ -9222,12 +9222,11 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
       overflow: hidden;
     }
     .link-overview-info-pane-body {
-      flex: 1;
       overflow: auto;
-      padding: 14px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 20px;
     }
     .link-overview-info-field {
       display: grid;
@@ -9253,10 +9252,10 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
       border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
       background: #fff;
     }
-    .link-overview-row-action oscd-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+    .link-overview-row-action {
+      --md-icon-button-state-layer-height: 28px;
+      --md-icon-button-state-layer-width: 28px;
+      --md-icon-button-icon-size: 18px;
     }
     .link-overview-list {
       overflow: auto;
@@ -9293,7 +9292,6 @@ class yE extends(St(Xm)){getRenderClasses(){return{...super.getRenderClasses(),s
     .link-overview-item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
       padding: 10px 14px;
       border-bottom: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
     }
