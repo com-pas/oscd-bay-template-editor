@@ -76,7 +76,7 @@ describe('FunctionLinkDialog', () => {
       '[data-testid="service-select"]'
     ) as HTMLSelectElement;
     serviceSelect.value = 'GOOSE';
-    serviceSelect.dispatchEvent(new Event('change'));
+    serviceSelect.dispatchEvent(new Event('input'));
     await element.updateComplete;
 
     expect(connectButton.disabled).to.be.false;
@@ -98,7 +98,7 @@ describe('FunctionLinkDialog', () => {
       '[data-testid="service-select"]'
     ) as HTMLSelectElement;
     serviceSelect.value = 'SMV';
-    serviceSelect.dispatchEvent(new Event('change'));
+    serviceSelect.dispatchEvent(new Event('input'));
     await element.updateComplete;
 
     const connectButton = element.shadowRoot?.querySelector(
