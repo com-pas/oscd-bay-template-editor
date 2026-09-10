@@ -6,8 +6,7 @@ import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-import { OscdFilledSelect } from '@omicronenergy/oscd-ui/select/OscdFilledSelect.js';
-import { OscdSelectOption } from '@omicronenergy/oscd-ui/select/OscdSelectOption.js';
+import { OscdSclSelect } from '@omicronenergy/oscd-ui/scl-select/OscdSclSelect.js';
 import { type LinkService, type ObjectReferenceItem } from './object-references.js';
 export interface CreateFunctionLinkEventDetail {
     service: LinkService;
@@ -23,11 +22,9 @@ export declare class FunctionLinkDialog extends FunctionLinkDialog_base {
         'oscd-icon-button': typeof OscdIconButton;
         'oscd-list': typeof OscdList;
         'oscd-list-item': typeof OscdListItem;
-        'oscd-filled-select': typeof OscdFilledSelect;
-        'oscd-select-option': typeof OscdSelectOption;
+        'oscd-scl-select': typeof OscdSclSelect;
     };
     private readonly dialog;
-    private readonly serviceSelect?;
     sourceFunctionName: string;
     sourceFunctionPath: string;
     private objectReferenceGroups;
