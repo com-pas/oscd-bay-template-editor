@@ -80,11 +80,6 @@ function sourceRefInstGenerator(
       );
 
       generators.set(input, () => {
-        if (!usedInputInsts.size) {
-          usedInputInsts.add('');
-          return undefined;
-        }
-
         const uniqueInputInst = inputInstRange.find(
           value => !usedInputInsts.has(value)
         );
