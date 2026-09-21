@@ -14,6 +14,7 @@ import {
   getSLDAttributes,
   updateSLDAttributes,
   getSldSvgs,
+  isFunctionEmpty,
 } from '../../util.js';
 import {
   buildFunctionLinks,
@@ -35,6 +36,7 @@ import {
   LINK_SERVICE_COLORS,
   SELECTED_PSR_HIGHLIGHT_STYLE,
   SOURCE_CANDIDATE_HIGHLIGHT_STYLE,
+  EMPTY_FUNCTION_STYLE,
 } from '../../const.js';
 
 type Point = [number, number];
@@ -555,7 +557,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     if (this.placing === fn.element && !preview) {
       return nothing;
     }
-
+    const isEmpty = isFunctionEmpty(fn.element);
     const isPlacing = this.placing === fn.element;
     let { x, y } = fn;
 
@@ -599,6 +601,10 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     } else if (preview) {
       fill = PREVIEW_FILL;
       stroke = PREVIEW_STROKE;
+      strokeWidth = STROKE_WIDTH;
+    } else if (isEmpty) {
+      fill = EMPTY_FUNCTION_STYLE.fill;
+      stroke = EMPTY_FUNCTION_STYLE.stroke;
       strokeWidth = STROKE_WIDTH;
     } else {
       fill = NORMAL_FILL;
