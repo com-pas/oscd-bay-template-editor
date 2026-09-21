@@ -385,6 +385,20 @@ export function getFunctions(element: Element): Element[] {
 }
 
 /**
+ * Determines if a Function or EqFunction element is empty.
+ * A Function is considered empty if it has no LNode children OR some of its SubFunctions have no LNode children.
+ */
+export function isFunctionEmpty(element: Element): boolean {
+  const emptyFunction = element.querySelector('LNode') === null;
+  const subFunctions = element.querySelectorAll('EqSubFunction, SubFunction');
+  const hasEmptySubFunctions = Array.from(subFunctions).some(
+    sf => sf.querySelector('LNode') === null
+  );
+
+  return emptyFunction || hasEmptySubFunctions;
+}
+
+/**
  * Returns all SLD SVG canvases from sld-editor, one per Substations
  *
  * WORKAROUND: relies on internal shadow DOM structure.

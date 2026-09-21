@@ -3,7 +3,7 @@ import { fixture, html } from '@open-wc/testing';
 import { visualDiff } from '@web/test-runner-visual-regression';
 
 import { FunctionsLayer } from './functions-layer.js';
-import { docWithBayAndFunctions } from '../../testfiles.js';
+import { docWithBayAndFunctions2 } from '../../testfiles.js';
 
 window.customElements.define('functions-layer', FunctionsLayer);
 
@@ -25,7 +25,7 @@ describe('FunctionsLayer component', () => {
     beforeEach(async () => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(
-        docWithBayAndFunctions,
+        docWithBayAndFunctions2,
         'application/xml'
       );
       const props = {

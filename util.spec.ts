@@ -18,6 +18,7 @@ import {
   clearBusbarHighlights,
   createLNodeFromType,
   uniqueLNodeTypes,
+  isFunctionEmpty,
 } from './util.js';
 
 import { docWithBayAndEqFunctions, lnodeTypeLibrary } from './testfiles.js';
@@ -208,6 +209,48 @@ describe('utils', () => {
       expect(functions[0].tagName).equal('EqFunction');
       const names = functions.map(f => f.getAttribute('name'));
       expect(names).to.include('PTRFunction');
+    });
+  });
+
+  describe('isFunctionEmpty', () => {
+    it('returns true for Function elements without LNodes', () => {
+      const functionElement = doc.createElement('Function');
+      expect(isFunctionEmpty(functionElement)).equal(true);
+    });
+
+    it('returns true for Function elements with empty SubFunctions', () => {
+      const functionElement = doc.createElement('Function');
+      const lNodeElement = doc.createElement('LNode');
+      functionElement.appendChild(lNodeElement);
+      const subFunctionElement = doc.createElement('SubFunction');
+      functionElement.appendChild(subFunctionElement);
+      expect(isFunctionEmpty(functionElement)).equal(true);
+    });
+
+    it('returns false for Function elements with descendant LNodes', () => {
+      const functionElement = doc.createElement('Function');
+      const lNodeElement = doc.createElement('LNode');
+      functionElement.appendChild(lNodeElement);
+      expect(isFunctionEmpty(functionElement)).equal(false);
+    });
+
+    it('returns true for EqFunction elements without LNodes', () => {
+      const functionElement = doc.createElement('EqFunction');
+      expect(isFunctionEmpty(functionElement)).equal(true);
+    });
+
+    it('returns true for EqFunction elements with empty SubFunctions', () => {
+      const functionElement = doc.createElement('EqFunction');
+      const subFunctionElement = doc.createElement('EqSubFunction');
+      functionElement.appendChild(subFunctionElement);
+      expect(isFunctionEmpty(functionElement)).equal(true);
+    });
+
+    it('returns false for EqFunction elements with direct LNodes', () => {
+      const functionElement = doc.createElement('EqFunction');
+      const lNodeElement = doc.createElement('LNode');
+      functionElement.appendChild(lNodeElement);
+      expect(isFunctionEmpty(functionElement)).equal(false);
     });
   });
 
