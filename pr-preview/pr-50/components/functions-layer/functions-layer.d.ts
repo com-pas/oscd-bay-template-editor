@@ -67,7 +67,6 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private svgCoordinates;
     positionCoordinates(e: MouseEvent): void;
     private extractFunctions;
-    private getFunctionByProcessPath;
     private getSvgDimensions;
     private calculateFunctionBoxWidth;
     private finalizeFunctionPlacement;
