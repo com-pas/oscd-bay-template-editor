@@ -7,6 +7,7 @@ import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
+import { isSourceFunction, isSinkFunction } from './function-links.js';
 
 export interface LNodeSelectionContext {
   functionElement: Element;
@@ -27,6 +28,9 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
 
   @property({ attribute: false })
   functionElement?: Element;
+
+  @property({ type: Number })
+  editCount = -1;
 
   @property({ attribute: false })
   selectingLinkSource = false;
@@ -193,6 +197,8 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     const lnClass = lnode.getAttribute('lnClass') ?? '';
     const desc = lnode.getAttribute('desc') ?? '';
     const isSelected = this.isSelectedLNode(lnode, subFunction);
+    const isSink = isSinkFunction(lnode);
+    const isSource = isSourceFunction(lnode);
 
     return html`
       <oscd-list-item
@@ -200,7 +206,17 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
         @click=${() => this.selectLNode(lnode, subFunction)}
         class=${ifDefined(isSelected ? 'selected-lnode-item' : undefined)}
       >
-        <span slot="headline" title=${lnClass}>${lnClass}</span>
+        <div slot="headline" class="lnode-headline">
+          <span title="lnClass">${lnClass}</span>
+          <div class="lnode-icons">
+            ${isSink
+              ? html`<oscd-icon title="Sink Function">download</oscd-icon>`
+              : nothing}
+            ${isSource
+              ? html`<oscd-icon title="Source Function">upload</oscd-icon>`
+              : nothing}
+          </div>
+        </div>
         ${desc ? html`<span slot="supporting-text">${desc}</span>` : nothing}
         ${isSelected
           ? html`<div slot="supporting-text" class="lnode-actions-wrapper">
@@ -462,6 +478,17 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     .link-source-hint-icon {
       flex-shrink: 0;
       font-size: 1.25rem;
+    }
+
+    .lnode-headline {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .lnode-icons oscd-icon {
+      font-size: 1.2rem;
+      height: 1.2rem;
+      width: 1.2rem;
     }
   `;
 }
