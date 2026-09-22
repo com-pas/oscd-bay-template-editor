@@ -25,6 +25,7 @@ import {
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
+import { lNodeHasLinks } from '../function-link-dialog/link-edits.js';
 import { EditList, DeleteEventDetail } from '../edit-list/edit-list.js';
 
 export enum CreateFunctionDialogStep {
@@ -51,6 +52,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   @property({ type: Object })
   parent: Element | null = null;
+
+  @property({ type: Element })
+  function?: Element | null = null;
 
   @property({ type: String })
   selectedElementName = '';
@@ -103,6 +107,15 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   @state()
   lnodes: Element[] = [];
 
+  @state()
+  removedSubfunctions: SubfunctionData[] = [];
+
+  private editingSubfunctionIndex: number | null = null;
+
+  private get isEdit() {
+    return !!this.function;
+  }
+
   private get selectedLNodeTypeIds(): string[] {
     return this.lnodes.map(lNodeType => lNodeTypeId(lNodeType));
   }
@@ -133,7 +146,30 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   show() {
     document.addEventListener('keydown', this.boundHandleDocumentKeydown, true);
     this.step = CreateFunctionDialogStep.FunctionAttributes;
-    this.tempSubfunctions = [];
+    this.removedSubfunctions = [];
+    this.editingSubfunctionIndex = null;
+    if (this.function) {
+      this.name = this.function.getAttribute('name') ?? '';
+      this.description = this.function.getAttribute('desc');
+      this.type = this.function.getAttribute('type');
+      this.lnodes = Array.from(this.function.children).filter(
+        child => child.tagName === 'LNode'
+      );
+      this.tempSubfunctions = Array.from(this.function.children)
+        .filter(child => child.tagName === this.subFunctionName)
+        .map(subfunction => ({
+          name: subfunction.getAttribute('name') ?? '',
+          description: subfunction.getAttribute('desc'),
+          type: subfunction.getAttribute('type'),
+          lnodes: Array.from(subfunction.children).filter(
+            child => child.tagName === 'LNode'
+          ),
+          element: subfunction,
+        }));
+    } else {
+      this.lnodes = [];
+      this.tempSubfunctions = [];
+    }
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -178,6 +214,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
       this.boundHandleDocumentKeydown,
       true
     );
+    this.function = null;
     this.dialog.close();
   }
 
@@ -188,6 +225,10 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     this.type = null;
     this.lnPickerOpen = false;
     this.lnodes = [];
+    this.tempSubfunctions = [];
+    this.removedSubfunctions = [];
+    this.editingSubfunctionIndex = null;
+    this.function = null;
     if (this.nameField) {
       this.nameField.errorText = '';
       this.nameField.error = false;
@@ -238,7 +279,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
     const existing = functions.find(
       fn => fn.getAttribute('name')?.trim() === trimmed
     );
-    return existing
+    return existing && existing !== this.function
       ? `A Function with the name "${trimmed}" already exists`
       : null;
   };
@@ -261,6 +302,8 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
           type: this.type,
           subfunctions: this.tempSubfunctions,
           lnodes: this.lnodes,
+          functionElement: this.function ?? null,
+          removedSubfunctions: this.removedSubfunctions,
         },
       })
     );
@@ -270,19 +313,84 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleAddSubfunction() {
+    this.editingSubfunctionIndex = null;
+    this.createSubfunctionDialog.editingSubfunction = null;
     this.createSubfunctionDialog.subfunctions = this.tempSubfunctions;
     this.createSubfunctionDialog.show();
   }
 
+  private handleEditSubfunction(subfunctionToEdit: SubfunctionData) {
+    const index = this.tempSubfunctions.findIndex(
+      sf => sf === subfunctionToEdit
+    );
+    if (index === -1) return;
+    this.editingSubfunctionIndex = index;
+    this.createSubfunctionDialog.editingSubfunction = subfunctionToEdit;
+    this.createSubfunctionDialog.subfunctions = this.tempSubfunctions.filter(
+      (_, i) => i !== index
+    );
+    this.createSubfunctionDialog.show();
+  }
+
+  private upsertSubfunction(data: SubfunctionData) {
+    if (this.editingSubfunctionIndex !== null) {
+      const index = this.editingSubfunctionIndex;
+      this.tempSubfunctions = this.tempSubfunctions.map((sf, i) =>
+        i === index ? data : sf
+      );
+    } else {
+      this.tempSubfunctions = [...this.tempSubfunctions, data];
+    }
+    this.editingSubfunctionIndex = null;
+  }
+
+  private removeEditedSubfunction(data: SubfunctionData) {
+    if (data.element) {
+      this.removedSubfunctions = [...this.removedSubfunctions, data];
+    }
+    if (this.editingSubfunctionIndex !== null) {
+      const index = this.editingSubfunctionIndex;
+      this.tempSubfunctions = this.tempSubfunctions.filter(
+        (_, i) => i !== index
+      );
+    }
+    this.editingSubfunctionIndex = null;
+  }
+
   private handleSaveSubfunction(e: CustomEvent<SubfunctionData>) {
-    this.tempSubfunctions = [...this.tempSubfunctions, e.detail];
+    const data = e.detail;
+    if (!data.lnodes || data.lnodes.length === 0) {
+      this.confirmDialog
+        .show({
+          headline: 'Delete SubFunction?',
+          description: `"${data.name}" no longer has any LNodes. Do you want to delete this ${this.subFunctionName}?`,
+          icon: 'delete',
+          variant: 'danger',
+          confirmLabel: 'Delete',
+          cancelLabel: 'Keep empty',
+        })
+        .then(confirmed => {
+          if (confirmed) {
+            this.removeEditedSubfunction(data);
+          } else {
+            this.upsertSubfunction(data);
+          }
+        });
+      return;
+    }
+    this.upsertSubfunction(data);
   }
 
   private handleDeleteSubfunction(subfunctionToDelete: SubfunctionData) {
+    const hasLinkedLNodes = (subfunctionToDelete.lnodes ?? []).some(
+      lnode => lnode.tagName === 'LNode' && lNodeHasLinks(lnode)
+    );
     this.confirmDialog
       .show({
         headline: 'Delete SubFunction?',
-        description: `Are you sure you want to delete "${subfunctionToDelete.name}"? This action cannot be undone.`,
+        description: hasLinkedLNodes
+          ? `"${subfunctionToDelete.name}" contains LNodes used in existing function links. Deleting it will remove those links. Are you sure you want to continue?`
+          : `Are you sure you want to delete "${subfunctionToDelete.name}"? This action cannot be undone.`,
         icon: 'delete',
         variant: 'danger',
         confirmLabel: 'Delete',
@@ -293,7 +401,16 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
         const index = this.tempSubfunctions.findIndex(
           sf => sf === subfunctionToDelete
         );
-        this.tempSubfunctions.splice(index, 1);
+        if (index === -1) return;
+        if (subfunctionToDelete.element) {
+          this.removedSubfunctions = [
+            ...this.removedSubfunctions,
+            subfunctionToDelete,
+          ];
+        }
+        this.tempSubfunctions = this.tempSubfunctions.filter(
+          (_, i) => i !== index
+        );
       });
   }
 
@@ -302,7 +419,28 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleRemoveLNode(lnodeToRemove: Element) {
-    this.lnodes = this.lnodes.filter(l => l !== lnodeToRemove);
+    const proceed = () => {
+      this.lnodes = this.lnodes.filter(l => l !== lnodeToRemove);
+    };
+
+    if (lnodeToRemove.tagName === 'LNode' && lNodeHasLinks(lnodeToRemove)) {
+      this.confirmDialog
+        .show({
+          headline: 'Delete LNode?',
+          description:
+            'This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?',
+          icon: 'warning',
+          variant: 'danger',
+          confirmLabel: 'Delete',
+          cancelLabel: 'Cancel',
+        })
+        .then(confirmed => {
+          if (confirmed) proceed();
+        });
+      return;
+    }
+
+    proceed();
   }
 
   private handleLNodePickerCancel() {
@@ -320,7 +458,9 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderFunctionAttrs() {
     return html`
-      <div slot="headline">Add ${this.elementName}</div>
+      <div slot="headline">
+        ${this.isEdit ? 'Edit' : 'Add'} ${this.elementName}
+      </div>
       <form slot="content" novalidate autocomplete="off">
         <oscd-filled-text-field
           label="Name"
@@ -428,7 +568,10 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             itemName=${this.subFunctionName}
             .items=${this.tempSubfunctions}
             .itemHeadline=${(func: SubfunctionData) => func.name}
+            showEditButton
             @add-item=${this.handleAddSubfunction}
+            @edit-item=${(e: CustomEvent<DeleteEventDetail<SubfunctionData>>) =>
+              this.handleEditSubfunction(e.detail.item)}
             @delete-item=${(
               e: CustomEvent<DeleteEventDetail<SubfunctionData>>
             ) => this.handleDeleteSubfunction(e.detail.item)}

@@ -20,6 +20,7 @@ import {
 import { lNodeTypeClass, lNodeTypeDesc, lNodeTypeId } from '../../util.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
+import { lNodeHasLinks } from '../function-link-dialog/link-edits.js';
 import type { SubfunctionData } from '../../util.js';
 
 export enum CreateSubfunctionDialogStep {
@@ -53,8 +54,16 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean })
   isEqFunction = false;
 
+  /** Present when editing an existing (Eq)SubFunction (may not yet be attached to the document). */
+  @property({ attribute: false })
+  editingSubfunction: SubfunctionData | null = null;
+
   private get elementName(): string {
     return this.isEqFunction ? 'EqSubFunction' : 'SubFunction';
+  }
+
+  private get isEdit() {
+    return !!this.editingSubfunction;
   }
 
   @query('oscd-dialog')
@@ -85,10 +94,11 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   step: CreateSubfunctionDialogStep =
     CreateSubfunctionDialogStep.SubfunctionAttributes;
 
+  @state()
   lnodes: Element[] = [];
 
   @state()
-  selectedLNode: string | null = null;
+  selectedLNode: Element | null = null;
 
   @state()
   pickerOpen = false;
@@ -101,6 +111,17 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
   show() {
     document.addEventListener('keydown', this.boundHandleDocumentKeydown, true);
     this.step = CreateSubfunctionDialogStep.SubfunctionAttributes;
+    if (this.editingSubfunction) {
+      this.name = this.editingSubfunction.name;
+      this.description = this.editingSubfunction.description;
+      this.type = this.editingSubfunction.type;
+      this.lnodes = this.editingSubfunction.lnodes
+        ? [...this.editingSubfunction.lnodes]
+        : [];
+    } else {
+      this.lnodes = [];
+    }
+    this.selectedLNode = null;
     this.formGroup = new FormGroup({
       name: {
         formField: this.nameField,
@@ -156,6 +177,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.lnodes = [];
     this.selectedLNode = null;
     this.pickerOpen = false;
+    this.editingSubfunction = null;
     if (this.nameField) {
       this.nameField.errorText = '';
       this.nameField.error = false;
@@ -224,6 +246,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
           description: this.description,
           type: this.type,
           lnodes: this.lnodes,
+          element: this.editingSubfunction?.element ?? null,
         },
       })
     );
@@ -231,16 +254,37 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
     this.dialog.close();
   }
 
-  private handleSelectLNode(id: string) {
-    this.selectedLNode = this.selectedLNode === id ? null : id;
+  private handleSelectLNode(lnode: Element) {
+    this.selectedLNode = this.selectedLNode === lnode ? null : lnode;
   }
 
   private handleRemoveLNode() {
-    if (this.selectedLNode === null) return;
-    this.lnodes = this.lnodes.filter(
-      l => lNodeTypeId(l) !== this.selectedLNode
-    );
-    this.selectedLNode = null;
+    const lnodeToRemove = this.selectedLNode;
+    if (!lnodeToRemove) return;
+
+    const proceed = () => {
+      this.lnodes = this.lnodes.filter(l => l !== lnodeToRemove);
+      this.selectedLNode = null;
+    };
+
+    if (lnodeToRemove.tagName === 'LNode' && lNodeHasLinks(lnodeToRemove)) {
+      this.confirmDialog
+        .show({
+          headline: 'Delete LNode?',
+          description:
+            'This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?',
+          icon: 'warning',
+          variant: 'danger',
+          confirmLabel: 'Delete',
+          cancelLabel: 'Cancel',
+        })
+        .then(confirmed => {
+          if (confirmed) proceed();
+        });
+      return;
+    }
+
+    proceed();
   }
 
   private handleAddLNode() {
@@ -265,7 +309,9 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
 
   renderSubfunctionAttrs() {
     return html`
-      <div slot="headline">Add ${this.elementName}</div>
+      <div slot="headline">
+        ${this.isEdit ? 'Edit' : 'Add'} ${this.elementName}
+      </div>
       <form
         slot="content"
         novalidate
@@ -373,10 +419,8 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
                         lnode => html`
                           <oscd-list-item
                             type="button"
-                            ?selected=${this.selectedLNode ===
-                            lNodeTypeId(lnode)}
-                            @click=${() =>
-                              this.handleSelectLNode(lNodeTypeId(lnode))}
+                            ?selected=${this.selectedLNode === lnode}
+                            @click=${() => this.handleSelectLNode(lnode)}
                           >
                             <span slot="headline"
                               >${lNodeTypeClass(lnode)}</span
@@ -386,7 +430,7 @@ export class CreateSubfunctionDialog extends ScopedElementsMixin(LitElement) {
                               lNodeTypeId(lnode) ??
                               ''}</span
                             >
-                            ${this.selectedLNode === lNodeTypeId(lnode)
+                            ${this.selectedLNode === lnode
                               ? html`<oscd-icon slot="end">check</oscd-icon>`
                               : nothing}
                           </oscd-list-item>

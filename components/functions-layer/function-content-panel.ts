@@ -123,6 +123,17 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     );
   }
 
+  private handleEditClick(e: Event): void {
+    e.stopPropagation();
+    this.dispatchEvent(
+      new CustomEvent('edit-function', {
+        bubbles: true,
+        composed: true,
+        detail: { functionElement: this.functionElement },
+      })
+    );
+  }
+
   private handleCreateFunctionLinkClick(e: Event): void {
     e.stopPropagation();
     this.resetLinkSelectionUi = false;
@@ -299,6 +310,11 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
               </oscd-list>
             `
           : nothing}
+      </div>
+      <div class="footer">
+        <oscd-filled-button @click=${this.handleEditClick}
+          >Edit</oscd-filled-button
+        >
       </div>
     `;
   }
@@ -489,6 +505,11 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
       font-size: 1.2rem;
       height: 1.2rem;
       width: 1.2rem;
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem;
+      border-top: 1px solid var(--oscd-theme-primary, #ccc);
     }
   `;
 }
