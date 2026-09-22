@@ -5,6 +5,7 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
+import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -40,7 +41,10 @@ import {
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
-import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
+import {
+  buildFunctionLinkEdits,
+  buildRemoveLNodeEdits,
+} from './components/function-link-dialog/link-edits.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
@@ -182,6 +186,32 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     };
   }
 
+  /**
+   * `getReference(parent, 'LNode')` returns the first existing LNode sibling as
+   * the insertion point. If that sibling is being removed in the same edit
+   * batch, it will no longer be a child by the time the insert runs. Temporarily
+   * detach the about-to-be-removed siblings so the reference is computed against
+   * the LNodes that will actually remain, then restore them (the real removal
+   * happens later, via the dispatched edits).
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private getLNodeInsertReference(
+    parent: Element,
+    removedLNodes: Element[]
+  ): Element | null {
+    const detached = removedLNodes
+      .filter(node => node.parentElement === parent)
+      .map(node => ({ node, next: node.nextSibling }));
+
+    detached.forEach(({ node }) => parent.removeChild(node));
+    const reference = getReference(parent, 'LNode');
+    [...detached]
+      .reverse()
+      .forEach(({ node, next }) => parent.insertBefore(node, next));
+
+    return reference;
+  }
+
   get showLabels(): boolean {
     if (this.labelToggle) return !this.labelToggle.selected;
     return true;
@@ -315,6 +345,14 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     this.selectingLinkSource = false;
     this.functionLinkDialog.showForSourceFunction(sourceFunction, this.doc!);
+  };
+
+  private handleEditFunction = (funcElement: Element) => {
+    if (this.createFunctionDialog) {
+      this.createFunctionDialog.function = funcElement;
+      this.createFunctionDialog.parent = funcElement.parentElement;
+      this.createFunctionDialog.show();
+    }
   };
 
   private resetLinkingState = () => {
@@ -561,10 +599,21 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       type: string | null;
       subfunctions: SubfunctionData[];
       lnodes: Element[];
+      functionElement?: Element | null;
+      removedSubfunctions?: SubfunctionData[];
     }>
   ) {
-    const { name, description, type, subfunctions, lnodes } = e.detail;
     if (!this.doc) return;
+
+    if (e.detail.functionElement) {
+      this.updateFunction({
+        ...e.detail,
+        functionElement: e.detail.functionElement,
+      });
+      return;
+    }
+
+    const { name, description, type, subfunctions, lnodes } = e.detail;
 
     const selected = this.selectedElement;
     if (!selected) return;
@@ -611,6 +660,140 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     );
 
     uniqueLNodeTypes(allLNodeTypes).forEach(lNodeType => {
+      importLNodeType(lNodeType, this.doc!).forEach(edit =>
+        this.dispatchEvent(newEditEventV2(edit, { squash: true }))
+      );
+    });
+
+    this.reset();
+    this.showFunctions = true;
+  }
+
+  updateFunction(detail: {
+    name: string;
+    description: string | null;
+    type: string | null;
+    subfunctions: SubfunctionData[];
+    lnodes: Element[];
+    functionElement: Element;
+    removedSubfunctions?: SubfunctionData[];
+  }) {
+    if (!this.doc) return;
+
+    const {
+      name,
+      description,
+      type,
+      subfunctions,
+      lnodes,
+      functionElement,
+      removedSubfunctions = [],
+    } = detail;
+
+    const subFunctionTag: SubFunctionTag =
+      functionElement.tagName === 'EqFunction'
+        ? 'EqSubFunction'
+        : 'SubFunction';
+
+    const edits: EditV2[] = [];
+    const newLNodeTypes: Element[] = [];
+
+    const attributes: Record<string, string | null> = {};
+    if ((functionElement.getAttribute('name') ?? '') !== name)
+      attributes.name = name;
+    if ((functionElement.getAttribute('desc') ?? null) !== description)
+      attributes.desc = description;
+    if ((functionElement.getAttribute('type') ?? null) !== type)
+      attributes.type = type;
+    if (Object.keys(attributes).length)
+      edits.push({ element: functionElement, attributes });
+
+    const originalLNodes = Array.from(functionElement.children).filter(
+      child => child.tagName === 'LNode'
+    );
+    const removedLNodes = originalLNodes.filter(
+      lnode => !lnodes.includes(lnode)
+    );
+    removedLNodes.forEach(lnode => edits.push(...buildRemoveLNodeEdits(lnode)));
+    lnodes
+      .filter(lnode => lnode.tagName === 'LNodeType')
+      .forEach(lNodeType => {
+        newLNodeTypes.push(lNodeType);
+        edits.push({
+          parent: functionElement,
+          node: createLNodeFromType(this.doc!, lNodeType),
+          reference: this.getLNodeInsertReference(
+            functionElement,
+            removedLNodes
+          ),
+        });
+      });
+
+    removedSubfunctions.forEach(sf => {
+      if (!sf.element) return;
+      Array.from(sf.element.children)
+        .filter(child => child.tagName === 'LNode')
+        .forEach(lnode => edits.push(...buildRemoveLNodeEdits(lnode)));
+      edits.push({ node: sf.element });
+    });
+
+    subfunctions.forEach(sf => {
+      if (sf.element) {
+        const sfAttributes: Record<string, string | null> = {};
+        if ((sf.element!.getAttribute('name') ?? '') !== sf.name)
+          sfAttributes.name = sf.name;
+        if ((sf.element!.getAttribute('desc') ?? null) !== sf.description)
+          sfAttributes.desc = sf.description;
+        if ((sf.element!.getAttribute('type') ?? null) !== sf.type)
+          sfAttributes.type = sf.type;
+        if (Object.keys(sfAttributes).length)
+          edits.push({ element: sf.element!, attributes: sfAttributes });
+
+        const originalSfLNodes = Array.from(sf.element!.children).filter(
+          child => child.tagName === 'LNode'
+        );
+        const finalSfLNodes = sf.lnodes ?? [];
+        const removedSfLNodes = originalSfLNodes.filter(
+          lnode => !finalSfLNodes.includes(lnode)
+        );
+        removedSfLNodes.forEach(lnode =>
+          edits.push(...buildRemoveLNodeEdits(lnode))
+        );
+        finalSfLNodes
+          .filter(lnode => lnode.tagName === 'LNodeType')
+          .forEach(lNodeType => {
+            newLNodeTypes.push(lNodeType);
+            edits.push({
+              parent: sf.element!,
+              node: createLNodeFromType(this.doc!, lNodeType),
+              reference: this.getLNodeInsertReference(
+                sf.element!,
+                removedSfLNodes
+              ),
+            });
+          });
+      } else {
+        const subFunction = createElement(this.doc!, subFunctionTag, {
+          name: sf.name,
+          desc: sf.description,
+          type: sf.type,
+        });
+        (sf.lnodes ?? []).forEach(lNodeType => {
+          newLNodeTypes.push(lNodeType);
+          subFunction.appendChild(createLNodeFromType(this.doc!, lNodeType));
+        });
+        edits.push({
+          parent: functionElement,
+          node: subFunction,
+          reference: getReference(functionElement, subFunctionTag),
+        });
+      }
+    });
+
+    if (edits.length)
+      this.dispatchEvent(newEditEventV2(edits, { title: 'Update Function' }));
+
+    uniqueLNodeTypes(newLNodeTypes).forEach(lNodeType => {
       importLNodeType(lNodeType, this.doc!).forEach(edit =>
         this.dispatchEvent(newEditEventV2(edit, { squash: true }))
       );
@@ -1012,6 +1195,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .onCreateFunctionLink=${this.handleCreateFunctionLink}
                     .onCancelCreateFunctionLink=${this.resetLinkingState}
                     .onSelectSourceFunction=${this.handleSelectSourceFunction}
+                    .onEditFunction=${this.handleEditFunction}
                     .linkSourceCandidates=${this.linkSourceCandidates}
                     .selectingLinkSource=${this.selectingLinkSource}
                     .showLinks=${this.showFunctionLinks}

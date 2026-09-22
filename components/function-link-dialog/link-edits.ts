@@ -1,6 +1,6 @@
 import { getReference } from '@openscd/scl-lib';
 import type { EditV2 } from '@openscd/oscd-api';
-import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
+import { eTr6100Ns, eTr6100PrivType, getProcessPath } from '../../util.js';
 import {
   buildSourceRefAttributes,
   type LinkService,
@@ -214,4 +214,67 @@ export function buildRemoveSourceRefEdits(
         : lNodeInputsElement,
     },
   ];
+}
+
+function buildLNodeIdentityPath(lnode: Element): string | null {
+  const func = lnode.closest('Function, EqFunction');
+  if (!func) return null;
+
+  const subFunction = lnode.closest('SubFunction, EqSubFunction');
+  const lnClass = lnode.getAttribute('lnClass') ?? '';
+  const lnInst = lnode.getAttribute('lnInst') ?? '';
+  const lnodeName = `${lnClass}${lnInst}`;
+  const funcPath = getProcessPath(func);
+
+  return subFunction
+    ? `${funcPath}/${subFunction.getAttribute('name') ?? ''}/${lnodeName}`
+    : `${funcPath}/${lnodeName}`;
+}
+
+/** Finds all SourceRef elements anywhere in the document whose `source` points at `lnode`. */
+export function findSourceRefsPointingToLNode(lnode: Element): Element[] {
+  const path = buildLNodeIdentityPath(lnode);
+  const doc = lnode.ownerDocument;
+  if (!path || !doc) return [];
+
+  const prefix = `${path}.`;
+  return Array.from(doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).filter(
+    sourceRef => (sourceRef.getAttribute('source') ?? '').startsWith(prefix)
+  );
+}
+
+/** Whether `lnode` is a sink of information (has its own LNodeInputs/SourceRef). */
+export function isLNodeSink(lnode: Element): boolean {
+  return lnode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef').length > 0;
+}
+
+/** Whether `lnode` is used as a source and/or sink in any existing function link. */
+export function lNodeHasLinks(lnode: Element): boolean {
+  return isLNodeSink(lnode) || findSourceRefsPointingToLNode(lnode).length > 0;
+}
+
+function groupByParent(elements: Element[]): Element[][] {
+  const groups = new Map<Element, Element[]>();
+  elements.forEach(el => {
+    const parent = el.parentElement;
+    if (!parent) return;
+    const list = groups.get(parent) ?? [];
+    list.push(el);
+    groups.set(parent, list);
+  });
+  return Array.from(groups.values());
+}
+
+/**
+ * Builds edits to remove `lnode` itself and, for any SourceRef elsewhere in the
+ * document pointing at it, removes those SourceRef elements (or their containing
+ * LNodeInputs/Private, if that container would otherwise become empty).
+ */
+export function buildRemoveLNodeEdits(lnode: Element): EditV2[] {
+  const sourceRefs = findSourceRefsPointingToLNode(lnode);
+  const edits: EditV2[] = groupByParent(sourceRefs).flatMap(group =>
+    buildRemoveSourceRefEdits(group)
+  );
+  edits.push({ node: lnode });
+  return edits;
 }

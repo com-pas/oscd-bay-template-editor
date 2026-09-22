@@ -54,6 +54,18 @@ describe('CreateFunctionDialog', () => {
     expect(nameField?.errorText).to.equal('Name is required');
   });
 
+  it('shows the function name when editing', async () => {
+    const functionElement = doc.createElement('Function');
+    functionElement.setAttribute('name', 'Protection');
+    element.function = functionElement;
+    await element.updateComplete;
+
+    element.show();
+    await element.updateComplete;
+
+    expect(element.nameField.value).to.equal('Protection');
+  });
+
   it('shows error if duplicate name exists in parent', async () => {
     const parent = doc.createElement('Bay');
     const child1 = doc.createElement('Function');
@@ -112,6 +124,8 @@ describe('CreateFunctionDialog', () => {
       type: null,
       subfunctions: [],
       lnodes: [],
+      functionElement: null,
+      removedSubfunctions: [],
     });
   });
 

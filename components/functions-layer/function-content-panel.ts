@@ -31,6 +31,9 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
   @property({ attribute: false })
   selectingLinkSource = false;
 
+  @property({ type: Number })
+  editCount = -1;
+
   @state()
   private selectedLNode?: Element;
 
@@ -115,6 +118,17 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
         },
         bubbles: true,
         composed: true,
+      })
+    );
+  }
+
+  private handleEditClick(e: Event): void {
+    e.stopPropagation();
+    this.dispatchEvent(
+      new CustomEvent('edit-function', {
+        bubbles: true,
+        composed: true,
+        detail: { functionElement: this.functionElement },
       })
     );
   }
@@ -283,6 +297,11 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
               </oscd-list>
             `
           : nothing}
+      </div>
+      <div class="footer">
+        <oscd-filled-button @click=${this.handleEditClick}
+          >Edit</oscd-filled-button
+        >
       </div>
     `;
   }
@@ -462,6 +481,13 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     .link-source-hint-icon {
       flex-shrink: 0;
       font-size: 1.25rem;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem;
+      border-top: 1px solid var(--oscd-theme-primary, #ccc);
     }
   `;
 }

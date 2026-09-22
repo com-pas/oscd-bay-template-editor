@@ -51,18 +51,33 @@ export interface SubfunctionData {
   description: string | null;
   type: string | null;
   lnodes: Element[] | null;
+  element?: Element | null;
+}
+
+function resolveLNodeType(lNodeOrType: Element): Element | null {
+  if (lNodeOrType.tagName === 'LNodeType') return lNodeOrType;
+
+  const lnType = lNodeOrType.getAttribute('lnType');
+  if (!lnType) return null;
+
+  return (
+    Array.from(
+      lNodeOrType.ownerDocument.getElementsByTagName('LNodeType')
+    ).find(lNodeType => lNodeType.getAttribute('id') === lnType) ?? null
+  );
 }
 
 export function lNodeTypeClass(lNodeType: Element): string {
-  return lNodeType.getAttribute('lnClass') ?? '';
+  const resolved = resolveLNodeType(lNodeType) ?? lNodeType;
+  return resolved.getAttribute('lnClass') ?? '';
 }
 
 export function lNodeTypeDesc(lNodeType: Element): string | null {
-  return lNodeType.getAttribute('desc');
+  return resolveLNodeType(lNodeType)?.getAttribute('desc') ?? null;
 }
 
 export function lNodeTypeId(lNodeType: Element): string {
-  return lNodeType.getAttribute('id') ?? '';
+  return resolveLNodeType(lNodeType)?.getAttribute('id') ?? '';
 }
 
 export function createLNodeFromType(

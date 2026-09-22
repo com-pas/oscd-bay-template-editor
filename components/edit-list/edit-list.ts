@@ -33,6 +33,9 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
   @property({ type: Array })
   items: TItem[] = [];
 
+  @property({ type: Boolean })
+  showEditButton = false;
+
   // eslint-disable-next-line class-methods-use-this
   @property({ type: Function })
   itemHeadline: (item: TItem) => string = _item => '';
@@ -70,6 +73,15 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
     this.selectedItem = item;
   }
 
+  editItem(item: TItem, e: Event) {
+    e.stopPropagation();
+    this.dispatchEvent(
+      new CustomEvent<DeleteEventDetail<TItem>>('edit-item', {
+        detail: { item },
+      })
+    );
+  }
+
   renderContent() {
     const isEmpty = this.items.length === 0;
 
@@ -92,6 +104,15 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
                   <span slot="supporting-text"
                     >${this.itemSupportingText(item)}</span
                   >
+                  ${this.showEditButton
+                    ? html`<oscd-icon-button
+                        slot="end"
+                        title="Edit"
+                        data-testid=${`edit-list-item-edit-button-${index}`}
+                        @click=${(e: Event) => this.editItem(item, e)}
+                        ><oscd-icon>edit_square</oscd-icon></oscd-icon-button
+                      >`
+                    : nothing}
                   ${this.selectedItem === item
                     ? html`<oscd-icon slot="end">check</oscd-icon>`
                     : nothing}
