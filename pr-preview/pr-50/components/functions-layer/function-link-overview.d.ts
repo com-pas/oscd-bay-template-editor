@@ -19,16 +19,12 @@ export declare class FunctionLinkOverview extends FunctionLinkOverview_base {
     overviewTop?: number;
     private pendingDeleteSelectedLink;
     private pendingRemovedSourceRefKeys;
-    private infoSourceRef?;
     protected willUpdate(changedProperties: PropertyValues): void;
     private resetPendingChanges;
     private deleteLink;
     private deleteSourceRef;
     private closeOverview;
     private saveOverview;
-    private openSourceRefInfo;
-    private closeSourceRefInfo;
-    private renderInfoPane;
     private hasPendingSourceRefDeletion;
     private getVisibleSourceRefs;
     private renderDeleteWarning;
