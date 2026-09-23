@@ -38,6 +38,14 @@ describe('object-references helpers', () => {
     );
   });
 
+  it('skips LNodes that are not inside an (Eq)Function', () => {
+    const bay = sourceFunction.closest('Bay')!;
+    const strayLNode = sourceFunction.querySelector('LNode')!.cloneNode(true);
+    bay.insertBefore(strayLNode, bay.firstElementChild);
+
+    expect(buildObjectReferences(bay, doc)).to.deep.equal([]);
+  });
+
   it('filters groups by group header and item label text', () => {
     const groups = buildObjectReferences(sourceFunction, doc);
 

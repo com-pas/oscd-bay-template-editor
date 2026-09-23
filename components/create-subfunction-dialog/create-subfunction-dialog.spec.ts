@@ -59,8 +59,14 @@ describe('CreateSubfunctionDialog', () => {
     const child1 = doc.createElement('SubFunction');
     child1.setAttribute('name', 'SF1');
     parent.appendChild(child1);
-    element.subfunctions = [
-      { name: 'SF1', description: 'desc', type: 'type', lnodes: null },
+    element.siblingSubFunctions = [
+      {
+        id: 'SF1',
+        name: 'SF1',
+        description: 'desc',
+        type: 'type',
+        lnodes: [],
+      },
     ];
     element.name = 'SF1';
     await element.updateComplete;
@@ -176,7 +182,8 @@ describe('CreateSubfunctionDialog', () => {
 
     it('prefills fields and shows an Edit headline', async () => {
       const { subFunction, lnode } = setupLinkedSubFunction();
-      element.editingSubfunction = {
+      element.editingSubFunction = {
+        id: 'sf1',
         name: 'sf1',
         description: 'desc',
         type: 'type',
@@ -197,7 +204,8 @@ describe('CreateSubfunctionDialog', () => {
 
     it('asks for confirmation before removing an LNode that is part of a link, and removes it once confirmed', async () => {
       const { subFunction, lnode } = setupLinkedSubFunction();
-      element.editingSubfunction = {
+      element.editingSubFunction = {
+        id: 'sf1',
         name: 'sf1',
         description: null,
         type: null,
@@ -233,7 +241,8 @@ describe('CreateSubfunctionDialog', () => {
 
     it('keeps the LNode when the deletion confirmation is cancelled', async () => {
       const { subFunction, lnode } = setupLinkedSubFunction();
-      element.editingSubfunction = {
+      element.editingSubFunction = {
+        id: 'sf1',
         name: 'sf1',
         description: null,
         type: null,
@@ -272,7 +281,7 @@ describe('CreateSubfunctionDialog', () => {
       lnodeType.setAttribute('id', 'NEW_TYPE');
       lnodeType.setAttribute('lnClass', 'XSWI');
 
-      element.editingSubfunction = null;
+      element.editingSubFunction = null;
       element.show();
       await element.updateComplete;
       const nextBtn = element.shadowRoot?.querySelector(
@@ -293,7 +302,8 @@ describe('CreateSubfunctionDialog', () => {
 
     it('dispatches the original element on save', async () => {
       const { subFunction, lnode } = setupLinkedSubFunction();
-      element.editingSubfunction = {
+      element.editingSubFunction = {
+        id: 'sf1',
         name: 'sf1',
         description: null,
         type: null,

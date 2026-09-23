@@ -1,4 +1,8 @@
-import { getProcessPath } from '../../util.js';
+import {
+  getChildrenByTagName,
+  getLNodeName,
+  getLNodeSourcePath,
+} from '../../util.js';
 
 export type LinkService = 'GOOSE' | 'SMV' | 'Internal';
 
@@ -38,10 +42,6 @@ interface TypeIndexMaps {
 interface LNodeContext {
   lnode: Element;
   subFunctionName: string | null;
-}
-
-function getChildrenByTagName(parent: Element, tagName: string): Element[] {
-  return Array.from(parent.children).filter(child => child.tagName === tagName);
 }
 
 function buildDataTypeTemplateMaps(
@@ -159,12 +159,6 @@ function collectDaPathsFromDoType(
   return result;
 }
 
-function buildLNodeName(lnode: Element): string {
-  const lnClass = lnode.getAttribute('lnClass') ?? '';
-  const lnInst = lnode.getAttribute('lnInst') ?? '';
-  return `${lnClass}${lnInst}`;
-}
-
 function buildGroupLabel(
   lnodeName: string,
   subFunctionName: string | null
@@ -185,18 +179,6 @@ function buildGroupKey(
   }
 
   return `subfunction|${subFunctionName}|${lnodeName}`;
-}
-
-function buildGroupBasePath(
-  sourceFunctionPath: string,
-  subFunctionName: string | null,
-  lnodeName: string
-): string {
-  if (!subFunctionName) {
-    return `${sourceFunctionPath}/${lnodeName}`;
-  }
-
-  return `${sourceFunctionPath}/${subFunctionName}/${lnodeName}`;
 }
 
 function collectLNodeContexts(sourceFunction: Element): LNodeContext[] {
@@ -280,18 +262,15 @@ function buildReferenceItemsForLNode(
 
 function buildReferenceGroup(
   context: LNodeContext,
-  sourceFunctionPath: string,
   typeIndexMaps: TypeIndexMaps
 ): ObjectReferenceGroup | null {
   const { lnode, subFunctionName } = context;
-  const lnodeName = buildLNodeName(lnode);
+  const groupBasePath = getLNodeSourcePath(lnode);
+  if (!groupBasePath) return null;
+
+  const lnodeName = getLNodeName(lnode);
   const groupLabel = buildGroupLabel(lnodeName, subFunctionName);
   const groupKey = buildGroupKey(lnodeName, subFunctionName);
-  const groupBasePath = buildGroupBasePath(
-    sourceFunctionPath,
-    subFunctionName,
-    lnodeName
-  );
   const items = buildReferenceItemsForLNode(
     lnode,
     groupKey,
@@ -318,13 +297,10 @@ export function buildObjectReferences(
     doc.querySelectorAll(':root > DataTypeTemplates')
   );
   const typeIndexMaps = buildDataTypeTemplateMaps(dataTypeTemplates);
-  const sourceFunctionPath = getProcessPath(sourceFunction);
   const lNodeContexts = collectLNodeContexts(sourceFunction);
 
   return lNodeContexts
-    .map(context =>
-      buildReferenceGroup(context, sourceFunctionPath, typeIndexMaps)
-    )
+    .map(context => buildReferenceGroup(context, typeIndexMaps))
     .filter(
       (group): group is ObjectReferenceGroup =>
         !!group && group.items.length > 0

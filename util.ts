@@ -46,24 +46,68 @@ export const singleTerminal = new Set([
   'VTR',
 ]);
 
-export interface SubfunctionData {
+interface FunctionBaseData {
   name: string;
   description: string | null;
   type: string | null;
-  lnodes: Element[] | null;
+  lnodes: Element[];
+}
+
+export interface SubFunctionData extends FunctionBaseData {
+  id: string;
   element?: Element | null;
 }
 
+export interface FunctionData extends FunctionBaseData {
+  subFunctions: SubFunctionData[];
+}
+
+export function getChildrenByTagName(
+  parent: Element,
+  tagName: string
+): Element[] {
+  return Array.from(parent.children).filter(child => child.tagName === tagName);
+}
+
+export function isInsideAny(
+  element: Element,
+  ancestors: ReadonlySet<Element>
+): boolean {
+  for (let node: Element | null = element; node; node = node.parentElement)
+    if (ancestors.has(node)) return true;
+  return false;
+}
+
+export function isLNodeType(element: Element): boolean {
+  return element.tagName === 'LNodeType';
+}
+
+export function subFunctionDataFromElement(element: Element): SubFunctionData {
+  return {
+    id: crypto.randomUUID(),
+    name: element.getAttribute('name') ?? '',
+    description: element.getAttribute('desc'),
+    type: element.getAttribute('type'),
+    lnodes: getChildrenByTagName(element, 'LNode'),
+    element,
+  };
+}
+
 function resolveLNodeType(lNodeOrType: Element): Element | null {
-  if (lNodeOrType.tagName === 'LNodeType') return lNodeOrType;
+  if (isLNodeType(lNodeOrType)) return lNodeOrType;
 
   const lnType = lNodeOrType.getAttribute('lnType');
   if (!lnType) return null;
 
+  const dataTypeTemplates = Array.from(
+    lNodeOrType.ownerDocument.documentElement.children
+  ).find(child => child.tagName === 'DataTypeTemplates');
+
   return (
-    Array.from(
-      lNodeOrType.ownerDocument.getElementsByTagName('LNodeType')
-    ).find(lNodeType => lNodeType.getAttribute('id') === lnType) ?? null
+    Array.from(dataTypeTemplates?.children ?? []).find(
+      child =>
+        child.tagName === 'LNodeType' && child.getAttribute('id') === lnType
+    ) ?? null
   );
 }
 
@@ -334,6 +378,32 @@ export function getProcessPath(element: Element): string {
   }
 
   return pathParts.reverse().join('/');
+}
+
+export function getLNodeName(lnode: Element): string {
+  return `${lnode.getAttribute('lnClass') ?? ''}${
+    lnode.getAttribute('lnInst') ?? ''
+  }`;
+}
+
+export function getLNodeSourcePath(lnode: Element): string | null {
+  const subFunctionNames: string[] = [];
+  let parent = lnode.parentElement;
+  while (
+    parent?.tagName === 'SubFunction' ||
+    parent?.tagName === 'EqSubFunction'
+  ) {
+    subFunctionNames.unshift(parent.getAttribute('name') ?? '');
+    parent = parent.parentElement;
+  }
+  if (parent?.tagName !== 'Function' && parent?.tagName !== 'EqFunction')
+    return null;
+
+  return [
+    getProcessPath(parent),
+    ...subFunctionNames,
+    getLNodeName(lnode),
+  ].join('/');
 }
 
 export function createPowerSystemRelationPrivate(

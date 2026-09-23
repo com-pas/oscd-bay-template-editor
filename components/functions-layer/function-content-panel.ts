@@ -505,6 +505,8 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
       font-size: 1.2rem;
       height: 1.2rem;
       width: 1.2rem;
+    }
+
     .footer {
       display: flex;
       justify-content: flex-end;

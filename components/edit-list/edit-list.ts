@@ -7,7 +7,7 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 
-export interface DeleteEventDetail<TItem> {
+export interface ItemEventDetail<TItem> {
   item: TItem;
 }
 
@@ -61,7 +61,7 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
     }
 
     this.dispatchEvent(
-      new CustomEvent<DeleteEventDetail<TItem>>('delete-item', {
+      new CustomEvent<ItemEventDetail<TItem>>('delete-item', {
         detail: { item: this.selectedItem },
       })
     );
@@ -76,7 +76,7 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
   editItem(item: TItem, e: Event) {
     e.stopPropagation();
     this.dispatchEvent(
-      new CustomEvent<DeleteEventDetail<TItem>>('edit-item', {
+      new CustomEvent<ItemEventDetail<TItem>>('edit-item', {
         detail: { item },
       })
     );
