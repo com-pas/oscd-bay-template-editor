@@ -237,4 +237,166 @@ describe('CreateFunctionDialog', () => {
       { name: 'SF2', description: null, type: null, lnodes: null },
     ]);
   });
+
+  describe('editing an existing SubFunction from the SubFunction card', () => {
+    async function advanceToFunctionContent() {
+      element.show();
+      await element.updateComplete;
+      const nextBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="next-button"]'
+      ) as HTMLElement;
+      nextBtn.click();
+      await element.updateComplete;
+      await waitUntil(
+        () => element.step === CreateFunctionDialogStep.FunctionContent,
+        'Step did not advance to Function Content'
+      );
+    }
+
+    it('opens the SubFunction dialog prefilled when clicking its edit icon', async () => {
+      const editDoc = new DOMParser().parseFromString(
+        `<?xml version="1.0"?><SCL xmlns="http://www.iec.ch/61850/2003/SCL"><Substation name="S1"><VoltageLevel name="V1"><Bay name="B1"><Function name="F5"><SubFunction name="SF1" desc="d" type="t" /></Function></Bay></VoltageLevel></Substation></SCL>`,
+        'application/xml'
+      );
+      const functionElement = editDoc.querySelector('Function[name="F5"]')!;
+      element.function = functionElement;
+      element.parent = functionElement.parentElement;
+      await advanceToFunctionContent();
+      const subfunctionsEditList = element.shadowRoot?.querySelector(
+        'edit-list[title="SubFunctions"]'
+      ) as any;
+      await subfunctionsEditList.updateComplete;
+
+      const editBtn = subfunctionsEditList?.shadowRoot?.querySelector(
+        'oscd-icon-button[data-testid="edit-list-item-edit-button-0"]'
+      ) as HTMLElement;
+      editBtn.click();
+      await element.updateComplete;
+
+      expect(element.createSubfunctionDialog.editingSubfunction).to.deep.equal(
+        element.tempSubfunctions[0]
+      );
+    });
+
+    it('updates the SubFunction in place (preserving order) when saved with LNodes', async () => {
+      element.name = 'F6';
+      await advanceToFunctionContent();
+      element.tempSubfunctions = [
+        { name: 'SF1', description: null, type: null, lnodes: [] },
+        { name: 'SF2', description: null, type: null, lnodes: [] },
+      ];
+      await element.updateComplete;
+
+      (element as any).handleEditSubfunction(element.tempSubfunctions[0]);
+      await element.updateComplete;
+
+      const lnodeType = doc.createElement('LNodeType');
+      lnodeType.setAttribute('id', 'T1');
+
+      element.createSubfunctionDialog.dispatchEvent(
+        new CustomEvent('save-subfunction', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            name: 'SF1-renamed',
+            description: null,
+            type: null,
+            lnodes: [lnodeType],
+            element: null,
+          },
+        })
+      );
+      await element.updateComplete;
+
+      expect(element.tempSubfunctions.length).to.equal(2);
+      expect(element.tempSubfunctions[0].name).to.equal('SF1-renamed');
+      expect(element.tempSubfunctions[1].name).to.equal('SF2');
+    });
+
+    it('asks whether to delete a SubFunction that ends up with no LNodes, and removes it on confirm', async () => {
+      const editDoc = new DOMParser().parseFromString(
+        `<?xml version="1.0"?><SCL xmlns="http://www.iec.ch/61850/2003/SCL"><Substation name="S1"><VoltageLevel name="V1"><Bay name="B1"><Function name="F7"><SubFunction name="SF1"><LNode lnClass="XCBR" lnInst="1"/></SubFunction></Function></Bay></VoltageLevel></Substation></SCL>`,
+        'application/xml'
+      );
+      const functionElement = editDoc.querySelector('Function[name="F7"]')!;
+      const subFunctionElement = editDoc.querySelector(
+        'SubFunction[name="SF1"]'
+      )!;
+      element.function = functionElement;
+      element.parent = functionElement.parentElement;
+      await element.updateComplete;
+      await advanceToFunctionContent();
+      (element as any).handleEditSubfunction(element.tempSubfunctions[0]);
+      await element.updateComplete;
+
+      element.createSubfunctionDialog.dispatchEvent(
+        new CustomEvent('save-subfunction', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            name: 'SF1',
+            description: null,
+            type: null,
+            lnodes: [],
+            element: subFunctionElement,
+          },
+        })
+      );
+      await element.updateComplete;
+
+      const confirmBtn = element.confirmDialog.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="confirm-button"]'
+      ) as HTMLElement;
+      confirmBtn.click();
+      await element.updateComplete;
+
+      expect(element.tempSubfunctions).to.deep.equal([]);
+      expect(element.removedSubfunctions.length).to.equal(1);
+      expect(element.removedSubfunctions[0].element).to.equal(
+        subFunctionElement
+      );
+    });
+
+    it('keeps an empty SubFunction when the user declines to delete it', async () => {
+      const editDoc = new DOMParser().parseFromString(
+        `<?xml version="1.0"?><SCL xmlns="http://www.iec.ch/61850/2003/SCL"><Substation name="S1"><VoltageLevel name="V1"><Bay name="B1"><Function name="F8"><SubFunction name="SF1"><LNode lnClass="XCBR" lnInst="1"/></SubFunction></Function></Bay></VoltageLevel></Substation></SCL>`,
+        'application/xml'
+      );
+      const functionElement = editDoc.querySelector('Function[name="F8"]')!;
+      const subFunctionElement = editDoc.querySelector(
+        'SubFunction[name="SF1"]'
+      )!;
+      element.function = functionElement;
+      element.parent = functionElement.parentElement;
+      await element.updateComplete;
+      await advanceToFunctionContent();
+      (element as any).handleEditSubfunction(element.tempSubfunctions[0]);
+      await element.updateComplete;
+
+      element.createSubfunctionDialog.dispatchEvent(
+        new CustomEvent('save-subfunction', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            name: 'SF1',
+            description: null,
+            type: null,
+            lnodes: [],
+            element: subFunctionElement,
+          },
+        })
+      );
+      await element.updateComplete;
+
+      const cancelBtn = element.confirmDialog.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="cancel-button"]'
+      ) as HTMLElement;
+      cancelBtn.click();
+      await element.updateComplete;
+
+      expect(element.tempSubfunctions.length).to.equal(1);
+      expect(element.tempSubfunctions[0].lnodes).to.deep.equal([]);
+      expect(element.removedSubfunctions).to.deep.equal([]);
+    });
+  });
 });
