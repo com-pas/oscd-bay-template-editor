@@ -42,3 +42,14 @@ export const LINK_SERVICE_COLORS = {
   SMV: '#c62828',
   Internal: '#1565c0',
 };
+
+/** Confirmation shown before removing an LNode that takes part in a function link */
+export const REMOVE_LINKED_LNODE_CONFIRMATION = {
+  headline: 'Delete LNode?',
+  description:
+    'This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?',
+  icon: 'warning',
+  variant: 'danger',
+  confirmLabel: 'Delete',
+  cancelLabel: 'Cancel',
+} as const;

@@ -399,11 +399,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     this.closeContextMenu();
   }
 
-  private handleEditFunction(functionElement: Element) {
-    const fn = this.functions.find(f => f.element === functionElement);
-    if (!fn) return;
-    this.onEditFunction?.(fn.element);
+  private handleEditFunction(functionElement: Element | undefined) {
     this.closeContextMenu();
+    if (functionElement) this.onEditFunction?.(functionElement);
   }
 
   private handleContainerClick(e: MouseEvent) {
@@ -723,7 +721,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
             ></oscd-menu-item
           >
           <oscd-menu-item
-            @click=${() => this.handleEditFunction(this.contextMenu?.element!)}
+            @click=${() => this.handleEditFunction(this.contextMenu?.element)}
             ><span class="function-menu-item"
               ><oscd-icon>edit</oscd-icon> Edit function</span
             ></oscd-menu-item
@@ -854,7 +852,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                 }}
                 @edit-function=${(
                   e: CustomEvent<{ functionElement: Element }>
-                ) => this.handleEditFunction?.(e.detail.functionElement)}
+                ) => this.handleEditFunction(e.detail.functionElement)}
               ></function-content-panel>
             </div>`
           : nothing}

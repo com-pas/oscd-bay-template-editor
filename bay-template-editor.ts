@@ -5,7 +5,6 @@ import { property, state, query } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements/lit-element.js';
 import { getReference, identity, importLNodeType } from '@openscd/scl-lib';
 import { newEditEventV2 } from '@openscd/oscd-api/utils.js';
-import type { EditV2 } from '@openscd/oscd-api';
 import { createElement } from '@compas-oscd/xml';
 import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFilledIconButton.js';
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
@@ -29,7 +28,6 @@ import {
   sldNs,
   xmlnsNs,
   getFunctionCoordinates,
-  getProcessPath,
   getSldSvgs,
   highlightBusbars,
   clearBusbarHighlights,
@@ -37,15 +35,20 @@ import {
   createLNodeFromType,
   uniqueLNodeTypes,
   eTr6100PrivType,
-  type SubfunctionData,
+  type FunctionData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
-import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
-import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import {
-  buildFunctionLinkEdits,
-  buildRemoveLNodeEdits,
-} from './components/function-link-dialog/link-edits.js';
+  CreateFunctionDialog,
+  type SaveFunctionDetail,
+} from './components/create-function-dialog/create-function-dialog.js';
+import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
+import {
+  buildUpdateFunctionEdits,
+  createSubFunctionElement,
+  type UpdateFunctionData,
+} from './components/functions-layer/function-edits.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
@@ -161,6 +164,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @state()
   private lnodeLibrary: Document | null = null;
 
+  private lnodeLibraryLoading = false;
+
   @state()
   private pendingLinkContext: LNodeSelectionContext | null = null;
 
@@ -187,66 +192,6 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     };
   }
 
-  /**
-   * `getReference(parent, 'LNode')` returns the first existing LNode sibling as
-   * the insertion point. If that sibling is being removed in the same edit
-   * batch, it will no longer be a child by the time the insert runs. Temporarily
-   * detach the about-to-be-removed siblings so the reference is computed against
-   * the LNodes that will actually remain, then restore them (the real removal
-   * happens later, via the dispatched edits).
-   */
-  // eslint-disable-next-line class-methods-use-this
-  private getLNodeInsertReference(
-    parent: Element,
-    removedLNodes: Element[]
-  ): Element | null {
-    const detached = removedLNodes
-      .filter(node => node.parentElement === parent)
-      .map(node => ({ node, next: node.nextSibling }));
-
-    detached.forEach(({ node }) => parent.removeChild(node));
-    const reference = getReference(parent, 'LNode');
-    [...detached]
-      .reverse()
-      .forEach(({ node, next }) => parent.insertBefore(node, next));
-
-    return reference;
-  }
-
-  private queueSourcePathRename(
-    sourceUpdates: Map<Element, string>,
-    oldPath: string,
-    newPath: string
-  ): void {
-    if (!this.doc || oldPath === newPath) return;
-
-    const oldPrefix = `${oldPath}/`;
-    Array.from(this.doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).forEach(
-      sourceRef => {
-        const currentSource =
-          sourceUpdates.get(sourceRef) ??
-          sourceRef.getAttribute('source') ??
-          '';
-        if (!currentSource.startsWith(oldPrefix)) return;
-
-        sourceUpdates.set(
-          sourceRef,
-          `${newPath}/${currentSource.slice(oldPrefix.length)}`
-        );
-      }
-    );
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private buildSourcePathRenameEdits(
-    sourceUpdates: Map<Element, string>
-  ): EditV2[] {
-    return Array.from(sourceUpdates.entries()).map(([sourceRef, source]) => ({
-      element: sourceRef,
-      attributes: { source },
-    }));
-  }
-
   get showLabels(): boolean {
     if (this.labelToggle) return !this.labelToggle.selected;
     return true;
@@ -254,26 +199,28 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   private loadLNodeLibrary() {
     const libraryApi = this.compasApi?.lNodeLibrary;
-
-    if (!libraryApi) {
-      this.lnodeLibrary = null;
-      return;
-    }
+    if (!libraryApi) return;
 
     const cachedLibrary = libraryApi.lNodeLibrary?.() ?? null;
-    if (cachedLibrary !== null || !libraryApi.loadLNodeLibrary) {
+    if (cachedLibrary) {
       this.lnodeLibrary = cachedLibrary;
       return;
     }
 
+    if (!libraryApi.loadLNodeLibrary || this.lnodeLibraryLoading) return;
+    this.lnodeLibraryLoading = true;
+
     libraryApi
       .loadLNodeLibrary()
       .then(library => {
-        this.lnodeLibrary = library ?? null;
+        if (library) this.lnodeLibrary = library;
       })
       .catch(error => {
-        this.lnodeLibrary = null;
-        throw error;
+        // eslint-disable-next-line no-console
+        console.error('Failed to load LNode library:', error);
+      })
+      .finally(() => {
+        this.lnodeLibraryLoading = false;
       });
   }
 
@@ -384,8 +331,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   private handleEditFunction = (funcElement: Element) => {
     if (this.createFunctionDialog) {
-      this.createFunctionDialog.function = funcElement;
-      this.createFunctionDialog.parent = funcElement.parentElement;
+      const parent = funcElement.parentElement;
+      this.createFunctionDialog.functionElement = funcElement;
+      this.createFunctionDialog.parent = parent;
+      this.createFunctionDialog.selectedElementName =
+        parent?.getAttribute('name') ?? '';
+      this.createFunctionDialog.selectedElementType = parent?.tagName ?? '';
       this.createFunctionDialog.show();
     }
   };
@@ -476,6 +427,13 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   updated(changedProperties: Map<PropertyKey, unknown>) {
     if (changedProperties.has('compasApi')) {
+      this.loadLNodeLibrary();
+    }
+
+    // Retry on every newly opened document in case the previous attempt
+    // failed or ran before the library API was ready (e.g. transient
+    // network error, or compasApi being injected asynchronously).
+    if (changedProperties.has('doc') && this.doc && !this.lnodeLibrary) {
       this.loadLNodeLibrary();
     }
 
@@ -627,28 +585,20 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(newEditEventV2({ parent, node, reference }));
   }
 
-  createFunction(
-    e: CustomEvent<{
-      name: string;
-      description: string | null;
-      type: string | null;
-      subfunctions: SubfunctionData[];
-      lnodes: Element[];
-      functionElement?: Element | null;
-      removedSubfunctions?: SubfunctionData[];
-    }>
-  ) {
+  private handleFunctionDialogSave = (e: CustomEvent<SaveFunctionDetail>) => {
+    const { functionElement, ...data } = e.detail;
+    if (functionElement) this.updateFunction({ ...data, functionElement });
+    else this.createFunction(data);
+  };
+
+  createFunction({
+    name,
+    description,
+    type,
+    subFunctions,
+    lnodes,
+  }: FunctionData) {
     if (!this.doc) return;
-
-    if (e.detail.functionElement) {
-      this.updateFunction({
-        ...e.detail,
-        functionElement: e.detail.functionElement,
-      });
-      return;
-    }
-
-    const { name, description, type, subfunctions, lnodes } = e.detail;
 
     const selected = this.selectedElement;
     if (!selected) return;
@@ -668,23 +618,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     lnodes.forEach(lnode =>
       func.appendChild(createLNodeFromType(this.doc!, lnode))
     );
-
-    subfunctions.forEach(sf => {
-      const subFunction = createElement(this.doc!, subFunctionTag, {
-        name: sf.name,
-        desc: sf.description,
-        type: sf.type,
-      });
-      sf.lnodes?.forEach(lnode =>
-        subFunction.appendChild(createLNodeFromType(this.doc!, lnode))
-      );
-      func.appendChild(subFunction);
-    });
-
-    const allLNodeTypes = [
-      ...lnodes,
-      ...subfunctions.flatMap(sf => sf.lnodes ?? []),
-    ];
+    subFunctions.forEach(sf =>
+      func.appendChild(createSubFunctionElement(this.doc!, subFunctionTag, sf))
+    );
 
     const reference = getReference(selected, functionTag);
     this.dispatchEvent(
@@ -693,172 +629,33 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         { title: 'Add Function' }
       )
     );
-
-    uniqueLNodeTypes(allLNodeTypes).forEach(lNodeType => {
-      importLNodeType(lNodeType, this.doc!).forEach(edit =>
-        this.dispatchEvent(newEditEventV2(edit, { squash: true }))
-      );
-    });
+    this.importLNodeTypes([
+      ...lnodes,
+      ...subFunctions.flatMap(sf => sf.lnodes),
+    ]);
 
     this.reset();
     this.showFunctions = true;
   }
 
-  updateFunction(detail: {
-    name: string;
-    description: string | null;
-    type: string | null;
-    subfunctions: SubfunctionData[];
-    lnodes: Element[];
-    functionElement: Element;
-    removedSubfunctions?: SubfunctionData[];
-  }) {
+  updateFunction(update: UpdateFunctionData) {
     if (!this.doc) return;
 
-    const {
-      name,
-      description,
-      type,
-      subfunctions,
-      lnodes,
-      functionElement,
-      removedSubfunctions = [],
-    } = detail;
-
-    const subFunctionTag: SubFunctionTag =
-      functionElement.tagName === 'EqFunction'
-        ? 'EqSubFunction'
-        : 'SubFunction';
-
-    const edits: EditV2[] = [];
-    const newLNodeTypes: Element[] = [];
-    const sourceUpdates = new Map<Element, string>();
-    const oldFunctionPath = getProcessPath(functionElement);
-    const oldFunctionName = functionElement.getAttribute('name') ?? '';
-    const newFunctionPath = oldFunctionName
-      ? `${oldFunctionPath.slice(0, -oldFunctionName.length)}${name}`
-      : oldFunctionPath;
-
-    const attributes: Record<string, string | null> = {};
-    if ((functionElement.getAttribute('name') ?? '') !== name)
-      attributes.name = name;
-    if ((functionElement.getAttribute('desc') ?? null) !== description)
-      attributes.desc = description;
-    if ((functionElement.getAttribute('type') ?? null) !== type)
-      attributes.type = type;
-    if (Object.keys(attributes).length)
-      edits.push({ element: functionElement, attributes });
-
-    const originalLNodes = Array.from(functionElement.children).filter(
-      child => child.tagName === 'LNode'
-    );
-    const removedLNodes = originalLNodes.filter(
-      lnode => !lnodes.includes(lnode)
-    );
-    removedLNodes.forEach(lnode => edits.push(...buildRemoveLNodeEdits(lnode)));
-    lnodes
-      .filter(lnode => lnode.tagName === 'LNodeType')
-      .forEach(lNodeType => {
-        newLNodeTypes.push(lNodeType);
-        edits.push({
-          parent: functionElement,
-          node: createLNodeFromType(this.doc!, lNodeType),
-          reference: this.getLNodeInsertReference(
-            functionElement,
-            removedLNodes
-          ),
-        });
-      });
-
-    removedSubfunctions.forEach(sf => {
-      if (!sf.element) return;
-      Array.from(sf.element.children)
-        .filter(child => child.tagName === 'LNode')
-        .forEach(lnode => edits.push(...buildRemoveLNodeEdits(lnode)));
-      edits.push({ node: sf.element });
-    });
-
-    subfunctions.forEach(sf => {
-      if (sf.element) {
-        const sfAttributes: Record<string, string | null> = {};
-        const oldSubFunctionName = sf.element!.getAttribute('name') ?? '';
-        if (oldSubFunctionName !== sf.name) {
-          sfAttributes.name = sf.name;
-          this.queueSourcePathRename(
-            sourceUpdates,
-            `${oldFunctionPath}/${oldSubFunctionName}`,
-            `${oldFunctionPath}/${sf.name}`
-          );
-        }
-        if ((sf.element!.getAttribute('desc') ?? null) !== sf.description)
-          sfAttributes.desc = sf.description;
-        if ((sf.element!.getAttribute('type') ?? null) !== sf.type)
-          sfAttributes.type = sf.type;
-        if (Object.keys(sfAttributes).length)
-          edits.push({ element: sf.element!, attributes: sfAttributes });
-
-        const originalSfLNodes = Array.from(sf.element!.children).filter(
-          child => child.tagName === 'LNode'
-        );
-        const finalSfLNodes = sf.lnodes ?? [];
-        const removedSfLNodes = originalSfLNodes.filter(
-          lnode => !finalSfLNodes.includes(lnode)
-        );
-        removedSfLNodes.forEach(lnode =>
-          edits.push(...buildRemoveLNodeEdits(lnode))
-        );
-        finalSfLNodes
-          .filter(lnode => lnode.tagName === 'LNodeType')
-          .forEach(lNodeType => {
-            newLNodeTypes.push(lNodeType);
-            edits.push({
-              parent: sf.element!,
-              node: createLNodeFromType(this.doc!, lNodeType),
-              reference: this.getLNodeInsertReference(
-                sf.element!,
-                removedSfLNodes
-              ),
-            });
-          });
-      } else {
-        const subFunction = createElement(this.doc!, subFunctionTag, {
-          name: sf.name,
-          desc: sf.description,
-          type: sf.type,
-        });
-        (sf.lnodes ?? []).forEach(lNodeType => {
-          newLNodeTypes.push(lNodeType);
-          subFunction.appendChild(createLNodeFromType(this.doc!, lNodeType));
-        });
-        edits.push({
-          parent: functionElement,
-          node: subFunction,
-          reference: getReference(functionElement, subFunctionTag),
-        });
-      }
-    });
-
-    if (oldFunctionName !== name) {
-      this.queueSourcePathRename(
-        sourceUpdates,
-        oldFunctionPath,
-        newFunctionPath
-      );
-    }
-
-    edits.push(...this.buildSourcePathRenameEdits(sourceUpdates));
-
+    const { edits, newLNodeTypes } = buildUpdateFunctionEdits(this.doc, update);
     if (edits.length)
       this.dispatchEvent(newEditEventV2(edits, { title: 'Update Function' }));
+    this.importLNodeTypes(newLNodeTypes);
 
-    uniqueLNodeTypes(newLNodeTypes).forEach(lNodeType => {
+    this.reset();
+    this.showFunctions = true;
+  }
+
+  private importLNodeTypes(lNodeTypes: Element[]) {
+    uniqueLNodeTypes(lNodeTypes).forEach(lNodeType => {
       importLNodeType(lNodeType, this.doc!).forEach(edit =>
         this.dispatchEvent(newEditEventV2(edit, { squash: true }))
       );
     });
-
-    this.reset();
-    this.showFunctions = true;
   }
 
   private renderTransformerButtons() {
@@ -1264,7 +1061,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           <create-function-dialog
             .lnodeLibrary=${this.lnodeLibrary}
             @cancel=${this.handleCancelAddFunction}
-            @save=${this.createFunction}
+            @save=${this.handleFunctionDialogSave}
           ></create-function-dialog>
           <function-link-dialog
             @create-function-link=${this.handleConnectFunctionLink}

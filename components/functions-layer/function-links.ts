@@ -1,4 +1,4 @@
-import { eTr6100Ns, getProcessPath } from '../../util.js';
+import { eTr6100Ns, getLNodeSourcePath, getProcessPath } from '../../util.js';
 import type { LinkService } from '../function-link-dialog/object-references.js';
 
 export type FunctionLink = {
@@ -194,4 +194,40 @@ export function buildFunctionLinkPath(
   const outerX = Math.min(sourceLeft, sinkLeft) - 1.2 - lanePadding;
   const endX = sinkLeft;
   return `M ${startX} ${startY} L ${outerX} ${startY} L ${outerX} ${endY} L ${endX} ${endY}`;
+}
+
+function sourceLNodePath(source: string): string | null {
+  const dot = source.indexOf('.', source.lastIndexOf('/') + 1);
+  return dot === -1 ? null : source.slice(0, dot);
+}
+
+export function findSourceRefsPointingToLNodes(lnodes: Element[]): Element[] {
+  const lnodePaths = new Set<string>();
+  let doc: Document | undefined;
+  lnodes.forEach(lnode => {
+    const path = getLNodeSourcePath(lnode);
+    if (!path) return;
+    lnodePaths.add(path);
+    doc = lnode.ownerDocument;
+  });
+  if (!doc) return [];
+
+  return Array.from(doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).filter(
+    sourceRef => {
+      const path = sourceLNodePath(sourceRef.getAttribute('source') ?? '');
+      return path !== null && lnodePaths.has(path);
+    }
+  );
+}
+
+export function findSourceRefsPointingToLNode(lnode: Element): Element[] {
+  return findSourceRefsPointingToLNodes([lnode]);
+}
+
+export function isLNodeSink(lnode: Element): boolean {
+  return lnode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef').length > 0;
+}
+
+export function lNodeHasLinks(lnode: Element): boolean {
+  return isLNodeSink(lnode) || findSourceRefsPointingToLNode(lnode).length > 0;
 }
