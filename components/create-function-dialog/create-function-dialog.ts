@@ -568,7 +568,7 @@ export class CreateFunctionDialog extends ScopedElementsMixin(LitElement) {
             itemName=${this.subFunctionName}
             .items=${this.tempSubfunctions}
             .itemHeadline=${(func: SubfunctionData) => func.name}
-            showEditButton
+            .showEditButton=${true}
             @add-item=${this.handleAddSubfunction}
             @edit-item=${(e: CustomEvent<DeleteEventDetail<SubfunctionData>>) =>
               this.handleEditSubfunction(e.detail.item)}

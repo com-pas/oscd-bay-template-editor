@@ -29,6 +29,7 @@ import {
   sldNs,
   xmlnsNs,
   getFunctionCoordinates,
+  getProcessPath,
   getSldSvgs,
   highlightBusbars,
   clearBusbarHighlights,
@@ -210,6 +211,40 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       .forEach(({ node, next }) => parent.insertBefore(node, next));
 
     return reference;
+  }
+
+  private queueSourcePathRename(
+    sourceUpdates: Map<Element, string>,
+    oldPath: string,
+    newPath: string
+  ): void {
+    if (!this.doc || oldPath === newPath) return;
+
+    const oldPrefix = `${oldPath}/`;
+    Array.from(this.doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).forEach(
+      sourceRef => {
+        const currentSource =
+          sourceUpdates.get(sourceRef) ??
+          sourceRef.getAttribute('source') ??
+          '';
+        if (!currentSource.startsWith(oldPrefix)) return;
+
+        sourceUpdates.set(
+          sourceRef,
+          `${newPath}/${currentSource.slice(oldPrefix.length)}`
+        );
+      }
+    );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private buildSourcePathRenameEdits(
+    sourceUpdates: Map<Element, string>
+  ): EditV2[] {
+    return Array.from(sourceUpdates.entries()).map(([sourceRef, source]) => ({
+      element: sourceRef,
+      attributes: { source },
+    }));
   }
 
   get showLabels(): boolean {
@@ -697,6 +732,12 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     const edits: EditV2[] = [];
     const newLNodeTypes: Element[] = [];
+    const sourceUpdates = new Map<Element, string>();
+    const oldFunctionPath = getProcessPath(functionElement);
+    const oldFunctionName = functionElement.getAttribute('name') ?? '';
+    const newFunctionPath = oldFunctionName
+      ? `${oldFunctionPath.slice(0, -oldFunctionName.length)}${name}`
+      : oldFunctionPath;
 
     const attributes: Record<string, string | null> = {};
     if ((functionElement.getAttribute('name') ?? '') !== name)
@@ -740,8 +781,15 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     subfunctions.forEach(sf => {
       if (sf.element) {
         const sfAttributes: Record<string, string | null> = {};
-        if ((sf.element!.getAttribute('name') ?? '') !== sf.name)
+        const oldSubFunctionName = sf.element!.getAttribute('name') ?? '';
+        if (oldSubFunctionName !== sf.name) {
           sfAttributes.name = sf.name;
+          this.queueSourcePathRename(
+            sourceUpdates,
+            `${oldFunctionPath}/${oldSubFunctionName}`,
+            `${oldFunctionPath}/${sf.name}`
+          );
+        }
         if ((sf.element!.getAttribute('desc') ?? null) !== sf.description)
           sfAttributes.desc = sf.description;
         if ((sf.element!.getAttribute('type') ?? null) !== sf.type)
@@ -789,6 +837,16 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         });
       }
     });
+
+    if (oldFunctionName !== name) {
+      this.queueSourcePathRename(
+        sourceUpdates,
+        oldFunctionPath,
+        newFunctionPath
+      );
+    }
+
+    edits.push(...this.buildSourcePathRenameEdits(sourceUpdates));
 
     if (edits.length)
       this.dispatchEvent(newEditEventV2(edits, { title: 'Update Function' }));

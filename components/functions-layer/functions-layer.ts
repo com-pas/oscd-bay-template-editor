@@ -852,8 +852,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                 @close=${() => {
                   this.selectedFunctionElement = undefined;
                 }}
-                @edit-function=${(e: CustomEvent<LNodeSelectionContext>) =>
-                  this.handleEditFunction?.(e.detail.functionElement)}
+                @edit-function=${(
+                  e: CustomEvent<{ functionElement: Element }>
+                ) => this.handleEditFunction?.(e.detail.functionElement)}
               ></function-content-panel>
             </div>`
           : nothing}

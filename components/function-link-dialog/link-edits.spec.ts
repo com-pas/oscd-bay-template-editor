@@ -1,14 +1,20 @@
+/* eslint-disable no-unused-expressions */
 import { expect } from '@open-wc/testing';
 import type { EditV2 } from '@openscd/oscd-api';
 import {
   buildFunctionLinkEdits,
   buildRemoveSourceRefEdits,
+  buildRemoveLNodeEdits,
+  findSourceRefsPointingToLNode,
+  lNodeHasLinks,
 } from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
 import {
   docWithSinkFunction,
   docWithFunctionLink,
   docWithMultipleSourceRefs,
+  docWithSourceRef,
+  docWithSubFunctionSourceLink,
 } from '../../testfiles.js';
 
 function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
@@ -151,5 +157,140 @@ describe('buildRemoveSourceRefEdits', () => {
 
     expect(edits.length).to.equal(1);
     expect((edits[0] as { node: Node }).node).to.equal(lNodeInputsElement);
+  });
+});
+
+describe('findSourceRefsPointingToLNode', () => {
+  it('finds the SourceRef pointing at a function-level source LNode', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSourceRef,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+    const sourceRef = doc.querySelector('SourceRef')!;
+
+    const found = findSourceRefsPointingToLNode(sourceLNode);
+
+    expect(found).to.deep.equal([sourceRef]);
+  });
+
+  it('finds the SourceRef pointing at a SubFunction-level source LNode', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSubFunctionSourceLink,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('SubFunction[name="sf1"] > LNode')!;
+    const sourceRef = doc.querySelector('SourceRef')!;
+
+    const found = findSourceRefsPointingToLNode(sourceLNode);
+
+    expect(found).to.deep.equal([sourceRef]);
+  });
+
+  it('returns an empty array for an LNode that is not used as a source', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSinkFunction,
+      'application/xml'
+    );
+    const lnode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    expect(findSourceRefsPointingToLNode(lnode)).to.deep.equal([]);
+  });
+
+  it('finds every SourceRef across multiple sinks referencing the same source', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+
+    const found = findSourceRefsPointingToLNode(sourceLNode);
+
+    expect(found.length).to.equal(4);
+  });
+});
+
+describe('lNodeHasLinks', () => {
+  it('is true for a sink LNode with its own LNodeInputs', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithFunctionLink,
+      'application/xml'
+    );
+    const sinkLNode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    expect(lNodeHasLinks(sinkLNode)).to.be.true;
+  });
+
+  it('is true for a source LNode referenced elsewhere', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSourceRef,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+
+    expect(lNodeHasLinks(sourceLNode)).to.be.true;
+  });
+
+  it('is false for an LNode unrelated to any link', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSinkFunction,
+      'application/xml'
+    );
+    const lnode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    expect(lNodeHasLinks(lnode)).to.be.false;
+  });
+});
+
+describe('buildRemoveLNodeEdits', () => {
+  it('removes the LNode and the Private when it was the only SourceRef', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSourceRef,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+    const privateElement = doc.querySelector(
+      'Function[name="Sink"] Private[type="eIEC61850-6-100"]'
+    )!;
+
+    const edits = buildRemoveLNodeEdits(sourceLNode) as { node: Node }[];
+
+    expect(edits.length).to.equal(2);
+    expect(edits[0].node).to.equal(privateElement);
+    expect(edits[1].node).to.equal(sourceLNode);
+  });
+
+  it('removes only the affected LNodeInputs/Private groups, leaving unrelated ones untouched', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+    const sinkPrivate = doc.querySelector(
+      'Function[name="Sink"] > LNode > Private[type="eIEC61850-6-100"]'
+    )!;
+    const sink2LNodeInputs = doc.querySelector(
+      'Function[name="Sink2"] > LNode > Private[type="eIEC61850-6-100"] > LNodeInputs'
+    )!;
+
+    const edits = buildRemoveLNodeEdits(sourceLNode) as { node: Node }[];
+    const removedNodes = edits.map(edit => edit.node);
+
+    expect(removedNodes).to.include(sinkPrivate);
+    expect(removedNodes).to.include(sink2LNodeInputs);
+    expect(removedNodes).to.include(sourceLNode);
+    expect(edits.length).to.equal(3);
+  });
+
+  it('just removes the LNode when it has no links', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSinkFunction,
+      'application/xml'
+    );
+    const lnode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    const edits = buildRemoveLNodeEdits(lnode) as { node: Node }[];
+
+    expect(edits).to.deep.equal([{ node: lnode }]);
   });
 });
