@@ -61,6 +61,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private linkSourceCandidates;
     private selectingLinkSource;
     private lnodeLibrary;
+    private lnodeLibraryLoading;
     private pendingLinkContext;
     private readonly onResize;
     private readonly eqFunctionHostTags;
