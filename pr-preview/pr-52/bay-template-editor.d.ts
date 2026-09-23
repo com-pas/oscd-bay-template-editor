@@ -74,6 +74,8 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
      * happens later, via the dispatched edits).
      */
     private getLNodeInsertReference;
+    private queueSourcePathRename;
+    private buildSourcePathRenameEdits;
     get showLabels(): boolean;
     private loadLNodeLibrary;
     connectedCallback(): void;
