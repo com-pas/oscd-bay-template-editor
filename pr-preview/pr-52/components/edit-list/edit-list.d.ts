@@ -3,7 +3,7 @@ import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-export interface DeleteEventDetail<TItem> {
+export interface ItemEventDetail<TItem> {
     item: TItem;
 }
 declare const EditList_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;

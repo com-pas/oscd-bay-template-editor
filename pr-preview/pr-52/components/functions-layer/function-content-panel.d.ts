@@ -20,6 +20,7 @@ export declare class FunctionContentPanel extends FunctionContentPanel_base {
     };
     functionElement?: Element;
     selectingLinkSource: boolean;
+    /** Re-renders the panel when the document is edited in place. */
     editCount: number;
     private selectedLNode?;
     private selectedSubFunction;

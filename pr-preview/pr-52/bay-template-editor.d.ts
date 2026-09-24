@@ -3,7 +3,7 @@ import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFill
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { SldEditor } from '@omicronenergy/oscd-editor-sld/sld-editor.js';
-import { type SubFunctionData } from './util.js';
+import { type FunctionData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
@@ -94,15 +94,12 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     reset(): void;
     handleCancelAddFunction: () => void;
     insertSubstation(): void;
-    createFunction(e: CustomEvent<{
-        name: string;
-        description: string | null;
-        type: string | null;
-        subfunctions: SubFunctionData[];
-        lnodes: Element[];
-        functionElement?: Element | null;
-    }>): void;
-    updateFunction(detail: UpdateFunctionData): void;
+    /** Handles the Function dialog's `save`: updates the edited Function, or creates a new one. */
+    private handleFunctionDialogSave;
+    createFunction({ name, description, type, subFunctions, lnodes, }: FunctionData): void;
+    updateFunction(update: UpdateFunctionData): void;
+    /** Imports each LNodeType once, squashed into the preceding edit. */
+    private importLNodeTypes;
     private renderTransformerButtons;
     private renderSubstationHighlight;
     private renderFunctionButtons;

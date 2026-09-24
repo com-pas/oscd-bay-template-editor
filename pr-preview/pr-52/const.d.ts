@@ -31,3 +31,12 @@ export declare const LINK_SERVICE_COLORS: {
     SMV: string;
     Internal: string;
 };
+/** Confirmation shown before removing an LNode that takes part in a function link */
+export declare const REMOVE_LINKED_LNODE_CONFIRMATION: {
+    readonly headline: "Delete LNode?";
+    readonly description: "This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?";
+    readonly icon: "warning";
+    readonly variant: "danger";
+    readonly confirmLabel: "Delete";
+    readonly cancelLabel: "Cancel";
+};

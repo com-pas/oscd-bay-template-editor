@@ -6,11 +6,15 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
-import { type SubFunctionData } from '../../util.js';
+import { type FunctionData, type SubFunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { EditList } from '../edit-list/edit-list.js';
+/** Detail of the `save` event. `functionElement` is set when editing an existing Function. */
+export type SaveFunctionDetail = FunctionData & {
+    functionElement: Element | null;
+};
 export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
     FunctionContent = "function-content"
@@ -31,7 +35,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'edit-list': typeof EditList;
     };
     parent: Element | null;
-    function?: Element | null;
+    functionElement: Element | null;
     selectedElementName: string;
     selectedElementType: string;
     lnodeLibrary: Document | Element | null;
@@ -58,6 +62,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;
     show(): void;
+    /** Fills the form with the current state of the Function being edited. */
+    private loadFunctionElement;
     close(): void;
     private handleCloseConfirmed;
     reset(): void;
@@ -67,12 +73,13 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private readonly nameTakenValidator;
     private handleNext;
     private handleSave;
-    private handleAddSubfunction;
-    private handleEditSubfunction;
-    private updateSubFunction;
+    private handleAddSubFunction;
+    private handleEditSubFunction;
+    private handleSaveSubFunction;
+    private handleDeleteSubFunction;
+    /** Replaces the SubFunction with the same id, or appends it if it is new. */
+    private upsertSubFunction;
     private removeSubFunction;
-    private handleSaveSubfunction;
-    private handleDeleteSubfunction;
     private handleAddLNode;
     private handleRemoveLNode;
     private handleLNodePickerCancel;

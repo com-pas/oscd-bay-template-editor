@@ -31,9 +31,9 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
         'confirm-dialog': typeof ConfirmDialog;
     };
     library: Document | Element | null;
-    subfunctions: SubFunctionData[];
+    siblingSubFunctions: SubFunctionData[];
     isEqFunction: boolean;
-    editingSubfunction: SubFunctionData | null;
+    editingSubFunction: SubFunctionData | null;
     private get elementName();
     private get isEdit();
     dialog: OscdDialog;
@@ -51,6 +51,8 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
     private formGroup;
     private readonly boundHandleDocumentKeydown;
     show(): void;
+    /** Fills the form with the SubFunction being edited. */
+    private loadSubFunction;
     close(): void;
     private handleCloseConfirmed;
     reset(): void;
