@@ -11,7 +11,6 @@ import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-sub
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { EditList } from '../edit-list/edit-list.js';
-/** Detail of the `save` event. `functionElement` is set when editing an existing Function. */
 export type SaveFunctionDetail = FunctionData & {
     functionElement: Element | null;
 };

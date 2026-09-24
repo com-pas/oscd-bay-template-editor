@@ -94,11 +94,9 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     reset(): void;
     handleCancelAddFunction: () => void;
     insertSubstation(): void;
-    /** Handles the Function dialog's `save`: updates the edited Function, or creates a new one. */
     private handleFunctionDialogSave;
     createFunction({ name, description, type, subFunctions, lnodes, }: FunctionData): void;
     updateFunction(update: UpdateFunctionData): void;
-    /** Imports each LNodeType once, squashed into the preceding edit. */
     private importLNodeTypes;
     private renderTransformerButtons;
     private renderSubstationHighlight;
