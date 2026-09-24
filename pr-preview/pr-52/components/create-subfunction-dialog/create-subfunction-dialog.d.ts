@@ -10,7 +10,7 @@ import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
-import type { SubfunctionData } from '../../util.js';
+import type { SubFunctionData } from '../../util.js';
 export declare enum CreateSubfunctionDialogStep {
     SubfunctionAttributes = "subfunction-attributes",
     SubfunctionContent = "subfunction-content"
@@ -31,10 +31,9 @@ export declare class CreateSubfunctionDialog extends CreateSubfunctionDialog_bas
         'confirm-dialog': typeof ConfirmDialog;
     };
     library: Document | Element | null;
-    subfunctions: SubfunctionData[];
+    subfunctions: SubFunctionData[];
     isEqFunction: boolean;
-    /** Present when editing an existing (Eq)SubFunction (may not yet be attached to the document). */
-    editingSubfunction: SubfunctionData | null;
+    editingSubfunction: SubFunctionData | null;
     private get elementName();
     private get isEdit();
     dialog: OscdDialog;

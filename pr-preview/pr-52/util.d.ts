@@ -12,11 +12,14 @@ export type EqType = (typeof eqTypes)[number];
 export declare function isEqType(str: string): str is EqType;
 export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
-export interface SubfunctionData {
+export interface SubFunctionData {
+    /** UI-only key, stable across renames. Never written to the SCL. */
+    id: string;
     name: string;
     description: string | null;
     type: string | null;
     lnodes: Element[] | null;
+    /** Present if and only if the subfunction already exists in the document. */
     element?: Element | null;
 }
 export declare function lNodeTypeClass(lNodeType: Element): string;

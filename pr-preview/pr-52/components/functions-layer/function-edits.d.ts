@@ -1,13 +1,12 @@
 import type { EditV2 } from '@openscd/oscd-api';
-import { type SubfunctionData } from '../../util.js';
+import { type SubFunctionData } from '../../util.js';
 export interface UpdateFunctionData {
     name: string;
     description: string | null;
     type: string | null;
-    subfunctions: SubfunctionData[];
+    subfunctions: SubFunctionData[];
     lnodes: Element[];
     functionElement: Element;
-    removedSubfunctions?: SubfunctionData[];
 }
 export interface UpdateFunctionEdits {
     edits: EditV2[];

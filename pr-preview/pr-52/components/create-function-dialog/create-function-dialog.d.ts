@@ -6,7 +6,7 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
-import { type SubfunctionData } from '../../util.js';
+import { type SubFunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
@@ -46,11 +46,9 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     description: string | null;
     type: string | null;
     step: CreateFunctionDialogStep;
-    subFunctions: SubfunctionData[];
+    subFunctions: SubFunctionData[];
     lnPickerOpen: boolean;
     lnodes: Element[];
-    removedSubfunctions: SubfunctionData[];
-    private editingSubfunctionIndex;
     private get isEdit();
     private get selectedLNodeTypeIds();
     private get isEqFunction();
@@ -71,8 +69,8 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleSave;
     private handleAddSubfunction;
     private handleEditSubfunction;
-    private upsertSubfunction;
-    private removeEditedSubfunction;
+    private updateSubFunction;
+    private removeSubFunction;
     private handleSaveSubfunction;
     private handleDeleteSubfunction;
     private handleAddLNode;
