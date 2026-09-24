@@ -46,7 +46,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     description: string | null;
     type: string | null;
     step: CreateFunctionDialogStep;
-    tempSubfunctions: SubfunctionData[];
+    subFunctions: SubfunctionData[];
     lnPickerOpen: boolean;
     lnodes: Element[];
     removedSubfunctions: SubfunctionData[];

@@ -7,6 +7,7 @@ import { type SubfunctionData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import { type UpdateFunctionData } from './components/functions-layer/function-edits.js';
 import { type HighlightStyle } from './const.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
@@ -66,17 +67,6 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private readonly onResize;
     private readonly eqFunctionHostTags;
     private resolveFunctionTags;
-    /**
-     * `getReference(parent, 'LNode')` returns the first existing LNode sibling as
-     * the insertion point. If that sibling is being removed in the same edit
-     * batch, it will no longer be a child by the time the insert runs. Temporarily
-     * detach the about-to-be-removed siblings so the reference is computed against
-     * the LNodes that will actually remain, then restore them (the real removal
-     * happens later, via the dispatched edits).
-     */
-    private getLNodeInsertReference;
-    private queueSourcePathRename;
-    private buildSourcePathRenameEdits;
     get showLabels(): boolean;
     private loadLNodeLibrary;
     connectedCallback(): void;
@@ -113,15 +103,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
         functionElement?: Element | null;
         removedSubfunctions?: SubfunctionData[];
     }>): void;
-    updateFunction(detail: {
-        name: string;
-        description: string | null;
-        type: string | null;
-        subfunctions: SubfunctionData[];
-        lnodes: Element[];
-        functionElement: Element;
-        removedSubfunctions?: SubfunctionData[];
-    }): void;
+    updateFunction(detail: UpdateFunctionData): void;
     private renderTransformerButtons;
     private renderSubstationHighlight;
     private renderFunctionButtons;
