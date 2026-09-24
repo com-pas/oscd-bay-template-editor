@@ -77,8 +77,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private handleEditSubFunction;
     private handleSaveSubFunction;
     private handleDeleteSubFunction;
-    /** Replaces the SubFunction with the same id, or appends it if it is new. */
-    private upsertSubFunction;
+    private addOrReplaceSubFunction;
     private removeSubFunction;
     private handleAddLNode;
     private handleRemoveLNode;
