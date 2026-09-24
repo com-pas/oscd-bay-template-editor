@@ -35,12 +35,20 @@ import {
   createLNodeFromType,
   uniqueLNodeTypes,
   eTr6100PrivType,
-  type SubfunctionData,
+  type FunctionData,
 } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
-import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
+import {
+  CreateFunctionDialog,
+  type SaveFunctionDetail,
+} from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
 import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
+import {
+  buildUpdateFunctionEdits,
+  createSubFunctionElement,
+  type UpdateFunctionData,
+} from './components/functions-layer/function-edits.js';
 import type { CreateFunctionLinkEventDetail } from './components/function-link-dialog/function-link-dialog.js';
 import type { LNodeSelectionContext } from './components/functions-layer/function-content-panel.js';
 import {
@@ -156,6 +164,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @state()
   private lnodeLibrary: Document | null = null;
 
+  private lnodeLibraryLoading = false;
+
   @state()
   private pendingLinkContext: LNodeSelectionContext | null = null;
 
@@ -189,26 +199,28 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   private loadLNodeLibrary() {
     const libraryApi = this.compasApi?.lNodeLibrary;
-
-    if (!libraryApi) {
-      this.lnodeLibrary = null;
-      return;
-    }
+    if (!libraryApi) return;
 
     const cachedLibrary = libraryApi.lNodeLibrary?.() ?? null;
-    if (cachedLibrary !== null || !libraryApi.loadLNodeLibrary) {
+    if (cachedLibrary) {
       this.lnodeLibrary = cachedLibrary;
       return;
     }
 
+    if (!libraryApi.loadLNodeLibrary || this.lnodeLibraryLoading) return;
+    this.lnodeLibraryLoading = true;
+
     libraryApi
       .loadLNodeLibrary()
       .then(library => {
-        this.lnodeLibrary = library ?? null;
+        if (library) this.lnodeLibrary = library;
       })
       .catch(error => {
-        this.lnodeLibrary = null;
-        throw error;
+        // eslint-disable-next-line no-console
+        console.error('Failed to load LNode library:', error);
+      })
+      .finally(() => {
+        this.lnodeLibraryLoading = false;
       });
   }
 
@@ -317,6 +329,18 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.functionLinkDialog.showForSourceFunction(sourceFunction, this.doc!);
   };
 
+  private handleEditFunction = (funcElement: Element) => {
+    if (this.createFunctionDialog) {
+      const parent = funcElement.parentElement;
+      this.createFunctionDialog.functionElement = funcElement;
+      this.createFunctionDialog.parent = parent;
+      this.createFunctionDialog.selectedElementName =
+        parent?.getAttribute('name') ?? '';
+      this.createFunctionDialog.selectedElementType = parent?.tagName ?? '';
+      this.createFunctionDialog.show();
+    }
+  };
+
   private resetLinkingState = () => {
     this.selectingLinkSource = false;
     this.linkSourceCandidates = [];
@@ -403,6 +427,13 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
   updated(changedProperties: Map<PropertyKey, unknown>) {
     if (changedProperties.has('compasApi')) {
+      this.loadLNodeLibrary();
+    }
+
+    // Retry on every newly opened document in case the previous attempt
+    // failed or ran before the library API was ready (e.g. transient
+    // network error, or compasApi being injected asynchronously).
+    if (changedProperties.has('doc') && this.doc && !this.lnodeLibrary) {
       this.loadLNodeLibrary();
     }
 
@@ -554,16 +585,19 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(newEditEventV2({ parent, node, reference }));
   }
 
-  createFunction(
-    e: CustomEvent<{
-      name: string;
-      description: string | null;
-      type: string | null;
-      subfunctions: SubfunctionData[];
-      lnodes: Element[];
-    }>
-  ) {
-    const { name, description, type, subfunctions, lnodes } = e.detail;
+  private handleFunctionDialogSave = (e: CustomEvent<SaveFunctionDetail>) => {
+    const { functionElement, ...data } = e.detail;
+    if (functionElement) this.updateFunction({ ...data, functionElement });
+    else this.createFunction(data);
+  };
+
+  createFunction({
+    name,
+    description,
+    type,
+    subFunctions,
+    lnodes,
+  }: FunctionData) {
     if (!this.doc) return;
 
     const selected = this.selectedElement;
@@ -584,23 +618,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
     lnodes.forEach(lnode =>
       func.appendChild(createLNodeFromType(this.doc!, lnode))
     );
-
-    subfunctions.forEach(sf => {
-      const subFunction = createElement(this.doc!, subFunctionTag, {
-        name: sf.name,
-        desc: sf.description,
-        type: sf.type,
-      });
-      sf.lnodes?.forEach(lnode =>
-        subFunction.appendChild(createLNodeFromType(this.doc!, lnode))
-      );
-      func.appendChild(subFunction);
-    });
-
-    const allLNodeTypes = [
-      ...lnodes,
-      ...subfunctions.flatMap(sf => sf.lnodes ?? []),
-    ];
+    subFunctions.forEach(sf =>
+      func.appendChild(createSubFunctionElement(this.doc!, subFunctionTag, sf))
+    );
 
     const reference = getReference(selected, functionTag);
     this.dispatchEvent(
@@ -609,15 +629,33 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         { title: 'Add Function' }
       )
     );
+    this.importLNodeTypes([
+      ...lnodes,
+      ...subFunctions.flatMap(sf => sf.lnodes),
+    ]);
 
-    uniqueLNodeTypes(allLNodeTypes).forEach(lNodeType => {
+    this.reset();
+    this.showFunctions = true;
+  }
+
+  updateFunction(update: UpdateFunctionData) {
+    if (!this.doc) return;
+
+    const { edits, newLNodeTypes } = buildUpdateFunctionEdits(this.doc, update);
+    if (edits.length)
+      this.dispatchEvent(newEditEventV2(edits, { title: 'Update Function' }));
+    this.importLNodeTypes(newLNodeTypes);
+
+    this.reset();
+    this.showFunctions = true;
+  }
+
+  private importLNodeTypes(lNodeTypes: Element[]) {
+    uniqueLNodeTypes(lNodeTypes).forEach(lNodeType => {
       importLNodeType(lNodeType, this.doc!).forEach(edit =>
         this.dispatchEvent(newEditEventV2(edit, { squash: true }))
       );
     });
-
-    this.reset();
-    this.showFunctions = true;
   }
 
   private renderTransformerButtons() {
@@ -1012,6 +1050,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .onCreateFunctionLink=${this.handleCreateFunctionLink}
                     .onCancelCreateFunctionLink=${this.resetLinkingState}
                     .onSelectSourceFunction=${this.handleSelectSourceFunction}
+                    .onEditFunction=${this.handleEditFunction}
                     .linkSourceCandidates=${this.linkSourceCandidates}
                     .selectingLinkSource=${this.selectingLinkSource}
                     .showLinks=${this.showFunctionLinks}
@@ -1022,7 +1061,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
           <create-function-dialog
             .lnodeLibrary=${this.lnodeLibrary}
             @cancel=${this.handleCancelAddFunction}
-            @save=${this.createFunction}
+            @save=${this.handleFunctionDialogSave}
           ></create-function-dialog>
           <function-link-dialog
             @create-function-link=${this.handleConnectFunctionLink}

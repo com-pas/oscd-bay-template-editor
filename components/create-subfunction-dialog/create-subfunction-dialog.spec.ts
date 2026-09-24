@@ -6,7 +6,7 @@ import {
   CreateSubfunctionDialog,
   CreateSubfunctionDialogStep,
 } from './create-subfunction-dialog.js';
-import { emptyDoc } from '../../testfiles.js';
+import { emptyDoc, docWithSubFunctionSourceLink } from '../../testfiles.js';
 
 if (!customElements.get('add-subfunction-dialog')) {
   customElements.define('add-subfunction-dialog', CreateSubfunctionDialog);
@@ -59,8 +59,14 @@ describe('CreateSubfunctionDialog', () => {
     const child1 = doc.createElement('SubFunction');
     child1.setAttribute('name', 'SF1');
     parent.appendChild(child1);
-    element.subfunctions = [
-      { name: 'SF1', description: 'desc', type: 'type', lnodes: null },
+    element.siblingSubFunctions = [
+      {
+        id: 'SF1',
+        name: 'SF1',
+        description: 'desc',
+        type: 'type',
+        lnodes: [],
+      },
     ];
     element.name = 'SF1';
     await element.updateComplete;
@@ -161,5 +167,169 @@ describe('CreateSubfunctionDialog', () => {
       .getCalls()
       .filter(call => call.args[0].type === 'cancel');
     expect(cancelEvents.length).to.equal(0);
+  });
+
+  describe('editing an existing SubFunction', () => {
+    function setupLinkedSubFunction() {
+      const linkedDoc = new DOMParser().parseFromString(
+        docWithSubFunctionSourceLink,
+        'application/xml'
+      );
+      const subFunction = linkedDoc.querySelector('SubFunction[name="sf1"]')!;
+      const lnode = subFunction.querySelector('LNode')!;
+      return { subFunction, lnode };
+    }
+
+    it('prefills fields and shows an Edit headline', async () => {
+      const { subFunction, lnode } = setupLinkedSubFunction();
+      element.editingSubFunction = {
+        id: 'sf1',
+        name: 'sf1',
+        description: 'desc',
+        type: 'type',
+        lnodes: [lnode],
+        element: subFunction,
+      };
+      element.show();
+      await element.updateComplete;
+
+      expect(element.name).to.equal('sf1');
+      expect(element.description).to.equal('desc');
+      expect(element.type).to.equal('type');
+      expect((element as any).lnodes).to.deep.equal([lnode]);
+
+      const headline = element.shadowRoot?.querySelector('[slot="headline"]');
+      expect(headline?.textContent).to.contain('Edit');
+    });
+
+    it('asks for confirmation before removing an LNode that is part of a link, and removes it once confirmed', async () => {
+      const { subFunction, lnode } = setupLinkedSubFunction();
+      element.editingSubFunction = {
+        id: 'sf1',
+        name: 'sf1',
+        description: null,
+        type: null,
+        lnodes: [lnode],
+        element: subFunction,
+      };
+      element.show();
+      await element.updateComplete;
+      const nextBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="next-button"]'
+      ) as HTMLElement;
+      nextBtn.click();
+      await element.updateComplete;
+
+      (element as any).selectedLNode = lnode;
+      (element as any).handleRemoveLNode();
+      await element.updateComplete;
+
+      const confirmDialog = element.shadowRoot?.querySelector(
+        'confirm-dialog'
+      ) as any;
+      await confirmDialog.updateComplete;
+      expect(confirmDialog.headline).to.equal('Delete LNode?');
+
+      const confirmBtn = confirmDialog.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="confirm-button"]'
+      ) as HTMLElement;
+      confirmBtn.click();
+      await element.updateComplete;
+
+      expect((element as any).lnodes).to.deep.equal([]);
+    });
+
+    it('keeps the LNode when the deletion confirmation is cancelled', async () => {
+      const { subFunction, lnode } = setupLinkedSubFunction();
+      element.editingSubFunction = {
+        id: 'sf1',
+        name: 'sf1',
+        description: null,
+        type: null,
+        lnodes: [lnode],
+        element: subFunction,
+      };
+      element.show();
+      await element.updateComplete;
+      const nextBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="next-button"]'
+      ) as HTMLElement;
+      nextBtn.click();
+      await element.updateComplete;
+
+      (element as any).selectedLNode = lnode;
+      (element as any).handleRemoveLNode();
+      await element.updateComplete;
+
+      const confirmDialog = element.shadowRoot?.querySelector(
+        'confirm-dialog'
+      ) as any;
+      await confirmDialog.updateComplete;
+
+      const cancelBtn = confirmDialog.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="cancel-button"]'
+      ) as HTMLElement;
+      cancelBtn.click();
+      await element.updateComplete;
+
+      expect((element as any).lnodes).to.deep.equal([lnode]);
+    });
+
+    it('removes an unlinked LNode immediately without confirmation', async () => {
+      const doc2 = new DOMParser().parseFromString(emptyDoc, 'application/xml');
+      const lnodeType = doc2.createElement('LNodeType');
+      lnodeType.setAttribute('id', 'NEW_TYPE');
+      lnodeType.setAttribute('lnClass', 'XSWI');
+
+      element.editingSubFunction = null;
+      element.show();
+      await element.updateComplete;
+      const nextBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="next-button"]'
+      ) as HTMLElement;
+      nextBtn.click();
+      await element.updateComplete;
+
+      (element as any).lnodes = [lnodeType];
+      (element as any).selectedLNode = lnodeType;
+      (element as any).handleRemoveLNode();
+      await element.updateComplete;
+
+      expect((element as any).lnodes).to.deep.equal([]);
+      expect(element.shadowRoot?.querySelector('confirm-dialog[open]')).to.not
+        .exist;
+    });
+
+    it('dispatches the original element on save', async () => {
+      const { subFunction, lnode } = setupLinkedSubFunction();
+      element.editingSubFunction = {
+        id: 'sf1',
+        name: 'sf1',
+        description: null,
+        type: null,
+        lnodes: [lnode],
+        element: subFunction,
+      };
+      element.show();
+      await element.updateComplete;
+      const nextBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="next-button"]'
+      ) as HTMLElement;
+      nextBtn.click();
+      await element.updateComplete;
+
+      const dispatchSpy = spy(element, 'dispatchEvent');
+      const saveBtn = element.shadowRoot?.querySelector(
+        'oscd-filled-button[data-testid="save-button"]'
+      ) as HTMLElement;
+      saveBtn.click();
+
+      const saveEvent = dispatchSpy
+        .getCalls()
+        .find(call => call.args[0].type === 'save-subfunction')
+        ?.args[0] as CustomEvent;
+      expect(saveEvent?.detail.element).to.equal(subFunction);
+      expect(saveEvent?.detail.lnodes).to.deep.equal([lnode]);
+    });
   });
 });

@@ -1,14 +1,17 @@
+/* eslint-disable no-unused-expressions */
 import { expect } from '@open-wc/testing';
 import type { EditV2 } from '@openscd/oscd-api';
 import {
   buildFunctionLinkEdits,
   buildRemoveSourceRefEdits,
+  buildRemoveSourceRefsToLNodesEdits,
 } from './link-edits.js';
 import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
 import {
   docWithSinkFunction,
   docWithFunctionLink,
   docWithMultipleSourceRefs,
+  docWithSourceRef,
 } from '../../testfiles.js';
 
 function isCreateEdit(edit: EditV2): edit is EditV2 & { node: Node } {
@@ -151,5 +154,57 @@ describe('buildRemoveSourceRefEdits', () => {
 
     expect(edits.length).to.equal(1);
     expect((edits[0] as { node: Node }).node).to.equal(lNodeInputsElement);
+  });
+});
+
+describe('buildRemoveSourceRefsToLNodesEdits', () => {
+  it('removes the Private when it held the only SourceRef', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSourceRef,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+    const privateElement = doc.querySelector(
+      'Function[name="Sink"] Private[type="eIEC61850-6-100"]'
+    )!;
+
+    const edits = buildRemoveSourceRefsToLNodesEdits([sourceLNode]) as {
+      node: Node;
+    }[];
+
+    expect(edits.map(edit => edit.node)).to.deep.equal([privateElement]);
+  });
+
+  it('removes only the affected LNodeInputs/Private groups, leaving unrelated ones untouched', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithMultipleSourceRefs,
+      'application/xml'
+    );
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+    const sinkPrivate = doc.querySelector(
+      'Function[name="Sink"] > LNode > Private[type="eIEC61850-6-100"]'
+    )!;
+    const sink2LNodeInputs = doc.querySelector(
+      'Function[name="Sink2"] > LNode > Private[type="eIEC61850-6-100"] > LNodeInputs'
+    )!;
+
+    const edits = buildRemoveSourceRefsToLNodesEdits([sourceLNode]) as {
+      node: Node;
+    }[];
+    const removedNodes = edits.map(edit => edit.node);
+
+    expect(removedNodes).to.include(sinkPrivate);
+    expect(removedNodes).to.include(sink2LNodeInputs);
+    expect(edits.length).to.equal(2);
+  });
+
+  it('returns no edits for an LNode without links', () => {
+    const doc = new DOMParser().parseFromString(
+      docWithSinkFunction,
+      'application/xml'
+    );
+    const lnode = doc.querySelector('Function[name="Sink"] > LNode')!;
+
+    expect(buildRemoveSourceRefsToLNodesEdits([lnode])).to.deep.equal([]);
   });
 });

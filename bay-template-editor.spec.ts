@@ -14,8 +14,12 @@ import {
   docWithAllElements,
   docWithSinkFunction,
   docWithBayAndFunctions,
+  docForUpdateFunction,
+  docWithLinkedFunctionLNode,
+  docWithSubFunctionSourceLink,
 } from './testfiles.js';
-import { eqTypes, SubfunctionData } from './util.js';
+import { eqTypes } from './util.js';
+import type { SubFunctionData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
   customElements.define('oscd-editor-bay-template', BayTemplatePlugin);
@@ -41,20 +45,18 @@ describe('Bay Template Editor Plugin', () => {
     function triggerAndCapture(
       selected: Element,
       name = 'F1',
-      subfunctions: SubfunctionData[] = [],
+      subFunctions: SubFunctionData[] = [],
       lnodes: Element[] = []
     ) {
       const dispatchSpy = spy(element, 'dispatchEvent');
       element.selectedElement = selected;
       element.createFunction({
-        detail: {
-          name,
-          description: 'desc',
-          type: 'type',
-          subfunctions,
-          lnodes,
-        },
-      } as any);
+        name,
+        description: 'desc',
+        type: 'type',
+        subFunctions,
+        lnodes,
+      });
       const editCall = dispatchSpy.args.find(
         args => (args[0] as CustomEvent).type === 'oscd-edit-v2'
       );
@@ -79,11 +81,23 @@ describe('Bay Template Editor Plugin', () => {
     it('adds Function and Subfunctions to Bay', async () => {
       const doc = setupElementWithDoc(docWithBay);
       const bay = doc.querySelector('Bay')!;
-      const subfunctions = [
-        { name: 'Sub1', description: 'desc', type: 'type', lnodes: null },
-        { name: 'Sub2', description: 'desc', type: 'type', lnodes: null },
+      const subFunctions = [
+        {
+          id: 'sub1',
+          name: 'Sub1',
+          description: 'desc',
+          type: 'type',
+          lnodes: [],
+        },
+        {
+          id: 'sub2',
+          name: 'Sub2',
+          description: 'desc',
+          type: 'type',
+          lnodes: [],
+        },
       ];
-      const { parent, fn } = triggerAndCapture(bay, 'Fbay', subfunctions);
+      const { parent, fn } = triggerAndCapture(bay, 'Fbay', subFunctions);
       expect(parent).to.equal(bay);
       expect(fn.tagName).to.equal('Function');
       expect(fn.getAttribute('name')).to.equal('Fbay');
@@ -140,10 +154,16 @@ describe('Bay Template Editor Plugin', () => {
       const ce = doc.createElement('ConductingEquipment');
       ce.setAttribute('name', 'CE1');
       bay.appendChild(ce);
-      const subfunctions = [
-        { name: 'ESF1', description: 'desc', type: 'type', lnodes: null },
+      const subFunctions = [
+        {
+          id: 'esf1',
+          name: 'ESF1',
+          description: 'desc',
+          type: 'type',
+          lnodes: [],
+        },
       ];
-      const { parent, fn } = triggerAndCapture(ce, 'Fce', subfunctions);
+      const { parent, fn } = triggerAndCapture(ce, 'Fce', subFunctions);
       expect(parent).to.equal(ce);
       expect(fn.tagName).to.equal('EqFunction');
       expect(fn.getAttribute('name')).to.equal('Fce');
@@ -159,14 +179,20 @@ describe('Bay Template Editor Plugin', () => {
       ce.setAttribute('name', 'CE1');
       bay.appendChild(ce);
 
-      const subfunctions = [
-        { name: 'ESF1', description: 'desc', type: 'type', lnodes: null },
+      const subFunctions = [
+        {
+          id: 'esf1',
+          name: 'ESF1',
+          description: 'desc',
+          type: 'type',
+          lnodes: [],
+        },
       ];
       const lnodes = [doc.createElement('LNodeType')];
       lnodes[0].setAttribute('lnClass', 'XCBR');
       lnodes[0].setAttribute('desc', 'breaker');
 
-      const { fn } = triggerAndCapture(ce, 'Fce', subfunctions, lnodes);
+      const { fn } = triggerAndCapture(ce, 'Fce', subFunctions, lnodes);
       const childTags = Array.from(fn.children).map(child => child.tagName);
       const lastLNodeIdx = childTags.lastIndexOf('LNode');
       const firstEqSubFnIdx = childTags.indexOf('EqSubFunction');
@@ -202,6 +228,414 @@ describe('Bay Template Editor Plugin', () => {
 
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe('updateFunction', () => {
+    function setupElementWithDoc(xml: string) {
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      element.doc = doc;
+      return doc;
+    }
+
+    function captureEdits(callback: () => void): any[] {
+      const dispatchSpy = spy(element, 'dispatchEvent');
+      callback();
+      const edits = dispatchSpy.args
+        .map(args => args[0] as CustomEvent)
+        .filter(e => e.type === 'oscd-edit-v2')
+        .flatMap(e => {
+          const { edit } = e.detail;
+          return Array.isArray(edit) ? edit : [edit];
+        });
+      dispatchSpy.restore();
+      return edits;
+    }
+
+    it('updates only the attributes that changed', () => {
+      const doc = setupElementWithDoc(docForUpdateFunction);
+      const functionElement = doc.querySelector('Function[name="F1"]')!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'F2',
+          description: 'd2',
+          type: 't1',
+          subFunctions: [],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      expect(edits.length).to.equal(1);
+      const [attrEdit] = edits as any[];
+      expect(attrEdit.element).to.equal(functionElement);
+      expect(attrEdit.attributes).to.deep.equal({ name: 'F2', desc: 'd2' });
+    });
+
+    it('does not dispatch an edit when nothing changed', () => {
+      const doc = setupElementWithDoc(docForUpdateFunction);
+      const functionElement = doc.querySelector('Function[name="F1"]')!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'F1',
+          description: 'd1',
+          type: 't1',
+          subFunctions: [],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      expect(edits.length).to.equal(0);
+    });
+
+    it('keeps an existing SubFunction when its element reference is passed', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const subFunction = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'a',
+          description: null,
+          type: null,
+          subFunctions: [
+            {
+              id: 'sf1',
+              name: 'sf1',
+              description: null,
+              type: null,
+              lnodes: Array.from(subFunction.children).filter(
+                child => child.tagName === 'LNode'
+              ),
+              element: subFunction,
+            },
+          ],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      expect(edits.length).to.equal(0);
+    });
+
+    it('treats a SubFunction without element as new, even if an original has the same name', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const original = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'a',
+          description: null,
+          type: null,
+          subFunctions: [
+            {
+              id: 'new',
+              name: 'sf1',
+              description: null,
+              type: null,
+              lnodes: [],
+            },
+          ],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      const inserted = edits.find(
+        (e: any) => 'parent' in e && e.node?.tagName === 'SubFunction'
+      );
+      expect(edits.some((e: any) => e.node === original && !('parent' in e))).to
+        .be.true;
+      expect(inserted, 'expected a fresh sf1 to be inserted').to.exist;
+      expect(inserted.node).to.not.equal(original);
+      expect(inserted.node.getAttribute('name')).to.equal('sf1');
+    });
+
+    it('updates SourceRef sources for the exact renamed Function path only', () => {
+      const doc = setupElementWithDoc(`<?xml version="1.0" encoding="UTF-8"?>
+        <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+          xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100" version="2007" revision="B">
+          <Substation name="S1">
+            <VoltageLevel name="V1">
+              <Bay name="B1">
+                <Function name="Source"><LNode lnClass="LLN0" lnInst="1" /></Function>
+                <Function name="Sink"><LNode lnClass="CSWI" lnInst="1"><Private type="eIEC61850-6-100"><eIEC61850-6-100:LNodeInputs><eIEC61850-6-100:SourceRef source="S1/V1/B1/Source/LLN01.Pos.stVal" /></eIEC61850-6-100:LNodeInputs></Private></LNode></Function>
+              </Bay>
+              <Bay name="B2">
+                <Function name="Source"><LNode lnClass="LLN0" lnInst="1" /></Function>
+                <Function name="Sink"><LNode lnClass="CSWI" lnInst="1"><Private type="eIEC61850-6-100"><eIEC61850-6-100:LNodeInputs><eIEC61850-6-100:SourceRef source="S1/V1/B2/Source/LLN01.Pos.stVal" /></eIEC61850-6-100:LNodeInputs></Private></LNode></Function>
+              </Bay>
+            </VoltageLevel>
+          </Substation>
+        </SCL>`);
+      const functionElement = doc.querySelector(
+        'Bay[name="B1"] > Function[name="Source"]'
+      )!;
+      const [sourceRefB1, sourceRefB2] = Array.from(
+        doc.getElementsByTagNameNS(
+          'http://www.iec.ch/61850/2019/SCL/6-100',
+          'SourceRef'
+        )
+      );
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'RenamedSource',
+          description: null,
+          type: null,
+          subFunctions: [],
+          lnodes: Array.from(functionElement.children).filter(
+            child => child.tagName === 'LNode'
+          ),
+          functionElement,
+        });
+      });
+
+      const sourceRefEdits = edits.filter(
+        (e: any) => e.element?.localName === 'SourceRef'
+      );
+      expect(sourceRefEdits.length).to.equal(1);
+      expect(sourceRefEdits[0].element).to.equal(sourceRefB1);
+      expect(sourceRefEdits[0].attributes).to.deep.equal({
+        source: 'S1/V1/B1/RenamedSource/LLN01.Pos.stVal',
+      });
+      expect(sourceRefEdits.some((e: any) => e.element === sourceRefB2)).to.be
+        .false;
+    });
+
+    it('updates SourceRef sources for composed Function and SubFunction renames', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const subFunction = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+      const sourceRef = doc.querySelector('SourceRef')!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'b',
+          description: null,
+          type: null,
+          subFunctions: [
+            {
+              id: 'sf2',
+              name: 'sf2',
+              description: null,
+              type: null,
+              lnodes: Array.from(subFunction.children).filter(
+                child => child.tagName === 'LNode'
+              ),
+              element: subFunction,
+            },
+          ],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      const sourceRefEdit = edits.find(
+        (e: any) => e.element === sourceRef
+      ) as any;
+      expect(sourceRefEdit).to.exist;
+      expect(sourceRefEdit.attributes).to.deep.equal({
+        source: 'S1/V1/B1/b/sf2/TCTR1.Amp.instMag.f',
+      });
+    });
+
+    it('removes a linked LNode and adds a new one without a stale reference', () => {
+      const doc = setupElementWithDoc(docWithLinkedFunctionLNode);
+      const functionElement = doc.querySelector('Function[name="Source"]')!;
+      const abcLNode = functionElement.querySelector('LNode')!;
+      const defType = doc.querySelector('LNodeType[id="DEF_TYPE"]')!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'Source',
+          description: null,
+          type: null,
+          subFunctions: [],
+          lnodes: [defType],
+          functionElement,
+        });
+      });
+
+      const removeAbc = edits.find((e: any) => e.node === abcLNode);
+      const insertDef = edits.find(
+        (e: any) =>
+          'parent' in e && e.node?.getAttribute?.('lnType') === 'DEF_TYPE'
+      );
+      const removesSourceRefContainer = edits.some(
+        (e: any) =>
+          'node' in e &&
+          !('parent' in e) &&
+          e.node !== abcLNode &&
+          (e.node.tagName === 'Private' || e.node.localName === 'LNodeInputs')
+      );
+
+      expect(removeAbc, 'expected abc LNode to be removed').to.exist;
+      expect(removesSourceRefContainer, 'expected sourceRef cleanup').to.be
+        .true;
+      expect(insertDef, 'expected def LNode to be inserted').to.exist;
+      expect(insertDef.reference).to.not.equal(abcLNode);
+    });
+
+    it('removes all LNodes from a Function', () => {
+      const doc = setupElementWithDoc(docWithLinkedFunctionLNode);
+      const functionElement = doc.querySelector('Function[name="Source"]')!;
+      const abcLNode = functionElement.querySelector('LNode')!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'Source',
+          description: null,
+          type: null,
+          subFunctions: [],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      expect(edits.some((e: any) => e.node === abcLNode)).to.be.true;
+      expect(edits.some((e: any) => 'parent' in e)).to.be.false;
+    });
+
+    it('removes a linked LNode from a SubFunction and adds a new one without a stale reference', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const subFunction = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+      const abcLNode = subFunction.querySelector('LNode')!;
+      const defType = doc.querySelector('LNodeType[id="DEF_TYPE"]')!;
+
+      const subFunctions: SubFunctionData[] = [
+        {
+          id: 'sf1',
+          name: 'sf1',
+          description: null,
+          type: null,
+          lnodes: [defType],
+          element: subFunction,
+        },
+      ];
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'a',
+          description: null,
+          type: null,
+          subFunctions,
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      const removeAbc = edits.find((e: any) => e.node === abcLNode);
+      const insertDef = edits.find(
+        (e: any) =>
+          'parent' in e && e.node?.getAttribute?.('lnType') === 'DEF_TYPE'
+      );
+
+      expect(removeAbc, 'expected abc LNode to be removed').to.exist;
+      expect(insertDef, 'expected def LNode to be inserted into sf1').to.exist;
+      expect(insertDef.parent).to.equal(subFunction);
+      expect(insertDef.reference).to.not.equal(abcLNode);
+    });
+
+    it('removes a whole SubFunction and cleans up its LNode links', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const subFunction = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'a',
+          description: null,
+          type: null,
+          subFunctions: [],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      expect(edits.some((e: any) => e.node === subFunction)).to.be.true;
+      expect(
+        edits.some(
+          (e: any) =>
+            e.node &&
+            (e.node.tagName === 'Private' || e.node.localName === 'LNodeInputs')
+        )
+      ).to.be.true;
+    });
+
+    it('removes a SubFunction and adds a new one without a stale reference', () => {
+      const doc = setupElementWithDoc(docWithSubFunctionSourceLink);
+      const functionElement = doc.querySelector('Function[name="a"]')!;
+      const removedSubFunction = functionElement.querySelector(
+        'SubFunction[name="sf1"]'
+      )!;
+
+      const edits = captureEdits(() => {
+        element.updateFunction({
+          name: 'a',
+          description: null,
+          type: null,
+          subFunctions: [
+            {
+              id: 'sf2',
+              name: 'sf2',
+              description: null,
+              type: null,
+              lnodes: [],
+            },
+          ],
+          lnodes: [],
+          functionElement,
+        });
+      });
+
+      const insertSubFunction = edits.find(
+        (e: any) =>
+          'parent' in e &&
+          e.node?.tagName === 'SubFunction' &&
+          e.node.getAttribute('name') === 'sf2'
+      );
+
+      expect(edits.some((e: any) => e.node === removedSubFunction)).to.be.true;
+      expect(insertSubFunction, 'expected sf2 to be inserted').to.exist;
+      expect(insertSubFunction.reference).to.not.equal(removedSubFunction);
+    });
+  });
+
+  describe('handleEditFunction', () => {
+    it('opens the Function dialog in edit mode with the parent shown in the header', async () => {
+      const doc = new DOMParser().parseFromString(
+        docForUpdateFunction,
+        'application/xml'
+      );
+      element.doc = doc;
+      await element.updateComplete;
+      const dialog = element.createFunctionDialog!;
+      const showStub = sinon.stub(dialog, 'show');
+      const functionElement = doc.querySelector('Function[name="F1"]')!;
+
+      (element as any).handleEditFunction(functionElement);
+
+      expect(showStub.calledOnce).to.be.true;
+      expect(dialog.functionElement).to.equal(functionElement);
+      expect(dialog.parent).to.equal(functionElement.parentElement);
+      expect(dialog.selectedElementName).to.equal('B1');
+      expect(dialog.selectedElementType).to.equal('Bay');
+    });
   });
 
   describe('without document', () => {

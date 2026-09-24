@@ -7,7 +7,7 @@ import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
 
-export interface DeleteEventDetail<TItem> {
+export interface ItemEventDetail<TItem> {
   item: TItem;
 }
 
@@ -32,6 +32,9 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
 
   @property({ type: Array })
   items: TItem[] = [];
+
+  @property({ type: Boolean })
+  showEditButton = false;
 
   // eslint-disable-next-line class-methods-use-this
   @property({ type: Function })
@@ -58,7 +61,7 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
     }
 
     this.dispatchEvent(
-      new CustomEvent<DeleteEventDetail<TItem>>('delete-item', {
+      new CustomEvent<ItemEventDetail<TItem>>('delete-item', {
         detail: { item: this.selectedItem },
       })
     );
@@ -68,6 +71,15 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
 
   selectItem(item: TItem) {
     this.selectedItem = item;
+  }
+
+  editItem(item: TItem, e: Event) {
+    e.stopPropagation();
+    this.dispatchEvent(
+      new CustomEvent<ItemEventDetail<TItem>>('edit-item', {
+        detail: { item },
+      })
+    );
   }
 
   renderContent() {
@@ -92,6 +104,15 @@ export class EditList<TItem> extends ScopedElementsMixin(LitElement) {
                   <span slot="supporting-text"
                     >${this.itemSupportingText(item)}</span
                   >
+                  ${this.showEditButton
+                    ? html`<oscd-icon-button
+                        slot="end"
+                        title="Edit"
+                        data-testid=${`edit-list-item-edit-button-${index}`}
+                        @click=${(e: Event) => this.editItem(item, e)}
+                        ><oscd-icon>edit_square</oscd-icon></oscd-icon-button
+                      >`
+                    : nothing}
                   ${this.selectedItem === item
                     ? html`<oscd-icon slot="end">check</oscd-icon>`
                     : nothing}

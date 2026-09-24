@@ -131,6 +131,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onSelectSourceFunction?: (sourceFunction: Element) => void;
 
   @property({ attribute: false })
+  onEditFunction?: (functionElement: Element) => void;
+
+  @property({ attribute: false })
   linkSourceCandidates: Element[] = [];
 
   @property({ type: Boolean })
@@ -394,6 +397,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     if (!fn) return;
     this.startPlacingFunction(fn);
     this.closeContextMenu();
+  }
+
+  private handleEditFunction(functionElement: Element | undefined) {
+    this.closeContextMenu();
+    if (functionElement) this.onEditFunction?.(functionElement);
   }
 
   private handleContainerClick(e: MouseEvent) {
@@ -712,6 +720,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
               ><oscd-icon>open_with</oscd-icon> Move function</span
             ></oscd-menu-item
           >
+          <oscd-menu-item
+            @click=${() => this.handleEditFunction(this.contextMenu?.element)}
+            ><span class="function-menu-item"
+              ><oscd-icon>edit</oscd-icon> Edit function</span
+            ></oscd-menu-item
+          >
         </oscd-menu>
       </div>
     `;
@@ -826,6 +840,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           ? html`<div class="sidebar">
               <function-content-panel
                 .functionElement=${this.selectedFunctionElement}
+                .editCount=${this.editCount}
                 .selectingLinkSource=${this.selectingLinkSource}
                 @start-create-function-link=${(
                   e: CustomEvent<LNodeSelectionContext>
@@ -835,6 +850,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                 @close=${() => {
                   this.selectedFunctionElement = undefined;
                 }}
+                @edit-function=${(
+                  e: CustomEvent<{ functionElement: Element }>
+                ) => this.handleEditFunction(e.detail.functionElement)}
               ></function-content-panel>
             </div>`
           : nothing}

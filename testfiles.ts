@@ -473,6 +473,87 @@ export const docWithMultipleSourceRefs = `<?xml version="1.0" encoding="UTF-8"?>
 		  </Substation>
 		</SCL>`;
 
+export const docForUpdateFunction = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <Function name="F1" desc="d1" type="t1" />
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+      </SCL>`;
+
+export const docWithLinkedFunctionLNode = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+        xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <Function name="Source">
+                <LNode lnClass="TCTR" lnInst="1" lnType="ABC_TYPE" />
+              </Function>
+              <Function name="Sink">
+                <LNode lnClass="CSWI" lnInst="1">
+                  <Private type="eIEC61850-6-100">
+                    <eIEC61850-6-100:LNodeInputs>
+                      <eIEC61850-6-100:SourceRef
+                        source="S1/V1/B1/Source/TCTR1.Amp.instMag.f"
+                        service="GOOSE"
+                      />
+                    </eIEC61850-6-100:LNodeInputs>
+                  </Private>
+                </LNode>
+              </Function>
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+        <DataTypeTemplates>
+          <LNodeType id="ABC_TYPE" lnClass="TCTR">
+            <DO name="Amp" type="DOT_AMP"/>
+          </LNodeType>
+          <LNodeType id="DEF_TYPE" lnClass="XSWI">
+            <DO name="Pos" type="DOT_POS"/>
+          </LNodeType>
+        </DataTypeTemplates>
+      </SCL>`;
+
+export const docWithSubFunctionSourceLink = `<?xml version="1.0" encoding="UTF-8"?>
+      <SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+        xmlns:eIEC61850-6-100="http://www.iec.ch/61850/2019/SCL/6-100" version="2007" revision="B">
+        <Substation name="S1">
+          <VoltageLevel name="V1">
+            <Bay name="B1">
+              <Function name="a">
+                <SubFunction name="sf1">
+                  <LNode lnClass="TCTR" lnInst="1" lnType="ABC_TYPE" />
+                </SubFunction>
+              </Function>
+              <Function name="Sink">
+                <LNode lnClass="CSWI" lnInst="1">
+                  <Private type="eIEC61850-6-100">
+                    <eIEC61850-6-100:LNodeInputs>
+                      <eIEC61850-6-100:SourceRef
+                        source="S1/V1/B1/a/sf1/TCTR1.Amp.instMag.f"
+                        service="GOOSE"
+                      />
+                    </eIEC61850-6-100:LNodeInputs>
+                  </Private>
+                </LNode>
+              </Function>
+            </Bay>
+          </VoltageLevel>
+        </Substation>
+        <DataTypeTemplates>
+          <LNodeType id="ABC_TYPE" lnClass="TCTR">
+            <DO name="Amp" type="DOT_AMP"/>
+          </LNodeType>
+          <LNodeType id="DEF_TYPE" lnClass="XSWI">
+            <DO name="Pos" type="DOT_POS"/>
+          </LNodeType>
+        </DataTypeTemplates>
+      </SCL>`;
+
 export const lnodeTypeLibrary = `<SCL xmlns="http://www.iec.ch/61850/2003/SCL" xmlns:compas="https://www.lfenergy.org/compas/extension/v1" version="2007" revision="B" release="4">
 	<Private type="compas_scl">
 		<compas:SclName>LNode-Type-Library</compas:SclName>

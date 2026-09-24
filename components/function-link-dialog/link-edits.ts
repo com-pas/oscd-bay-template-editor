@@ -1,6 +1,7 @@
 import { getReference } from '@openscd/scl-lib';
 import type { EditV2 } from '@openscd/oscd-api';
-import { eTr6100Ns, eTr6100PrivType } from '../../util.js';
+import { eTr6100Ns, eTr6100PrivType, isInsideAny } from '../../util.js';
+import { findSourceRefsPointingToLNodes } from '../functions-layer/function-links.js';
 import {
   buildSourceRefAttributes,
   type LinkService,
@@ -214,4 +215,32 @@ export function buildRemoveSourceRefEdits(
         : lNodeInputsElement,
     },
   ];
+}
+
+function groupByParent(elements: Element[]): Element[][] {
+  const groups = new Map<Element, Element[]>();
+  elements.forEach(el => {
+    const parent = el.parentElement;
+    if (!parent) return;
+    const list = groups.get(parent) ?? [];
+    list.push(el);
+    groups.set(parent, list);
+  });
+  return Array.from(groups.values());
+}
+
+/**
+ * Removes the SourceRefs pointing to the specified LNodes, except those inside removed elements.
+ */
+export function buildRemoveSourceRefsToLNodesEdits(
+  lnodes: Element[],
+  removedElements: Iterable<Element> = []
+): EditV2[] {
+  const removed = new Set(removedElements);
+  const sourceRefs = findSourceRefsPointingToLNodes(lnodes).filter(
+    sourceRef => !isInsideAny(sourceRef, removed)
+  );
+  return groupByParent(sourceRefs).flatMap(group =>
+    buildRemoveSourceRefEdits(group)
+  );
 }
