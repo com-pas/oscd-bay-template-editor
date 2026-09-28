@@ -8,8 +8,7 @@ import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-import { OscdFilledSelect } from '@omicronenergy/oscd-ui/select/OscdFilledSelect.js';
-import { OscdSelectOption } from '@omicronenergy/oscd-ui/select/OscdSelectOption.js';
+import { OscdSclSelect } from '@omicronenergy/oscd-ui/scl-select/OscdSclSelect.js';
 import {
   buildObjectReferences,
   filterObjectReferenceGroups,
@@ -35,8 +34,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
       'oscd-icon-button': OscdIconButton,
       'oscd-list': OscdList,
       'oscd-list-item': OscdListItem,
-      'oscd-filled-select': OscdFilledSelect,
-      'oscd-select-option': OscdSelectOption,
+      'oscd-scl-select': OscdSclSelect,
     };
   }
 
@@ -155,6 +153,7 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
       })
     );
 
+    this.resetSelectionState();
     this.close();
   }
 
@@ -253,7 +252,6 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
               <dd>${this.sourceFunctionPath}</dd>
             </div>
           </dl>
-
           <div class="filters-row">
             <oscd-filled-text-field
               class="search-field"
@@ -282,18 +280,13 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
               class="service-select-wrapper"
               data-testid="service-select-wrapper"
             >
-              <oscd-filled-select
+              <oscd-scl-select
                 data-testid="service-select"
                 label="Select service"
                 .value=${this.selectedService}
-                @change=${this.handleServiceChange}
-              >
-                <oscd-select-option value="GOOSE">GOOSE</oscd-select-option>
-                <oscd-select-option value="SMV">SMV</oscd-select-option>
-                <oscd-select-option value="Internal"
-                  >Internal</oscd-select-option
-                >
-              </oscd-filled-select>
+                .selectOptions=${['GOOSE', 'SMV', 'Internal']}
+                @input=${this.handleServiceChange}
+              ></oscd-scl-select>
             </div>
           </div>
 
@@ -364,11 +357,6 @@ export class FunctionLinkDialog extends ScopedElementsMixin(LitElement) {
     .search-field {
       flex: 1;
       --md-filled-text-field-container-height: 48px;
-    }
-
-    oscd-filled-select {
-      --md-filled-select-text-field-container-height: 48px;
-      --md-filled-field-container-height: 48px;
     }
 
     .clear-search-button {

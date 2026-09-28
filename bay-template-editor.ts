@@ -610,10 +610,28 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       )
     );
 
+    const existingDataTypeIds = new Set(
+      Array.from(
+        this.doc.querySelectorAll(':root > DataTypeTemplates > *[id]')
+      ).map(dataType => dataType.getAttribute('id'))
+    );
+
     uniqueLNodeTypes(allLNodeTypes).forEach(lNodeType => {
-      importLNodeType(lNodeType, this.doc!).forEach(edit =>
-        this.dispatchEvent(newEditEventV2(edit, { squash: true }))
-      );
+      importLNodeType(lNodeType, this.doc!)
+        .filter(edit => {
+          const id =
+            'node' in edit && edit.node instanceof Element
+              ? edit.node.getAttribute('id')
+              : null;
+          if (!id) return true;
+          if (existingDataTypeIds.has(id)) return false;
+
+          existingDataTypeIds.add(id);
+          return true;
+        })
+        .forEach(edit =>
+          this.dispatchEvent(newEditEventV2(edit, { squash: true }))
+        );
     });
 
     this.reset();

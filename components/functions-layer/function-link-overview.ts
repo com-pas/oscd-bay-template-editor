@@ -39,10 +39,16 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
   @state()
   private pendingRemovedSourceRefKeys: string[] = [];
 
+  @state()
+  private infoSourceRef?: Element;
+
   protected willUpdate(changedProperties: PropertyValues): void {
     if (changedProperties.has('selectedLink')) {
-      const previousLink = changedProperties.get('selectedLink');
+      const previousLink = changedProperties.get('selectedLink') as
+        | FunctionLink
+        | undefined;
       if (previousLink?.id !== this.selectedLink?.id) {
+        this.closeSourceRefInfo();
         this.resetPendingChanges();
       }
     }
@@ -92,6 +98,54 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       })
     );
     this.resetPendingChanges();
+  }
+
+  private openSourceRefInfo(sourceRef: Element) {
+    this.infoSourceRef = sourceRef;
+  }
+
+  private closeSourceRefInfo() {
+    this.infoSourceRef = undefined;
+  }
+
+  private renderInfoPane() {
+    if (!this.infoSourceRef) return nothing;
+
+    const sourceRef = this.infoSourceRef;
+    const fields: [string, string | null][] = [
+      ['input', sourceRef.getAttribute('input')],
+      ['inputInst', sourceRef.getAttribute('inputInst')],
+      ['pLN', sourceRef.getAttribute('pLN')],
+      ['pDO', sourceRef.getAttribute('pDO')],
+      ['pDA', sourceRef.getAttribute('pDA')],
+    ];
+
+    return html`<div
+      class="link-overview-info-pane"
+      data-testid="link-overview-info-pane"
+    >
+      <div class="link-overview-info-pane-header">
+        <span>Reference info</span>
+      </div>
+      <div class="link-overview-info-pane-body">
+        ${fields.map(
+          ([label, value]) => html`<div class="link-overview-info-field">
+            <span class="link-overview-info-field-label">${label}</span>
+            <span class="link-overview-info-field-value"
+              >${value || '\u2013'}</span
+            >
+          </div>`
+        )}
+      </div>
+      <div class="link-overview-info-pane-footer">
+        <oscd-filled-button
+          data-testid="link-overview-info-pane-close-button"
+          @click=${() => this.closeSourceRefInfo()}
+        >
+          Close
+        </oscd-filled-button>
+      </div>
+    </div>`;
   }
 
   private hasPendingSourceRefDeletion(sourceRef: Element): boolean {
@@ -197,6 +251,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
                     class="link-overview-row-action"
                     title="Reference info"
                     data-testid="detail-row-info-button"
+                    @click=${() => this.openSourceRefInfo(sourceRef)}
                   >
                     <oscd-icon>info</oscd-icon>
                   </oscd-icon-button>
@@ -221,55 +276,65 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
 
     return html`
       <div
-        class="link-overview"
-        data-testid="function-link-overview"
+        class="link-overview-wrapper"
         style=${this.overviewTop === undefined
           ? ''
           : `top: ${this.overviewTop}px; bottom: auto;`}
       >
-        <div class="link-overview-list">
-          <div
-            class="link-overview-columns"
-            data-testid="link-overview-columns"
-          >
-            <span>Source</span>
-            <span>Service</span>
-            <span>Description</span>
-            <span class="link-overview-actions-cell"> </span>
+        <div class="link-overview" data-testid="function-link-overview">
+          <div class="link-overview-list">
+            <div
+              class="link-overview-columns"
+              data-testid="link-overview-columns"
+            >
+              <span>Source</span>
+              <span>Service</span>
+              <span>Description</span>
+              <span class="link-overview-actions-cell"> </span>
+            </div>
+            ${this.renderSelectedLink()}
           </div>
-          ${this.renderSelectedLink()}
+          <div class="link-overview-footer">
+            <oscd-filled-button
+              data-testid="link-overview-cancel-button"
+              @click=${() => this.closeOverview()}
+            >
+              Cancel
+            </oscd-filled-button>
+            <oscd-filled-button
+              data-testid="link-overview-save-button"
+              class=${this.pendingDeleteSelectedLink
+                ? 'link-overview-danger-button'
+                : ''}
+              @click=${() => this.saveOverview()}
+            >
+              ${this.pendingDeleteSelectedLink ? 'Delete link' : 'Save'}
+            </oscd-filled-button>
+          </div>
         </div>
-        <div class="link-overview-footer">
-          <oscd-filled-button
-            data-testid="link-overview-cancel-button"
-            @click=${() => this.closeOverview()}
-          >
-            Cancel
-          </oscd-filled-button>
-          <oscd-filled-button
-            data-testid="link-overview-save-button"
-            class=${this.pendingDeleteSelectedLink
-              ? 'link-overview-danger-button'
-              : ''}
-            @click=${() => this.saveOverview()}
-          >
-            ${this.pendingDeleteSelectedLink ? 'Delete link' : 'Save'}
-          </oscd-filled-button>
-        </div>
+        ${this.renderInfoPane()}
       </div>
     `;
   }
 
   static styles = css`
-    .link-overview {
-      --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
+    .link-overview-wrapper {
       position: absolute;
       left: 16px;
-      right: 16px;
       bottom: 8px;
-      max-width: 1000px;
-      pointer-events: auto;
+      max-width: 100%;
+      pointer-events: none;
       z-index: 4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .link-overview {
+      --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
+      flex: 0 0 auto;
+      width: 800px;
+      max-width: 100%;
+      pointer-events: auto;
       background: #fff;
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
@@ -279,10 +344,54 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       flex-direction: column;
       overflow: hidden;
     }
-    .link-overview-row-action oscd-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+    .link-overview-info-pane {
+      flex: 0 0 260px;
+      width: 260px;
+      max-height: 280px;
+      pointer-events: auto;
+      background: #fff;
+      border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .link-overview-info-pane-body {
+      overflow: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .link-overview-info-field {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr);
+      column-gap: 8px;
+      align-items: baseline;
+    }
+    .link-overview-info-field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface-variant, #6a656f);
+    }
+    .link-overview-info-field-value {
+      font-size: 13px;
+      color: var(--md-sys-color-on-surface, #1d1b20);
+      word-break: break-word;
+    }
+    .link-overview-info-pane-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 14px 12px;
+      border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
+      background: #fff;
+    }
+    .link-overview-row-action {
+      --md-icon-button-state-layer-height: 28px;
+      --md-icon-button-state-layer-width: 28px;
+      --md-icon-button-icon-size: 18px;
     }
     .link-overview-list {
       overflow: auto;
@@ -294,7 +403,6 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       justify-content: flex-end;
       gap: 8px;
       padding: 8px 14px 12px;
-      border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
       background: #fff;
     }
     .link-overview-columns,
@@ -305,7 +413,8 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       gap: 12px;
       align-items: center;
     }
-    .link-overview-columns {
+    .link-overview-columns,
+    .link-overview-info-pane-header {
       font-size: 12px;
       font-weight: 600;
       color: var(--md-sys-color-on-surface-variant, #6a656f);
@@ -319,7 +428,6 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
     .link-overview-item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
       padding: 10px 14px;
       border-bottom: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
     }

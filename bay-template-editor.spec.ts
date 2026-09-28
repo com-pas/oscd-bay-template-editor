@@ -14,6 +14,7 @@ import {
   docWithAllElements,
   docWithSinkFunction,
   docWithBayAndFunctions,
+  lnodeTypeLibrary,
 } from './testfiles.js';
 import { eqTypes, SubfunctionData } from './util.js';
 
@@ -112,6 +113,47 @@ describe('Bay Template Editor Plugin', () => {
       expect(lnodeElements.length).to.equal(2);
       expect(lnodeElements[0].getAttribute('lnClass')).to.equal('LLN0');
       expect(lnodeElements[1].getAttribute('lnClass')).to.equal('XCBR');
+    });
+
+    it('does not import an existing data type template ID', () => {
+      const doc = setupElementWithDoc(docWithBay);
+      const bay = doc.querySelector('Bay')!;
+      const library = new DOMParser().parseFromString(
+        lnodeTypeLibrary,
+        'application/xml'
+      );
+      const lNodeType = library.querySelector('LNodeType[lnClass="TVTR"]')!;
+      const existingBeh = library
+        .querySelector('DOType[id="Beh$oscd$_c6ed035c8137b35a"]')!
+        .cloneNode(true) as Element;
+      existingBeh.setAttribute('desc', 'Existing target definition');
+      const dataTypeTemplates = doc.createElement('DataTypeTemplates');
+      dataTypeTemplates.append(existingBeh);
+      doc.documentElement.append(dataTypeTemplates);
+
+      const dispatchSpy = spy(element, 'dispatchEvent');
+      element.selectedElement = bay;
+      element.createFunction({
+        detail: {
+          name: 'Fbay',
+          description: null,
+          type: null,
+          subfunctions: [],
+          lnodes: [lNodeType],
+        },
+      } as any);
+
+      const insertedIds = dispatchSpy.args
+        .filter(args => (args[0] as CustomEvent).type === 'oscd-edit-v2')
+        .flatMap(args => {
+          const { edit } = (args[0] as CustomEvent).detail;
+          return (Array.isArray(edit) ? edit : [edit]).map(candidate =>
+            candidate.node?.getAttribute('id')
+          );
+        });
+
+      expect(insertedIds).to.include(lNodeType.getAttribute('id'));
+      expect(insertedIds).to.not.include(existingBeh.getAttribute('id'));
     });
 
     it('adds Function to VoltageLevel', async () => {
