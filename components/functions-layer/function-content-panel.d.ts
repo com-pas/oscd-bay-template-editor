@@ -19,6 +19,7 @@ export declare class FunctionContentPanel extends FunctionContentPanel_base {
         'oscd-filled-button': typeof OscdFilledButton;
     };
     functionElement?: Element;
+    editCount: number;
     selectingLinkSource: boolean;
     private selectedLNode?;
     private selectedSubFunction;
