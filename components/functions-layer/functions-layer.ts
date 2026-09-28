@@ -826,6 +826,7 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
           ? html`<div class="sidebar">
               <function-content-panel
                 .functionElement=${this.selectedFunctionElement}
+                .editCount=${this.editCount}
                 .selectingLinkSource=${this.selectingLinkSource}
                 @start-create-function-link=${(
                   e: CustomEvent<LNodeSelectionContext>

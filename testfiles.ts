@@ -388,6 +388,9 @@ export const docWithSourceRef = `<?xml version="1.0" encoding="UTF-8"?>
 					  </eIEC61850-6-100:LNodeInputs>
 					</Private>
 				  </LNode>
+				  <SubFunction name="SubSink">
+				  	<LNode lnClass="TCTR" lnInst="1" />
+				  </SubFunction>
 				</Function>
 			  </Bay>
 			</VoltageLevel>

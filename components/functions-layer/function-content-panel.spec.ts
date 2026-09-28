@@ -6,6 +6,7 @@ import { fixture, expect } from '@open-wc/testing';
 import { FunctionContentPanel } from './function-content-panel.js';
 import {
   docWithBayAndFunctions,
+  docWithSourceRef,
   docWithNestedFunctions,
   docWithSubFunctionLNode,
 } from '../../testfiles.js';
@@ -237,6 +238,34 @@ describe('FunctionContentPanel', () => {
     const { detail } = startSpy.firstCall.args[0];
     expect(detail.subFunctionElement.getAttribute('name')).to.equal('ESF1');
     expect(detail.lNodeElement.getAttribute('lnClass')).to.equal('TCTR');
+  });
+
+  it('updates source and sink icons when the document revision changes', async () => {
+    const doc = new DOMParser().parseFromString(docWithSourceRef, 'text/xml');
+    const sinkFunction = doc.querySelector('Function[name="Sink"]')!;
+    const sinkLNode = sinkFunction.querySelector(':scope > LNode')!;
+    const sourceLNode = doc.querySelector('Function[name="Source"] > LNode')!;
+
+    element.functionElement = sinkFunction;
+    element.editCount = 0;
+    await element.updateComplete;
+
+    expect(element.shadowRoot?.querySelector('[title="Sink Function"]')).to
+      .exist;
+
+    const sourceRef = sinkLNode.ownerDocument!.createElementNS(
+      'http://www.iec.ch/61850/2019/SCL/6-100',
+      'eIEC61850-6-100:SourceRef'
+    );
+    sourceRef.setAttribute('source', 'S1/V1/B1/Sink/CSWI1.Pos.stVal');
+    sinkLNode.appendChild(sourceRef);
+
+    element.functionElement = sourceLNode.closest('Function')!;
+    element.editCount = 1;
+    await element.updateComplete;
+
+    expect(element.shadowRoot?.querySelector('[title="Source Function"]')).to
+      .exist;
   });
 
   it('resets link mode UI when a different LNode is selected', async () => {

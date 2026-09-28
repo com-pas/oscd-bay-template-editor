@@ -195,3 +195,29 @@ export function buildFunctionLinkPath(
   const endX = sinkLeft;
   return `M ${startX} ${startY} L ${outerX} ${startY} L ${outerX} ${endY} L ${endX} ${endY}`;
 }
+
+export function isSourceFunction(lnode: Element): boolean {
+  const functionElement = lnode.closest('EqFunction, Function');
+  const doc = functionElement?.ownerDocument;
+  if (!functionElement || !doc) return false;
+
+  const lnodeName = `${lnode.getAttribute('lnClass') ?? ''}${
+    lnode.getAttribute('lnInst') ?? ''
+  }`;
+  const subFunction = lnode.closest('EqSubFunction, SubFunction');
+  const lnodePath = [
+    getProcessPath(functionElement),
+    subFunction?.getAttribute('name'),
+    lnodeName,
+  ]
+    .filter(Boolean)
+    .join('/');
+
+  return Array.from(doc.getElementsByTagNameNS(eTr6100Ns, 'SourceRef')).some(
+    sourceRef => sourceRef.getAttribute('source')?.startsWith(`${lnodePath}.`)
+  );
+}
+
+export function isSinkFunction(lnode: Element): boolean {
+  return lnode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef').length > 0;
+}
