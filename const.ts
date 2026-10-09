@@ -36,6 +36,12 @@ export const SOURCE_CANDIDATE_HIGHLIGHT_STYLE = {
   fill: '#d9f2e3',
 } as const;
 
+/** Style applied to the Function when it is empty */
+export const EMPTY_FUNCTION_STYLE = {
+  stroke: '#c62828',
+  fill: '#FFC2C2',
+} as const;
+
 /** Colours associated with each LinkService type */
 export const LINK_SERVICE_COLORS = {
   GOOSE: '#2e7d32',
