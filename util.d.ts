@@ -55,6 +55,11 @@ export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path:
  */
 export declare function getFunctions(element: Element): Element[];
 /**
+ * Determines if a Function or EqFunction element is empty.
+ * A Function is considered empty if it has no LNode children OR some of its SubFunctions have no LNode children.
+ */
+export declare function isFunctionEmpty(element: Element): boolean;
+/**
  * Returns all SLD SVG canvases from sld-editor, one per Substations
  *
  * WORKAROUND: relies on internal shadow DOM structure.
