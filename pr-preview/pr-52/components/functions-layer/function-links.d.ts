@@ -22,6 +22,8 @@ export declare function buildSourceRefDisplay(sourceRef: Element): string;
 export declare function buildSourceRefKey(sourceRef: Element): string;
 export declare function buildFunctionLinks(scope: Element | Document | null, doc?: XMLDocument): FunctionLink[];
 export declare function buildFunctionLinkPath(sourceBox: FunctionBoxGeometry, sinkBox: FunctionBoxGeometry, laneOffset?: number): string;
+export declare function isSourceFunction(lnode: Element): boolean;
+export declare function isSinkFunction(lnode: Element): boolean;
 export declare function findSourceRefsPointingToLNodes(lnodes: Element[]): Element[];
 export declare function findSourceRefsPointingToLNode(lnode: Element): Element[];
 export declare function isLNodeSink(lnode: Element): boolean;

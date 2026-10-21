@@ -25,6 +25,11 @@ export declare const SOURCE_CANDIDATE_HIGHLIGHT_STYLE: {
     readonly stroke: "#1a7f37";
     readonly fill: "#d9f2e3";
 };
+/** Style applied to the Function when it is empty */
+export declare const EMPTY_FUNCTION_STYLE: {
+    readonly stroke: "#c62828";
+    readonly fill: "#FFC2C2";
+};
 /** Colours associated with each LinkService type */
 export declare const LINK_SERVICE_COLORS: {
     GOOSE: string;
