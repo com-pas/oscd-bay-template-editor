@@ -654,7 +654,12 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    const functionLinks = this.showLinks ? this.getFunctionLinks() : [];
+    const functionLinks = this.getFunctionLinks().filter(
+      link =>
+        this.showLinks ||
+        link.sourceFunction === this.hoveredFunction ||
+        link.sinkFunction === this.hoveredFunction
+    );
     const selectedLink = this.getSelectedLink(functionLinks);
     const placingFn = this.functions.find(fn => fn.element === this.placing);
     const { width, height } = this.getSvgDimensions();

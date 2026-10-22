@@ -133,6 +133,89 @@ describe('FunctionsLayer', () => {
         expect(hitbox).to.not.exist;
       });
 
+      describe('hovering with multiple function links', () => {
+        beforeEach(async () => {
+          const doc = element.doc!;
+          const source = doc.querySelector('Function[name="Source"]')!;
+          const sink = doc.querySelector('Function[name="Sink"]')!;
+          const other = sink.cloneNode(true) as Element;
+          other.setAttribute('name', 'Other');
+          const sourceRef = other.querySelector('SourceRef')!;
+          const additionalRef = sourceRef.cloneNode(true) as Element;
+          sourceRef.setAttribute('source', 'S1/V1/B1/Sink/CSWI1.Pos.stVal');
+          sourceRef.setAttribute('service', 'SMV');
+          additionalRef.setAttribute('service', 'Internal');
+          sourceRef.parentElement!.appendChild(additionalRef);
+          const isolated = source.cloneNode(true) as Element;
+          isolated.setAttribute('name', 'Isolated');
+          sink.parentElement!.append(other, isolated);
+          element.showLinks = false;
+          element.editCount += 1;
+          await element.updateComplete;
+        });
+
+        function hoverFunction(name: string, event = 'mouseenter') {
+          element
+            .shadowRoot!.querySelector(`[id="${name}"]`)!
+            .parentElement!.dispatchEvent(new MouseEvent(event));
+          return element.updateComplete;
+        }
+
+        function visibleLinkIds() {
+          return Array.from(
+            element.shadowRoot!.querySelectorAll(
+              '[data-testid="function-link-hitbox"]'
+            ),
+            path => path.getAttribute('data-link-id')
+          );
+        }
+
+        it('shows only incoming and outgoing links of the hovered function', async () => {
+          await hoverFunction('Sink');
+
+          expect(visibleLinkIds()).to.have.members([
+            'S1/V1/B1/Source|S1/V1/B1/Sink|GOOSE',
+            'S1/V1/B1/Sink|S1/V1/B1/Other|SMV',
+          ]);
+          expect(
+            element.shadowRoot!.querySelectorAll('.function-link-visible')
+          ).to.have.length(2);
+        });
+
+        it('hides links on mouseleave and updates them for the next function', async () => {
+          await hoverFunction('Sink');
+          await hoverFunction('Sink', 'mouseleave');
+
+          expect(visibleLinkIds()).to.be.empty;
+          expect(element.shadowRoot!.querySelector('.function-link-visible')).to
+            .not.exist;
+
+          await hoverFunction('Source');
+          expect(visibleLinkIds()).to.have.members([
+            'S1/V1/B1/Source|S1/V1/B1/Sink|GOOSE',
+            'S1/V1/B1/Source|S1/V1/B1/Other|Internal',
+          ]);
+        });
+
+        it('does not show links for a function without links', async () => {
+          await hoverFunction('Isolated');
+
+          expect(visibleLinkIds()).to.be.empty;
+        });
+
+        it('keeps all links visible when showLinks is enabled', async () => {
+          element.showLinks = true;
+          await element.updateComplete;
+          expect(visibleLinkIds()).to.have.length(3);
+
+          await hoverFunction('Sink');
+          expect(visibleLinkIds()).to.have.length(3);
+
+          await hoverFunction('Sink', 'mouseleave');
+          expect(visibleLinkIds()).to.have.length(3);
+        });
+      });
+
       it('renders both directional links when source and sink are reversed', async () => {
         const doc = element.doc!;
         const sourceRefNs = 'http://www.iec.ch/61850/2019/SCL/6-100';

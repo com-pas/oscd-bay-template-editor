@@ -3,6 +3,7 @@ import { html } from 'lit';
 import sinon, { spy } from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
 import BayTemplatePlugin from './bay-template-editor.js';
+import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import {
   emptyDoc,
   docWithSubstation,
@@ -14,6 +15,7 @@ import {
   docWithAllElements,
   docWithSinkFunction,
   docWithBayAndFunctions,
+  docWithSourceRef,
   lnodeTypeLibrary,
 } from './testfiles.js';
 import { eqTypes, SubfunctionData } from './util.js';
@@ -726,6 +728,48 @@ describe('Bay Template Editor Plugin', () => {
   });
 
   describe('function links toggle', () => {
+    ['functions', 'function'].forEach(mode => {
+      it(`shows links only while hovering a function in ${
+        mode === 'functions' ? 'Show Functions' : 'Add Function'
+      } mode with links disabled`, async () => {
+        element.doc = new DOMParser().parseFromString(
+          docWithSourceRef,
+          'application/xml'
+        );
+        await element.updateComplete;
+
+        (element.shadowRoot!.querySelector(`#${mode}`) as HTMLElement).click();
+        await element.updateComplete;
+        (
+          element.shadowRoot!.querySelector('#function-links') as HTMLElement
+        ).click();
+        await element.updateComplete;
+
+        expect(element.showFunctions).to.be.true;
+        expect(element.addingFunction).to.equal(mode === 'function');
+        expect(element.showFunctionLinks).to.be.false;
+
+        const layer = element.shadowRoot!.querySelector(
+          'functions-layer'
+        ) as FunctionsLayer;
+        await layer.updateComplete;
+        expect(layer.shadowRoot!.querySelector('.function-link-visible')).to.not
+          .exist;
+
+        const functionGroup = layer.shadowRoot!.querySelector('g.function')!;
+        functionGroup.dispatchEvent(new MouseEvent('mouseenter'));
+        await layer.updateComplete;
+        expect(
+          layer.shadowRoot!.querySelectorAll('.function-link-visible')
+        ).to.have.length(1);
+
+        functionGroup.dispatchEvent(new MouseEvent('mouseleave'));
+        await layer.updateComplete;
+        expect(layer.shadowRoot!.querySelector('.function-link-visible')).to.not
+          .exist;
+      });
+    });
+
     it('renders function links toggle when functions exist', async () => {
       const doc = new DOMParser().parseFromString(
         docWithBayAndFunctions,
