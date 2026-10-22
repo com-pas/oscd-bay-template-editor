@@ -3,7 +3,11 @@ import { html } from 'lit';
 import sinon from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
 import { FunctionLinkOverview } from './function-link-overview.js';
-import { buildSourceRefKey, type FunctionLink } from './function-links.js';
+import {
+  buildFunctionLinks,
+  buildSourceRefKey,
+  type FunctionLink,
+} from './function-links.js';
 import { docWithSourceRef } from '../../testfiles.js';
 
 if (!customElements.get('function-link-overview')) {
@@ -74,6 +78,55 @@ describe('FunctionLinkOverview', () => {
     sourceButton.click();
 
     expect(toggleSpy.calledOnce).to.be.true;
+  });
+
+  it('renders Sink as the second column in the header and link summary', () => {
+    const headers = element.shadowRoot!.querySelector(
+      '[data-testid="link-overview-columns"]'
+    )!;
+    expect(
+      Array.from(headers.children, cell => cell.textContent?.trim())
+    ).to.deep.equal(['Source', 'Sink', 'Service', 'Description', '']);
+    const summary = element.shadowRoot!.querySelector(
+      '[data-testid="link-level-1-row"]'
+    )!;
+    expect(summary.children[1].textContent?.trim()).to.equal('Sink/CSWI1');
+  });
+
+  ['Function', 'EqFunction'].forEach(functionTag => {
+    it(`shows the sink LNode paths for direct and nested ${functionTag} references`, async () => {
+      const subFunctionTag =
+        functionTag === 'Function' ? 'SubFunction' : 'EqSubFunction';
+      doc = new DOMParser().parseFromString(
+        docWithSourceRef
+          .replaceAll(/\bFunction\b/g, functionTag)
+          .replaceAll('SubFunction', subFunctionTag),
+        'application/xml'
+      );
+      const sinkFunction = doc.querySelector(`${functionTag}[name="Sink"]`)!;
+      const directLNode = sinkFunction.querySelector(':scope > LNode')!;
+      const nestedLNode = sinkFunction.querySelector(
+        `${subFunctionTag} > LNode`
+      )!;
+      nestedLNode.appendChild(
+        directLNode.querySelector('Private')!.cloneNode(true)
+      );
+      [element.selectedLink] = buildFunctionLinks(doc, doc);
+      await element.updateComplete;
+
+      const rows = element.shadowRoot!.querySelectorAll(
+        '[data-testid="link-level-2-row"]'
+      );
+      expect(
+        Array.from(rows, row => row.children[1].textContent?.trim())
+      ).to.deep.equal(['Sink/CSWI1', 'Sink/SubSink/TCTR1']);
+      expect(
+        Array.from(rows, row => row.children[0].textContent?.trim())
+      ).to.deep.equal(['LLN01.Pos.stVal', 'LLN01.Pos.stVal']);
+      expect(
+        Array.from(rows, row => row.children[2].textContent?.trim())
+      ).to.deep.equal(['GOOSE', 'GOOSE']);
+    });
   });
 
   it('removes one pending source reference locally when its delete button is clicked', async () => {
