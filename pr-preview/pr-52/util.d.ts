@@ -19,20 +19,15 @@ interface FunctionBaseData {
     lnodes: Element[];
 }
 export interface SubFunctionData extends FunctionBaseData {
-    /** UI-only key, stable across renames. Never written to the SCL. */
     id: string;
-    /** Present if and only if the SubFunction already exists in the document. */
     element?: Element | null;
 }
 export interface FunctionData extends FunctionBaseData {
     subFunctions: SubFunctionData[];
 }
 export declare function getChildrenByTagName(parent: Element, tagName: string): Element[];
-/** Whether `element` is, or is a descendant of, one of `ancestors`. */
 export declare function isInsideAny(element: Element, ancestors: ReadonlySet<Element>): boolean;
-/** Whether an entry of `FunctionData.lnodes` is an LNode still to be created. */
 export declare function isLNodeType(element: Element): boolean;
-/** Reads an existing (Eq)SubFunction into the form data used by the dialogs. */
 export declare function subFunctionDataFromElement(element: Element): SubFunctionData;
 export declare function lNodeTypeClass(lNodeType: Element): string;
 export declare function lNodeTypeDesc(lNodeType: Element): string | null;
@@ -60,12 +55,7 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
     y: number;
 };
 export declare function getProcessPath(element: Element): string;
-/** The name an LNode is referred to by in SourceRef paths, e.g. `XCBR1`. */
 export declare function getLNodeName(lnode: Element): string;
-/**
- * The path a SourceRef `source` starts with when it points at `lnode`, e.g.
- * `S1/V1/B1/F1/SF1/XCBR1`. Null if `lnode` is not inside an (Eq)Function.
- */
 export declare function getLNodeSourcePath(lnode: Element): string | null;
 export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path: string): Element;
 /**

@@ -61,7 +61,6 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;
     show(): void;
-    /** Fills the form with the current state of the Function being edited. */
     private loadFunctionElement;
     close(): void;
     private handleCloseConfirmed;
