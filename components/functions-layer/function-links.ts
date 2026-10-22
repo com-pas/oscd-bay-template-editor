@@ -52,6 +52,27 @@ export function buildSourceRefDisplay(sourceRef: Element): string {
   return source.split('/').pop() ?? source;
 }
 
+export function buildSinkLNodePath(sourceRef: Element): string {
+  const lnode = sourceRef.closest('LNode');
+  if (!lnode) return 'Unknown sink';
+
+  const lnodeName = `${lnode.getAttribute('lnClass') ?? ''}${
+    lnode.getAttribute('lnInst') ?? ''
+  }`;
+  const pathSegments = [lnodeName];
+
+  let parent = lnode.parentElement;
+  while (parent !== null) {
+    pathSegments.unshift(parent.getAttribute('name') ?? '');
+
+    if (parent.matches('Function, EqFunction')) break;
+
+    parent = parent.parentElement;
+  }
+
+  return pathSegments.join('/');
+}
+
 export function buildSourceRefKey(sourceRef: Element): string {
   return [
     sourceRef.getAttribute('source') ?? '',
