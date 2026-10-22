@@ -5,6 +5,7 @@ import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import {
+  buildSinkLNodePath,
   buildSourceRefDisplay,
   buildSourceRefKey,
   type FunctionLink,
@@ -214,6 +215,9 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
             >${selectedLink.sourceFunction.getAttribute('name')}</span
           >
         </button>
+        <span class="link-overview-title"
+          >${buildSinkLNodePath(selectedLink.sourceRefs[0])}</span
+        >
         <span class="link-overview-service">${selectedLink.service}</span>
         <span class="link-overview-description"
           >${selectedLink.sourceFunction.getAttribute('desc') ?? ''}</span
@@ -239,6 +243,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
                 <span class="link-overview-detail-ref"
                   >${buildSourceRefDisplay(sourceRef)}</span
                 >
+                <span>${buildSinkLNodePath(sourceRef)}</span>
                 <span class="link-overview-detail-service"
                   >${selectedLink.service}</span
                 >
@@ -288,6 +293,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
               data-testid="link-overview-columns"
             >
               <span>Source</span>
+              <span>Sink</span>
               <span>Service</span>
               <span>Description</span>
               <span class="link-overview-actions-cell"> </span>
@@ -330,9 +336,10 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       gap: 8px;
     }
     .link-overview {
-      --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
+      --link-overview-cols: minmax(0, 1fr) minmax(0, 1fr) 150px minmax(0, 1fr)
+        auto;
       flex: 0 0 auto;
-      width: 800px;
+      width: 1000px;
       max-width: 100%;
       pointer-events: auto;
       background: #fff;
