@@ -6,11 +6,14 @@ import { OscdSclTextField } from '@omicronenergy/oscd-ui/scl-textfield/OscdSclTe
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdDivider } from '@omicronenergy/oscd-ui/divider/OscdDivider.js';
-import { type SubfunctionData } from '../../util.js';
+import { type FunctionData, type SubFunctionData } from '../../util.js';
 import { CreateSubfunctionDialog } from '../create-subfunction-dialog/create-subfunction-dialog.js';
 import { ConfirmDialog } from '../confirmation-dialog/confirmation-dialog.js';
 import { LNodePicker } from '../lnode-picker/lnode-picker.js';
 import { EditList } from '../edit-list/edit-list.js';
+export type SaveFunctionDetail = FunctionData & {
+    functionElement: Element | null;
+};
 export declare enum CreateFunctionDialogStep {
     FunctionAttributes = "function-attributes",
     FunctionContent = "function-content"
@@ -31,6 +34,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
         'edit-list': typeof EditList;
     };
     parent: Element | null;
+    functionElement: Element | null;
     selectedElementName: string;
     selectedElementType: string;
     lnodeLibrary: Document | Element | null;
@@ -45,9 +49,10 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     description: string | null;
     type: string | null;
     step: CreateFunctionDialogStep;
-    tempSubfunctions: SubfunctionData[];
+    subFunctions: SubFunctionData[];
     lnPickerOpen: boolean;
     lnodes: Element[];
+    private get isEdit();
     private get selectedLNodeTypeIds();
     private get isEqFunction();
     private get elementName();
@@ -56,6 +61,7 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private shouldEmitCancel;
     private readonly boundHandleDocumentKeydown;
     show(): void;
+    private loadFunctionElement;
     close(): void;
     private handleCloseConfirmed;
     reset(): void;
@@ -65,9 +71,12 @@ export declare class CreateFunctionDialog extends CreateFunctionDialog_base {
     private readonly nameTakenValidator;
     private handleNext;
     private handleSave;
-    private handleAddSubfunction;
-    private handleSaveSubfunction;
-    private handleDeleteSubfunction;
+    private handleAddSubFunction;
+    private handleEditSubFunction;
+    private handleSaveSubFunction;
+    private handleDeleteSubFunction;
+    private addOrReplaceSubFunction;
+    private removeSubFunction;
     private handleAddLNode;
     private handleRemoveLNode;
     private handleLNodePickerCancel;

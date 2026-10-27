@@ -3,10 +3,11 @@ import { OscdFilledIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdFill
 import { OscdOutlinedIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdOutlinedIconButton.js';
 import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { SldEditor } from '@omicronenergy/oscd-editor-sld/sld-editor.js';
-import { type SubfunctionData } from './util.js';
+import { type FunctionData } from './util.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import { CreateFunctionDialog } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import { type UpdateFunctionData } from './components/functions-layer/function-edits.js';
 import { type HighlightStyle } from './const.js';
 declare const BayTemplatePlugin_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
 /** An editor [[`plugin`]] for creating bay templates using single line diagrams */
@@ -61,6 +62,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     private linkSourceCandidates;
     private selectingLinkSource;
     private lnodeLibrary;
+    private lnodeLibraryLoading;
     private pendingLinkContext;
     private readonly onResize;
     private readonly eqFunctionHostTags;
@@ -75,6 +77,7 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     handleFunctionHover: (funcElement: Element | null) => void;
     private handleCreateFunctionLink;
     private handleSelectSourceFunction;
+    private handleEditFunction;
     private resetLinkingState;
     private handleConnectFunctionLink;
     private getElementFromProcessPath;
@@ -91,13 +94,10 @@ export default class BayTemplatePlugin extends BayTemplatePlugin_base {
     reset(): void;
     handleCancelAddFunction: () => void;
     insertSubstation(): void;
-    createFunction(e: CustomEvent<{
-        name: string;
-        description: string | null;
-        type: string | null;
-        subfunctions: SubfunctionData[];
-        lnodes: Element[];
-    }>): void;
+    private handleFunctionDialogSave;
+    createFunction({ name, description, type, subFunctions, lnodes, }: FunctionData): void;
+    updateFunction(update: UpdateFunctionData): void;
+    private importLNodeTypes;
     private renderTransformerButtons;
     private renderSubstationHighlight;
     private renderFunctionButtons;
