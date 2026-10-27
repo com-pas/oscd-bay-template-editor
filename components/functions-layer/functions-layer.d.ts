@@ -43,6 +43,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
     onCancelCreateFunctionLink?: () => void;
     onSelectSourceFunction?: (sourceFunction: Element) => void;
+    onEditFunction?: (functionElement: Element) => void;
     linkSourceCandidates: Element[];
     selectingLinkSource: boolean;
     showLinks: boolean;
@@ -76,6 +77,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     private closeContextMenu;
     private startPlacingFunction;
     private handleMoveFunction;
+    private handleEditFunction;
     private handleContainerClick;
     private handleFunctionMouseEnter;
     private handleFunctionMouseLeave;

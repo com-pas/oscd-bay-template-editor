@@ -3,7 +3,7 @@ import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
 import { OscdIconButton } from '@omicronenergy/oscd-ui/iconbutton/OscdIconButton.js';
 import { OscdList } from '@omicronenergy/oscd-ui/list/OscdList.js';
 import { OscdListItem } from '@omicronenergy/oscd-ui/list/OscdListItem.js';
-export interface DeleteEventDetail<TItem> {
+export interface ItemEventDetail<TItem> {
     item: TItem;
 }
 declare const EditList_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
@@ -18,6 +18,7 @@ export declare class EditList<TItem> extends EditList_base {
     itemName: string;
     collapsed: boolean;
     items: TItem[];
+    showEditButton: boolean;
     itemHeadline: (item: TItem) => string;
     itemSupportingText: (item: TItem) => string;
     selectedItem: TItem | null;
@@ -25,6 +26,7 @@ export declare class EditList<TItem> extends EditList_base {
     addItem(): void;
     deleteItem(): void;
     selectItem(item: TItem): void;
+    editItem(item: TItem, e: Event): void;
     renderContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static readonly styles: import("lit").CSSResult;

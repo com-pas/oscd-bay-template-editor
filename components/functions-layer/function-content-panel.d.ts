@@ -32,6 +32,7 @@ export declare class FunctionContentPanel extends FunctionContentPanel_base {
     private selectLNode;
     private dispatchCancelCreateFunctionLink;
     private dispatchStartCreateFunctionLink;
+    private handleEditClick;
     private handleCreateFunctionLinkClick;
     private handleCancelFunctionLinkClick;
     private handleCloseClick;

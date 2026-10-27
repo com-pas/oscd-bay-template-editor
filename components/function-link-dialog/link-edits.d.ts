@@ -9,4 +9,8 @@ interface BuildFunctionLinkEditsParams {
 }
 export declare function buildFunctionLinkEdits({ doc, sinkLNode, selectedReferences, service, namespacePrefix, }: BuildFunctionLinkEditsParams): EditV2[];
 export declare function buildRemoveSourceRefEdits(sourceRefsToRemove: Element[]): EditV2[];
+/**
+ * Removes the SourceRefs pointing to the specified LNodes, except those inside removed elements.
+ */
+export declare function buildRemoveSourceRefsToLNodesEdits(lnodes: Element[], removedElements?: Iterable<Element>): EditV2[];
 export {};
