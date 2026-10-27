@@ -12,12 +12,23 @@ export type EqType = (typeof eqTypes)[number];
 export declare function isEqType(str: string): str is EqType;
 export declare const ringedEqTypes: Set<string>;
 export declare const singleTerminal: Set<string>;
-export interface SubfunctionData {
+interface FunctionBaseData {
     name: string;
     description: string | null;
     type: string | null;
-    lnodes: Element[] | null;
+    lnodes: Element[];
 }
+export interface SubFunctionData extends FunctionBaseData {
+    id: string;
+    element?: Element | null;
+}
+export interface FunctionData extends FunctionBaseData {
+    subFunctions: SubFunctionData[];
+}
+export declare function getChildrenByTagName(parent: Element, tagName: string): Element[];
+export declare function isInsideAny(element: Element, ancestors: ReadonlySet<Element>): boolean;
+export declare function isLNodeType(element: Element): boolean;
+export declare function subFunctionDataFromElement(element: Element): SubFunctionData;
 export declare function lNodeTypeClass(lNodeType: Element): string;
 export declare function lNodeTypeDesc(lNodeType: Element): string | null;
 export declare function lNodeTypeId(lNodeType: Element): string;
@@ -44,6 +55,8 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
     y: number;
 };
 export declare function getProcessPath(element: Element): string;
+export declare function getLNodeName(lnode: Element): string;
+export declare function getLNodeSourcePath(lnode: Element): string | null;
 export declare function createPowerSystemRelationPrivate(doc: XMLDocument, path: string): Element;
 /**
  * Returns Function elements associated with a given SCL element.
@@ -85,3 +98,4 @@ export declare function highlightBusbars(sldEditor: Element, busbars: Element[],
  * @param sldEditor The sld-editor element
  */
 export declare function clearBusbarHighlights(sldEditor: Element): void;
+export {};
