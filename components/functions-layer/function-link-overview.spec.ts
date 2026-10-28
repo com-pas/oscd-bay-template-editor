@@ -87,10 +87,6 @@ describe('FunctionLinkOverview', () => {
     expect(
       Array.from(headers.children, cell => cell.textContent?.trim())
     ).to.deep.equal(['Source', 'Sink', 'Service', 'Description', '']);
-    const summary = element.shadowRoot!.querySelector(
-      '[data-testid="link-level-1-row"]'
-    )!;
-    expect(summary.children[1].textContent?.trim()).to.equal('Sink/CSWI1');
   });
 
   ['Function', 'EqFunction'].forEach(functionTag => {

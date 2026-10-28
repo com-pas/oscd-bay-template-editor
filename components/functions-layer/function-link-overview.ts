@@ -215,9 +215,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
             >${selectedLink.sourceFunction.getAttribute('name')}</span
           >
         </button>
-        <span class="link-overview-title"
-          >${buildSinkLNodePath(selectedLink.sourceRefs[0])}</span
-        >
+        <span></span>
         <span class="link-overview-service">${selectedLink.service}</span>
         <span class="link-overview-description"
           >${selectedLink.sourceFunction.getAttribute('desc') ?? ''}</span
