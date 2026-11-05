@@ -60,6 +60,7 @@ export declare class FunctionsLayer extends FunctionsLayer_base {
     coordinatesRef: Ref<HTMLElement>;
     private contextMenuRef;
     private readonly handleKeyDown;
+    private readonly handleResize;
     connectedCallback(): void;
     disconnectedCallback(): void;
     firstUpdated(): void;
