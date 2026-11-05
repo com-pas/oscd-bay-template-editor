@@ -6567,7 +6567,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       display: flex;
       justify-content: flex-end;
       padding: 1rem;
-      border-top: 1px solid var(--oscd-theme-primary, #ccc);
+      border-top: 1px solid var(--oscd-primary, #ccc);
     }
   `,e([me({attribute:!1})],_b.prototype,"functionElement",void 0),e([me({type:Number})],_b.prototype,"editCount",void 0),e([me({attribute:!1})],_b.prototype,"selectingLinkSource",void 0),e([Ce()],_b.prototype,"selectedLNode",void 0),e([Ce()],_b.prototype,"selectedSubFunction",void 0),e([Ce()],_b.prototype,"resetLinkSelectionUi",void 0);const Sb=Array(99).fill(1).map(((e,t)=>`${t+1}`));function Lb(e){const t=new Map;return n=>{if(!t.has(n)){const r=new Set(function(e){return Array.from(e.getElementsByTagNameNS(Ym,"SourceRef"))}(e).filter((e=>e.getAttribute("input")===n)).map((e=>e.getAttribute("inputInst")??"")));t.set(n,(()=>{const e=Sb.find((e=>!r.has(e)));return e&&r.add(e),e}))}return t.get(n)()}}function Ob({doc:e,sinkLNode:t,selectedReferences:n,service:r,namespacePrefix:i}){const{privateElement:s,created:o}=function(e,t){const n=Array.from(t.querySelectorAll(":scope > Private")).find((e=>e.getAttribute("type")===Qm));if(n)return{privateElement:n,created:!1};const r=e.createElementNS(e.documentElement.namespaceURI,"Private");return r.setAttribute("type",Qm),{privateElement:r,created:!0}}(e,t),{lNodeInputsElement:a,createdInputsContainer:l}=function(e,t,n){const r=Array.from(t.children).find((e=>e.namespaceURI===Ym&&"LNodeInputs"===e.localName));return r?{lNodeInputsElement:r,createdInputsContainer:!1}:{lNodeInputsElement:e.createElementNS(Ym,`${n}:LNodeInputs`),createdInputsContainer:!0}}(e,s,i),d=function(e,t,n,r,i,s){const o=[];for(const l of t){const t={source:(a=l).fullSource,input:`${a.lnClass}${a.lnInst}.${a.doName}.${a.daPath}`,pLN:a.lnClass,pDO:a.doName,pDA:a.daPath},d=`${t.source}|${n}`;if(!i.has(d)){const a=e.createElementNS(Ym,`${r}:SourceRef`);a.setAttribute("source",t.source),a.setAttribute("input",t.input);const l=s(t.input);l&&a.setAttribute("inputInst",l),a.setAttribute("pLN",t.pLN),a.setAttribute("pDO",t.pDO),a.setAttribute("pDA",t.pDA),a.setAttribute("service",n),i.add(d),o.push(a)}}var a;return o}(e,n,r,i,new Set(Array.from(a.children).filter((e=>"SourceRef"===e.localName&&e.namespaceURI===Ym)).map((e=>`${e.getAttribute("source")??""}|${e.getAttribute("service")??""}`))),Lb(t.closest("EqFunction, Function")??t));return d.length?function(e,t,n,r,i,s){const o=[];return i&&o.push({parent:e,node:t,reference:pt(e,"Private")}),s&&(t.appendChild(n),o.push({parent:t,node:n,reference:null})),r.forEach((e=>{n.appendChild(e),o.push({parent:n,node:e,reference:null})})),o}(t,s,a,d,o,l):[]}function xb(e){const[t]=e,n=t?.parentElement??null,r="LNodeInputs"===n?.localName&&n.namespaceURI===Ym?n:null;if(!(r?.querySelectorAll("SourceRef").length===e.length))return r?.querySelectorAll("SourceRef")?Array.from(r.querySelectorAll("SourceRef")).filter((t=>e.includes(t))).map((e=>({node:e}))):[];const i=r.parentElement;return[{node:"Private"===i?.localName&&i.getAttribute("type")===Qm&&1===i.children.length?i:r}]}function Nb(e,t=[]){const n=new Set(t);return function(e){const t=new Map;return e.forEach((e=>{const n=e.parentElement;if(!n)return;const r=t.get(n)??[];r.push(e),t.set(n,r)})),Array.from(t.values())}(hb(e).filter((e=>!rC(e,n)))).flatMap((e=>xb(e)))}class Tb extends(Oe(ce)){constructor(){super(...arguments),this.expandedDetails=!0,this.pendingDeleteSelectedLink=!1,this.pendingRemovedSourceRefKeys=[]}static get scopedElements(){return{"oscd-icon":ur,"oscd-filled-button":cb,"oscd-icon-button":yb}}willUpdate(e){if(e.has("selectedLink")){const t=e.get("selectedLink");t?.id!==this.selectedLink?.id&&(this.closeSourceRefInfo(),this.resetPendingChanges())}}resetPendingChanges(){this.pendingDeleteSelectedLink=!1,this.pendingRemovedSourceRefKeys=[]}deleteLink(){this.pendingDeleteSelectedLink=!0}deleteSourceRef(e){const t=pb(e);this.pendingRemovedSourceRefKeys.includes(t)||(this.pendingRemovedSourceRefKeys=[...this.pendingRemovedSourceRefKeys,t],this.getVisibleSourceRefs(this.selectedLink?.sourceRefs??[]).length||this.deleteLink())}closeOverview(){this.resetPendingChanges(),this.dispatchEvent(new CustomEvent("close",{bubbles:!0,composed:!0}))}saveOverview(){this.dispatchEvent(new CustomEvent("save",{bubbles:!0,composed:!0,detail:{deleteWholeLink:this.pendingDeleteSelectedLink,removedSourceRefKeys:this.pendingRemovedSourceRefKeys}})),this.resetPendingChanges()}openSourceRefInfo(e){this.infoSourceRef=e}closeSourceRefInfo(){this.infoSourceRef=void 0}renderInfoPane(){if(!this.infoSourceRef)return W;const e=this.infoSourceRef,t=[["input",e.getAttribute("input")],["inputInst",e.getAttribute("inputInst")],["pLN",e.getAttribute("pLN")],["pDO",e.getAttribute("pDO")],["pDA",e.getAttribute("pDA")]];return z`<div
       class="link-overview-info-pane"
@@ -6726,7 +6726,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       width: 800px;
       max-width: 100%;
       pointer-events: auto;
-      background: #fff;
+      background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -6740,7 +6740,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       width: 260px;
       max-height: 280px;
       pointer-events: auto;
-      background: #fff;
+      background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -6777,7 +6777,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       gap: 8px;
       padding: 8px 14px 12px;
       border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
-      background: #fff;
+      background: var(--md-sys-color-surface);
     }
     .link-overview-row-action {
       --md-icon-button-state-layer-height: 28px;
@@ -6794,7 +6794,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       justify-content: flex-end;
       gap: 8px;
       padding: 8px 14px 12px;
-      background: #fff;
+      background: var(--md-sys-color-surface);
     }
     .link-overview-columns,
     .link-overview-item-main,
@@ -6809,7 +6809,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       font-size: 12px;
       font-weight: 600;
       color: var(--md-sys-color-on-surface-variant, #6a656f);
-      background: #fff;
+      background: var(--md-sys-color-surface);
       padding: 8px 14px;
       position: sticky;
       top: 0;
@@ -6936,7 +6936,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
         #b3261e
       );
     }
-  `,e([me({attribute:!1})],Tb.prototype,"selectedLink",void 0),e([me({type:Boolean})],Tb.prototype,"expandedDetails",void 0),e([me({type:Number})],Tb.prototype,"overviewTop",void 0),e([Ce()],Tb.prototype,"pendingDeleteSelectedLink",void 0),e([Ce()],Tb.prototype,"pendingRemovedSourceRefKeys",void 0),e([Ce()],Tb.prototype,"infoSourceRef",void 0);const wb=["ConductingEquipment","PowerTransformer","Bay","VoltageLevel","Substation"],Pb={stroke:"#7821c9",strokeWidth:.12,fill:"none"},Mb={stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5},Rb="#1a7f37",Vb="#d9f2e3",Fb="#c62828",kb="#FFC2C2",$b={GOOSE:"#2e7d32",SMV:"#c62828",Internal:"#1565c0"},Gb={headline:"Delete LNode?",description:"This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?",icon:"warning",variant:"danger",confirmLabel:"Delete",cancelLabel:"Cancel"};class jb extends(Oe(ce)){constructor(){super(...arguments),this.FUNCTION_BOX={HEIGHT:1,ICON_SIZE:.8,ICON_WIDTH:.8,FONT_SIZE:.5,CHAR_WIDTH:.24,PADDING:.4,SPACING:.2,MIN_WIDTH:2,BORDER_RADIUS:.15,STROKE_WIDTH:.04},this.FUNCTION_COLORS={NORMAL_FILL:"white",PREVIEW_FILL:"rgba(33, 150, 243, 0.1)",PREVIEW_STROKE:"#2196f3",STROKE:"currentColor"},this.editCount=-1,this.gridSize=24,this.disabled=!1,this.nsp="eosld",this.placingOffset=[0,0],this.linkSourceCandidates=[],this.selectingLinkSource=!1,this.showLinks=!0,this.functions=[],this.mouseX=0,this.mouseY=0,this.sldOffsetTop=0,this.sldOffsetLeft=0,this.hoveredFunction=null,this.selectedLink=null,this.expandedOverviewDetails=!0,this.coordinatesRef=tb(),this.contextMenuRef=tb(),this.handleKeyDown=e=>{"Escape"===e.key&&this.selectedFunctionElement&&(this.selectedFunctionElement=void 0,this.onCancelCreateFunctionLink?.())}}static get scopedElements(){return{"function-content-panel":_b,"function-link-overview":Tb,"oscd-menu":ab,"oscd-menu-item":db,"oscd-icon":ur,"oscd-filled-button":cb}}connectedCallback(){super.connectedCallback(),window.addEventListener("keydown",this.handleKeyDown)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("keydown",this.handleKeyDown)}firstUpdated(){this.calculateSldOffset(),window.addEventListener("resize",(()=>this.calculateSldOffset()))}updated(e){super.updated(e),e.has("selectedFunctionElement")&&this.onSelectFunction?.(this.selectedFunctionElement??null),(e.has("doc")||e.has("substation")||e.has("gridSize")||e.has("editCount"))&&(this.functions=this.extractFunctions()),(e.has("doc")||e.has("substation")||e.has("gridSize"))&&requestAnimationFrame((()=>this.calculateSldOffset())),e.has("showLinks")&&!this.showLinks&&this.closeLinkOverview()}calculateSldOffset(){const e=this.parentElement;if(!e)return;const t=e.querySelector("sld-editor"),n=t?yC(t):[],r=Array.from((this.substation?.ownerDocument??this.doc)?.querySelectorAll(":root > Substation")??[]),i=n[this.substation?r.indexOf(this.substation):0]??null;if(!i)return void console.warn("[FunctionsLayer] Could not find SVG for substation. SLD offset calculation skipped.");const s=i.getBoundingClientRect(),o=this.getBoundingClientRect();this.sldOffsetTop=s.top-o.top,this.sldOffsetLeft=s.left-o.left}svgCoordinates(e,t){if(!this.svg)return[0,0];const n=this.svg.createSVGPoint();n.x=e,n.y=t;const{x:r,y:i}=n.matrixTransform(this.svg.getScreenCTM().inverse());return[r,i]}positionCoordinates(e){const t=this.coordinatesRef?.value;t&&(t.style.top=`${e.clientY}px`,t.style.left=`${e.clientX+16}px`)}extractFunctions(){if(!this.doc)return[];const e=this.substation??this.doc,t=Array.from(e.querySelectorAll("Function, EqFunction")),n=[];return t.forEach((e=>{const t=hC(e,"x"),r=hC(e,"y");if(!t||!r)return;const i=Number.parseFloat(t),s=Number.parseFloat(r);Number.isNaN(i)||Number.isNaN(s)||n.push({element:e,name:e.getAttribute("name")||"Unknown",x:i,y:s,parent:e.parentElement||null})})),n}getSvgDimensions(){const e=this.substation??this.doc?.querySelector(":root > Substation"),t=e?Number.parseFloat(hC(e,"w")??"0"):0,n=e?Number.parseFloat(hC(e,"h")??"0"):0;return{width:Math.max(1,t),height:Math.max(1,n)}}calculateFunctionBoxWidth(e){const{ICON_WIDTH:t,CHAR_WIDTH:n,PADDING:r,SPACING:i,MIN_WIDTH:s}=this.FUNCTION_BOX,o=e.length*n;return Math.max(s,t+i+o+r)}finalizeFunctionPlacement(e){const t=this.mouseX-this.placingOffset[0],n=this.mouseY-this.placingOffset[1],r=(i=e.element,s=this.nsp,o={x:t.toString(),y:n.toString()},{element:["Section","Vertex"].includes(i.localName)?i:pC(i,s),attributesNS:{[Zm]:Object.fromEntries(Object.entries(o).map((([e,t])=>[`${s}:${e}`,t])))}});var i,s,o;this.dispatchEvent(zt(r)),this.onDonePlaceFunction?.()}handleMouseMove(e){if(this.disabled)return;const[t,n]=this.svgCoordinates(e.clientX,e.clientY);this.mouseX=Math.floor(t),this.mouseY=Math.floor(n),this.positionCoordinates(e)}handleFunctionClick(e,t){this.disabled||(t.stopPropagation(),this.selectingLinkSource?this.linkSourceCandidates.includes(e.element)&&this.onSelectSourceFunction?.(e.element):this.placing!==e.element?t.ctrlKey||t.metaKey?this.startPlacingFunction(e):this.selectedFunctionElement=e.element:this.finalizeFunctionPlacement(e))}handleFunctionContextMenu(e,t){t.preventDefault(),t.stopPropagation(),this.contextMenu={element:e.element,x:t.clientX,y:t.clientY},requestAnimationFrame((()=>{this.menuAnchor.style.left=`${t.clientX}px`,this.menuAnchor.style.top=`${t.clientY}px`,this.contextMenuRef.value?.show()}))}closeContextMenu(){this.contextMenu=void 0}startPlacingFunction(e){const t=[this.mouseX-e.x,this.mouseY-e.y];this.onStartPlaceFunction?.(e.element,t)}handleMoveFunction(){const e=this.contextMenu?.element;if(!e)return;const t=this.functions.find((t=>t.element===e));t&&(this.startPlacingFunction(t),this.closeContextMenu())}handleEditFunction(e){this.closeContextMenu(),e&&this.onEditFunction?.(e)}handleContainerClick(e){if(this.placing){const e=this.functions.find((e=>e.element===this.placing));e&&this.finalizeFunctionPlacement(e)}}handleFunctionMouseEnter(e){this.placing||(this.hoveredFunction=e.element,this.onHoverFunction?.(e.element))}handleFunctionMouseLeave(){this.hoveredFunction=null,this.onHoverFunction?.(null)}getFunctionLinks(){return ub(this.substation??this.doc??null,this.doc)}getSelectedLink(e){return e.find((e=>e.id===this.selectedLink))}getLinkOverviewTop(e){const t=this.functions.find((t=>t.element===e.sourceFunction)),n=this.functions.find((t=>t.element===e.sinkFunction));if(!t||!n)return;const r=Math.max(this.getFunctionBoxGeometry(t).bottom,this.getFunctionBoxGeometry(n).bottom);return this.sldOffsetTop+r*this.gridSize+12}getFunctionBoxGeometry(e){const t=this.calculateFunctionBoxWidth(e.name);return{x:e.x,y:e.y,width:t,height:this.FUNCTION_BOX.HEIGHT,left:e.x-t/2,right:e.x+t/2,top:e.y-this.FUNCTION_BOX.HEIGHT/2,bottom:e.y+this.FUNCTION_BOX.HEIGHT/2}}handleLinkClick(e){this.selectedLink=e}closeLinkOverview(){this.selectedLink=null}toggleOverviewLinkDetails(){this.expandedOverviewDetails=!this.expandedOverviewDetails}saveLinkOverviewChanges(e,t){if(!this.selectedLink)return void this.closeLinkOverview();const n=this.getSelectedLink(e);if(!n)return void this.closeLinkOverview();const r=new Map;n.sourceRefs.forEach((e=>{const n=pb(e);(t.deleteWholeLink||t.removedSourceRefKeys.includes(n))&&r.set(n,e)}));const i=xb(Array.from(r.values()));i.length&&this.dispatchEvent(zt(i,{title:"Update Function Links"})),this.closeLinkOverview()}renderFunctionLink(e){const t=this.functions.find((t=>t.element===e.sourceFunction)),n=this.functions.find((t=>t.element===e.sinkFunction));if(!t||!n)return W;const r=function(e,t,n=0){const{x:r,y:i,width:s,left:o,right:a,top:l}=e,{x:d,y:c,left:p,right:u}=t;if(r===d&&i===c){const e=1+.25*Math.abs(n),t=Math.max(.85*s,2.5),r=i+n,d=l-e+n,c=a+.2*t,p=o-.2*t;return`M ${a} ${r} L ${c} ${r} L ${c} ${d} L ${p} ${d} L ${p} ${r} L ${o} ${r}`}const h=r<=d,m=h?a:o,C=h?p:u,b=i+n,f=c+n,g=.5*Math.abs(n),v=Math.abs(C-m);if(h&&m<=C){const e=m+Math.max(.8+g,v/2);return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${C} ${f}`}if(!h&&m>=C){const e=m-Math.max(.8+g,v/2);return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${C} ${f}`}if(h){const e=Math.max(a,u)+1.2+g;return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${u} ${f}`}const y=Math.min(o,p)-1.2-g;return`M ${m} ${b} L ${y} ${b} L ${y} ${f} L ${p} ${f}`}(this.getFunctionBoxGeometry(t),this.getFunctionBoxGeometry(n),.35*(e.parallelIndex-(e.parallelCount-1)/2)),i=$b[e.service],s=this.selectedLink===e.id;return U`
+  `,e([me({attribute:!1})],Tb.prototype,"selectedLink",void 0),e([me({type:Boolean})],Tb.prototype,"expandedDetails",void 0),e([me({type:Number})],Tb.prototype,"overviewTop",void 0),e([Ce()],Tb.prototype,"pendingDeleteSelectedLink",void 0),e([Ce()],Tb.prototype,"pendingRemovedSourceRefKeys",void 0),e([Ce()],Tb.prototype,"infoSourceRef",void 0);const wb=["ConductingEquipment","PowerTransformer","Bay","VoltageLevel","Substation"],Pb={stroke:"#7821c9",strokeWidth:.12,fill:"none"},Mb={stroke:"#7821c9",strokeWidth:.1,fill:"#d3b9ec",opacity:.5},Rb="#1a7f37",Vb="#d9f2e3",Fb="#c62828",kb="#FFC2C2",$b={GOOSE:"#2e7d32",SMV:"#c62828",Internal:"#1565c0"},Gb={headline:"Delete LNode?",description:"This LNode is used as a source and/or sink in an existing function link. Deleting it will remove the associated link(s). Are you sure you want to continue?",icon:"warning",variant:"danger",confirmLabel:"Delete",cancelLabel:"Cancel"};class jb extends(Oe(ce)){constructor(){super(...arguments),this.FUNCTION_BOX={HEIGHT:1,ICON_SIZE:.8,ICON_WIDTH:.8,FONT_SIZE:.5,CHAR_WIDTH:.24,PADDING:.4,SPACING:.2,MIN_WIDTH:2,BORDER_RADIUS:.15,STROKE_WIDTH:.04},this.FUNCTION_COLORS={NORMAL_FILL:"white",PREVIEW_FILL:"rgba(33, 150, 243, 0.1)",PREVIEW_STROKE:"#2196f3",STROKE:"currentColor"},this.editCount=-1,this.gridSize=24,this.disabled=!1,this.nsp="eosld",this.placingOffset=[0,0],this.linkSourceCandidates=[],this.selectingLinkSource=!1,this.showLinks=!0,this.functions=[],this.mouseX=0,this.mouseY=0,this.sldOffsetTop=0,this.sldOffsetLeft=0,this.hoveredFunction=null,this.selectedLink=null,this.expandedOverviewDetails=!0,this.coordinatesRef=tb(),this.contextMenuRef=tb(),this.handleKeyDown=e=>{"Escape"===e.key&&this.selectedFunctionElement&&(this.selectedFunctionElement=void 0,this.onCancelCreateFunctionLink?.())},this.handleResize=()=>this.calculateSldOffset()}static get scopedElements(){return{"function-content-panel":_b,"function-link-overview":Tb,"oscd-menu":ab,"oscd-menu-item":db,"oscd-icon":ur,"oscd-filled-button":cb}}connectedCallback(){super.connectedCallback(),window.addEventListener("keydown",this.handleKeyDown),window.addEventListener("resize",this.handleResize)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("keydown",this.handleKeyDown),window.removeEventListener("resize",this.handleResize)}firstUpdated(){this.calculateSldOffset()}updated(e){super.updated(e),e.has("selectedFunctionElement")&&this.onSelectFunction?.(this.selectedFunctionElement??null),(e.has("doc")||e.has("substation")||e.has("gridSize")||e.has("editCount"))&&(this.functions=this.extractFunctions()),(e.has("doc")||e.has("substation")||e.has("gridSize"))&&requestAnimationFrame((()=>this.calculateSldOffset())),e.has("showLinks")&&!this.showLinks&&this.closeLinkOverview()}calculateSldOffset(){const e=this.parentElement;if(!e)return;const t=e.querySelector("sld-editor"),n=t?yC(t):[],r=Array.from((this.substation?.ownerDocument??this.doc)?.querySelectorAll(":root > Substation")??[]),i=n[this.substation?r.indexOf(this.substation):0]??null;if(!i)return void console.warn("[FunctionsLayer] Could not find SVG for substation. SLD offset calculation skipped.");const s=i.getBoundingClientRect(),o=this.getBoundingClientRect();this.sldOffsetTop=s.top-o.top,this.sldOffsetLeft=s.left-o.left}svgCoordinates(e,t){if(!this.svg)return[0,0];const n=this.svg.createSVGPoint();n.x=e,n.y=t;const{x:r,y:i}=n.matrixTransform(this.svg.getScreenCTM().inverse());return[r,i]}positionCoordinates(e){const t=this.coordinatesRef?.value;t&&(t.style.top=`${e.clientY}px`,t.style.left=`${e.clientX+16}px`)}extractFunctions(){if(!this.doc)return[];const e=this.substation??this.doc,t=Array.from(e.querySelectorAll("Function, EqFunction")),n=[];return t.forEach((e=>{const t=hC(e,"x"),r=hC(e,"y");if(!t||!r)return;const i=Number.parseFloat(t),s=Number.parseFloat(r);Number.isNaN(i)||Number.isNaN(s)||n.push({element:e,name:e.getAttribute("name")||"Unknown",x:i,y:s,parent:e.parentElement||null})})),n}getSvgDimensions(){const e=this.substation??this.doc?.querySelector(":root > Substation"),t=e?Number.parseFloat(hC(e,"w")??"0"):0,n=e?Number.parseFloat(hC(e,"h")??"0"):0;return{width:Math.max(1,t),height:Math.max(1,n)}}calculateFunctionBoxWidth(e){const{ICON_WIDTH:t,CHAR_WIDTH:n,PADDING:r,SPACING:i,MIN_WIDTH:s}=this.FUNCTION_BOX,o=e.length*n;return Math.max(s,t+i+o+r)}finalizeFunctionPlacement(e){const t=this.mouseX-this.placingOffset[0],n=this.mouseY-this.placingOffset[1],r=(i=e.element,s=this.nsp,o={x:t.toString(),y:n.toString()},{element:["Section","Vertex"].includes(i.localName)?i:pC(i,s),attributesNS:{[Zm]:Object.fromEntries(Object.entries(o).map((([e,t])=>[`${s}:${e}`,t])))}});var i,s,o;this.dispatchEvent(zt(r)),this.onDonePlaceFunction?.()}handleMouseMove(e){if(this.disabled)return;const[t,n]=this.svgCoordinates(e.clientX,e.clientY);this.mouseX=Math.floor(t),this.mouseY=Math.floor(n),this.positionCoordinates(e)}handleFunctionClick(e,t){this.disabled||(t.stopPropagation(),this.selectingLinkSource?this.linkSourceCandidates.includes(e.element)&&this.onSelectSourceFunction?.(e.element):this.placing!==e.element?t.ctrlKey||t.metaKey?this.startPlacingFunction(e):this.selectedFunctionElement=e.element:this.finalizeFunctionPlacement(e))}handleFunctionContextMenu(e,t){t.preventDefault(),t.stopPropagation(),this.contextMenu={element:e.element,x:t.clientX,y:t.clientY},requestAnimationFrame((()=>{this.menuAnchor.style.left=`${t.clientX}px`,this.menuAnchor.style.top=`${t.clientY}px`,this.contextMenuRef.value?.show()}))}closeContextMenu(){this.contextMenu=void 0}startPlacingFunction(e){const t=[this.mouseX-e.x,this.mouseY-e.y];this.onStartPlaceFunction?.(e.element,t)}handleMoveFunction(){const e=this.contextMenu?.element;if(!e)return;const t=this.functions.find((t=>t.element===e));t&&(this.startPlacingFunction(t),this.closeContextMenu())}handleEditFunction(e){this.closeContextMenu(),e&&this.onEditFunction?.(e)}handleContainerClick(e){if(this.placing){const e=this.functions.find((e=>e.element===this.placing));e&&this.finalizeFunctionPlacement(e)}}handleFunctionMouseEnter(e){this.placing||(this.hoveredFunction=e.element,this.onHoverFunction?.(e.element))}handleFunctionMouseLeave(){this.hoveredFunction=null,this.onHoverFunction?.(null)}getFunctionLinks(){return ub(this.substation??this.doc??null,this.doc)}getSelectedLink(e){return e.find((e=>e.id===this.selectedLink))}getLinkOverviewTop(e){const t=this.functions.find((t=>t.element===e.sourceFunction)),n=this.functions.find((t=>t.element===e.sinkFunction));if(!t||!n)return;const r=Math.max(this.getFunctionBoxGeometry(t).bottom,this.getFunctionBoxGeometry(n).bottom);return this.sldOffsetTop+r*this.gridSize+12}getFunctionBoxGeometry(e){const t=this.calculateFunctionBoxWidth(e.name);return{x:e.x,y:e.y,width:t,height:this.FUNCTION_BOX.HEIGHT,left:e.x-t/2,right:e.x+t/2,top:e.y-this.FUNCTION_BOX.HEIGHT/2,bottom:e.y+this.FUNCTION_BOX.HEIGHT/2}}handleLinkClick(e){this.selectedLink=e}closeLinkOverview(){this.selectedLink=null}toggleOverviewLinkDetails(){this.expandedOverviewDetails=!this.expandedOverviewDetails}saveLinkOverviewChanges(e,t){if(!this.selectedLink)return void this.closeLinkOverview();const n=this.getSelectedLink(e);if(!n)return void this.closeLinkOverview();const r=new Map;n.sourceRefs.forEach((e=>{const n=pb(e);(t.deleteWholeLink||t.removedSourceRefKeys.includes(n))&&r.set(n,e)}));const i=xb(Array.from(r.values()));i.length&&this.dispatchEvent(zt(i,{title:"Update Function Links"})),this.closeLinkOverview()}renderFunctionLink(e){const t=this.functions.find((t=>t.element===e.sourceFunction)),n=this.functions.find((t=>t.element===e.sinkFunction));if(!t||!n)return W;const r=function(e,t,n=0){const{x:r,y:i,width:s,left:o,right:a,top:l}=e,{x:d,y:c,left:p,right:u}=t;if(r===d&&i===c){const e=1+.25*Math.abs(n),t=Math.max(.85*s,2.5),r=i+n,d=l-e+n,c=a+.2*t,p=o-.2*t;return`M ${a} ${r} L ${c} ${r} L ${c} ${d} L ${p} ${d} L ${p} ${r} L ${o} ${r}`}const h=r<=d,m=h?a:o,C=h?p:u,b=i+n,f=c+n,g=.5*Math.abs(n),v=Math.abs(C-m);if(h&&m<=C){const e=m+Math.max(.8+g,v/2);return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${C} ${f}`}if(!h&&m>=C){const e=m-Math.max(.8+g,v/2);return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${C} ${f}`}if(h){const e=Math.max(a,u)+1.2+g;return`M ${m} ${b} L ${e} ${b} L ${e} ${f} L ${u} ${f}`}const y=Math.min(o,p)-1.2-g;return`M ${m} ${b} L ${y} ${b} L ${y} ${f} L ${p} ${f}`}(this.getFunctionBoxGeometry(t),this.getFunctionBoxGeometry(n),.35*(e.parallelIndex-(e.parallelCount-1)/2)),i=$b[e.service],s=this.selectedLink===e.id;return U`
       <g class="function-link ${s?"selected":""}">
         <path
           class="function-link-visible"
@@ -7168,11 +7168,11 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       position: fixed;
       pointer-events: none;
       font-size: 16px;
-      font-family: 'Roboto', sans-serif;
+      font-family: var(--oscd-text-font, 'Roboto'), sans-serif;
       padding: 8px;
       border-radius: 16px;
-      background: #fffd;
-      color: rgb(0, 0, 0, 0.83);
+      background: var(--oscd-base3);
+      color: var(--oscd-base00);
       z-index: 1000;
     }
 
@@ -8660,7 +8660,7 @@ class Of extends(Oe(Lf)){}Of.scopedElements={"md-ripple":En,"md-focus-ring":Nn,"
                 ${e.getAttribute("name")}
               </button>
             </div>
-          `}))),this.hoveredSubstation){const n=e.indexOf(this.hoveredSubstation),r=this.sldBounds[n],i=r?`top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;z-index:1;background:rgba(210,185,236,0.5);`:"inset:0";t.push(z`<div class="substation-highlight" style="${i}"></div>`)}return t}renderFunctionButtons(){return this.doc?z`${this.doc.querySelector("VoltageLevel, PowerTransformer")?z`<oscd-icon-button
+          `}))),this.hoveredSubstation){const n=e.indexOf(this.hoveredSubstation),r=this.sldBounds[n],i=r?`top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;z-index:1;background:color-mix(in oklab, var(--bay-template-internal-violet) 50%, transparent);`:"inset:0";t.push(z`<div class="substation-highlight" style="${i}"></div>`)}return t}renderFunctionButtons(){return this.doc?z`${this.doc.querySelector("VoltageLevel, PowerTransformer")?z`<oscd-icon-button
           id="labels"
           label="Toggle Labels"
           title="Toggle Labels"
@@ -8826,25 +8826,145 @@ class Of extends(Oe(Lf)){}Of.scopedElements={"md-ripple":En,"md-focus-ring":Nn,"
       :host {
         display: block;
         padding: 20px;
-        font-family: var(--oscd-theme-text-font, 'Roboto'), sans-serif;
-        --md-filled-icon-button-container-color: var(
+        --bay-template-internal-primary: var(--oscd-theme-primary, #2aa198);
+        --bay-template-internal-secondary: var(--oscd-theme-secondary, #6c71c4);
+        --bay-template-internal-error: var(--oscd-theme-error, #dc322f);
+        --bay-template-internal-warning: var(
+          --oscd-theme-warning,
+          var(--oscd-theme-yellow, #b58900)
+        );
+        --bay-template-internal-base03: var(
+          --oscd-theme-base03,
+          light-dark(#002b36, #fdf6e3)
+        );
+        --bay-template-internal-base02: var(
+          --oscd-theme-base02,
+          light-dark(#073642, #eee8d5)
+        );
+        --bay-template-internal-base01: var(
+          --oscd-theme-base01,
+          light-dark(#586e75, #93a1a1)
+        );
+        --bay-template-internal-base00: var(
+          --oscd-theme-base00,
+          light-dark(#657b83, #839496)
+        );
+        --bay-template-internal-base0: var(
+          --oscd-theme-base0,
+          light-dark(#839496, #657b83)
+        );
+        --bay-template-internal-base1: var(
           --oscd-theme-base1,
-          #e0e0e0
+          light-dark(#93a1a1, #586e75)
         );
-        --md-filled-icon-button-icon-color: var(
-          --oscd-theme-on-surface,
-          #000000
+        --bay-template-internal-base2: var(
+          --oscd-theme-base2,
+          light-dark(#eee8d5, #073642)
         );
+        --bay-template-internal-base3: var(
+          --oscd-theme-base3,
+          light-dark(#fdf6e3, #002b36)
+        );
+        --bay-template-internal-yellow: var(--oscd-theme-yellow, #f5e214);
+        --bay-template-internal-red: var(--oscd-theme-red, #bb1326);
+        --bay-template-internal-blue: var(--oscd-theme-blue, #12579b);
+        --bay-template-internal-violet: var(--oscd-theme-violet, #7821c9);
+        --bay-template-internal-text-font: var(
+          --oscd-theme-text-font,
+          'Roboto'
+        );
+        --bay-template-internal-text-font-mono: var(
+          --oscd-theme-text-font-mono,
+          'Roboto Mono'
+        );
+        --bay-template-internal-icon-font: var(
+          --oscd-theme-icon-font,
+          'Material Symbols Outlined'
+        );
+        --bay-template-internal-shape: var(--oscd-theme-shape, 8px);
+        --bay-template-internal-shape-none: 0;
+        --bay-template-internal-shape-extra-small: calc(
+          0.5 * var(--bay-template-internal-shape)
+        );
+        --bay-template-internal-shape-small: var(--bay-template-internal-shape);
+        --bay-template-internal-shape-medium: calc(
+          1.5 * var(--bay-template-internal-shape)
+        );
+        --bay-template-internal-shape-large: calc(
+          2 * var(--bay-template-internal-shape)
+        );
+
+        --md-sys-color-primary: var(--bay-template-internal-primary);
+        --md-sys-color-on-primary: var(--bay-template-internal-base3);
+        --md-sys-color-secondary: var(--bay-template-internal-secondary);
+        --md-sys-color-on-secondary: var(--bay-template-internal-base3);
+        --md-sys-color-tertiary: var(--bay-template-internal-violet);
+        --md-sys-color-on-tertiary: var(--bay-template-internal-base3);
+        --md-sys-color-error: var(--bay-template-internal-error);
+        --md-sys-color-on-error: var(--bay-template-internal-base3);
+        --md-sys-color-surface: var(--bay-template-internal-base3);
+        --md-sys-color-on-surface: var(--bay-template-internal-base00);
+        --md-sys-color-on-surface-variant: var(--bay-template-internal-base00);
+        --md-sys-color-surface-variant: var(--bay-template-internal-base2);
+        --md-sys-color-surface-container-high: var(
+          --bay-template-internal-base2
+        );
+        --md-sys-color-surface-container-low: var(
+          --bay-template-internal-base2
+        );
+        --md-sys-color-secondary-container: var(--bay-template-internal-base2);
+        --md-sys-color-outline-variant: var(--bay-template-internal-base1);
+        --md-sys-color-shadow: var(--bay-template-internal-base03);
+        --md-sys-color-warning-container: color-mix(
+          in oklab,
+          var(--bay-template-internal-warning) 20%,
+          var(--bay-template-internal-base3)
+        );
+        --md-sys-color-on-warning-container: var(
+          --bay-template-internal-base00
+        );
+        --md-sys-shape-corner-none: var(--bay-template-internal-shape-none);
+        --md-sys-shape-corner-extra-small: var(
+          --bay-template-internal-shape-extra-small
+        );
+        --md-sys-shape-corner-small: var(--bay-template-internal-shape-small);
+        --md-sys-shape-corner-medium: var(--bay-template-internal-shape-medium);
+        --md-sys-shape-corner-large: var(--bay-template-internal-shape-large);
+
+        --oscd-primary: var(--bay-template-internal-primary);
+        --oscd-secondary: var(--bay-template-internal-secondary);
+        --oscd-error: var(--bay-template-internal-error);
+        --oscd-warning: var(--bay-template-internal-warning);
+        --oscd-base03: var(--bay-template-internal-base03);
+        --oscd-base02: var(--bay-template-internal-base02);
+        --oscd-base01: var(--bay-template-internal-base01);
+        --oscd-base00: var(--bay-template-internal-base00);
+        --oscd-base0: var(--bay-template-internal-base0);
+        --oscd-base1: var(--bay-template-internal-base1);
+        --oscd-base2: var(--bay-template-internal-base2);
+        --oscd-base3: var(--bay-template-internal-base3);
+        --oscd-yellow: var(--bay-template-internal-yellow);
+        --oscd-red: var(--bay-template-internal-red);
+        --oscd-blue: var(--bay-template-internal-blue);
+        --oscd-violet: var(--bay-template-internal-violet);
+        --oscd-text-font: var(--bay-template-internal-text-font);
+        --oscd-text-font-mono: var(--bay-template-internal-text-font-mono);
+        --oscd-icon-font: var(--bay-template-internal-icon-font);
+        --oscd-shape: var(--bay-template-internal-shape);
+
+        font-family: var(--bay-template-internal-text-font), sans-serif;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-base2
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base00);
       }
       nav {
         user-select: none;
         position: sticky;
-        top: 68px;
-        left: 16px;
         width: fit-content;
         max-width: calc(100vw - 32px);
-        background: #fffd;
-        border-radius: 24px;
+        background: var(--bay-template-internal-base3);
+        border-radius: var(--bay-template-internal-shape-large);
         margin-bottom: 16px;
         padding: 4px;
         display: flex;
@@ -8853,36 +8973,48 @@ class Of extends(Oe(Lf)){}Of.scopedElements={"md-ripple":En,"md-focus-ring":Nn,"
         z-index: 3;
       }
       #bay-button {
-        --md-filled-icon-button-container-color: #12579b;
-        --md-filled-icon-button-icon-color: white;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-blue
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base3);
       }
       #substation-button {
-        --md-filled-icon-button-container-color: #bb1326;
-        --md-filled-icon-button-icon-color: white;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-red
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base3);
       }
       #voltage-button {
-        --md-filled-icon-button-container-color: #f5e214;
-        --md-filled-icon-button-icon-color: black;
-        --md-filled-icon-button-hover-icon-color: black;
-        --md-filled-icon-button-pressed-icon-color: black;
-        --md-filled-icon-button-focus-icon-color: black;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-yellow
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base03);
+        --md-filled-icon-button-hover-icon-color: var(
+          --bay-template-internal-base03
+        );
+        --md-filled-icon-button-pressed-icon-color: var(
+          --bay-template-internal-base03
+        );
+        --md-filled-icon-button-focus-icon-color: var(
+          --bay-template-internal-base03
+        );
       }
       .editor-container {
         position: relative;
         display: block;
         width: 100%;
         height: 600px;
-        margin-top: 24px;
       }
       sld-editor {
         position: relative;
         display: block;
-        max-width: 100%;
+        width: max-content;
+        min-width: 100%;
         height: 100%;
       }
       .substation-highlight {
         position: absolute;
-        border: 3px solid #7821c9;
+        border: 3px solid var(--bay-template-internal-violet);
         border-radius: 2px;
         box-sizing: border-box;
         pointer-events: none;
@@ -8896,16 +9028,20 @@ class Of extends(Oe(Lf)){}Of.scopedElements={"md-ripple":En,"md-focus-ring":Nn,"
         font-size: 12px;
         font-weight: 600;
         font-family: inherit;
-        color: #7821c9;
-        background: rgba(210, 185, 236, 0.9);
-        border: 2px solid #7821c9;
-        border-radius: 12px;
+        color: var(--bay-template-internal-violet);
+        background: var(--bay-template-internal-base3);
+        border: 2px solid var(--bay-template-internal-violet);
+        border-radius: var(--bay-template-internal-shape-medium);
         padding: 2px 10px;
         user-select: none;
         line-height: 20px;
       }
       .substation-chip:hover {
-        background: rgba(120, 33, 201, 0.15);
+        background: color-mix(
+          in oklab,
+          var(--bay-template-internal-violet) 15%,
+          transparent
+        );
       }
     `],e([me({attribute:!1})],Gf.prototype,"doc",void 0),e([me({type:Number})],Gf.prototype,"editCount",void 0),e([me({type:Number})],Gf.prototype,"gridSize",void 0),e([me({attribute:!1})],Gf.prototype,"compasApi",void 0),e([fe("sld-editor")],Gf.prototype,"sldEditor",void 0),e([fe(".editor-container")],Gf.prototype,"editorContainer",void 0),e([fe("#labels")],Gf.prototype,"labelToggle",void 0),e([fe("create-function-dialog")],Gf.prototype,"createFunctionDialog",void 0),e([fe("function-link-dialog")],Gf.prototype,"functionLinkDialog",void 0),e([Ce()],Gf.prototype,"sldEditorInAction",void 0),e([Ce()],Gf.prototype,"functionsInAction",void 0),e([Ce()],Gf.prototype,"addingFunction",void 0),e([Ce()],Gf.prototype,"showFunctions",void 0),e([Ce()],Gf.prototype,"showFunctionLinks",void 0),e([Ce()],Gf.prototype,"templateElements",void 0),e([Ce()],Gf.prototype,"nsp",void 0),e([Ce()],Gf.prototype,"placingFunction",void 0),e([Ce()],Gf.prototype,"placingFunctionOffset",void 0),e([Ce()],Gf.prototype,"highlight",void 0),e([Ce()],Gf.prototype,"functionHoverHighlight",void 0),e([Ce()],Gf.prototype,"highlightBeforeAddingFunction",void 0),e([Ce()],Gf.prototype,"hoveredSubstation",void 0),e([Ce()],Gf.prototype,"selectedElement",void 0),e([Ce()],Gf.prototype,"sldBounds",void 0),e([Ce()],Gf.prototype,"linkSourceCandidates",void 0),e([Ce()],Gf.prototype,"selectingLinkSource",void 0),e([Ce()],Gf.prototype,"lnodeLibrary",void 0),e([Ce()],Gf.prototype,"pendingLinkContext",void 0);export{Gf as default};
 //# sourceMappingURL=bay-template-editor.js.map
