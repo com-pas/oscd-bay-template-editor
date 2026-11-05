@@ -511,7 +511,7 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
       display: flex;
       justify-content: flex-end;
       padding: 1rem;
-      border-top: 1px solid var(--oscd-theme-primary, #ccc);
+      border-top: 1px solid var(--oscd-primary, #ccc);
     }
   `;
 }
