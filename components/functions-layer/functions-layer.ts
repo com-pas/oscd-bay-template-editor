@@ -185,19 +185,22 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
     }
   };
 
+  private readonly handleResize = () => this.calculateSldOffset();
+
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('resize', this.handleResize);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('resize', this.handleResize);
   }
 
   firstUpdated() {
     this.calculateSldOffset();
-    window.addEventListener('resize', () => this.calculateSldOffset());
   }
 
   updated(changedProperties: Map<string, any>) {
@@ -893,11 +896,11 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
       position: fixed;
       pointer-events: none;
       font-size: 16px;
-      font-family: 'Roboto', sans-serif;
+      font-family: var(--oscd-text-font, 'Roboto'), sans-serif;
       padding: 8px;
       border-radius: 16px;
-      background: #fffd;
-      color: rgb(0, 0, 0, 0.83);
+      background: var(--oscd-base3);
+      color: var(--oscd-base00);
       z-index: 1000;
     }
 

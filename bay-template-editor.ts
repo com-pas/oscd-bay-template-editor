@@ -825,7 +825,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       const i = substations.indexOf(this.hoveredSubstation);
       const b = this.sldBounds[i];
       const style = b
-        ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px;z-index:1;background:rgba(210,185,236,0.5);`
+        ? `top:${b.top}px;left:${b.left}px;width:${b.width}px;height:${b.height}px;z-index:1;background:color-mix(in oklab, var(--bay-template-internal-violet) 50%, transparent);`
         : 'inset:0';
       result.push(
         html`<div class="substation-highlight" style="${style}"></div>`
@@ -1073,25 +1073,145 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       :host {
         display: block;
         padding: 20px;
-        font-family: var(--oscd-theme-text-font, 'Roboto'), sans-serif;
-        --md-filled-icon-button-container-color: var(
+        --bay-template-internal-primary: var(--oscd-theme-primary, #2aa198);
+        --bay-template-internal-secondary: var(--oscd-theme-secondary, #6c71c4);
+        --bay-template-internal-error: var(--oscd-theme-error, #dc322f);
+        --bay-template-internal-warning: var(
+          --oscd-theme-warning,
+          var(--oscd-theme-yellow, #b58900)
+        );
+        --bay-template-internal-base03: var(
+          --oscd-theme-base03,
+          light-dark(#002b36, #fdf6e3)
+        );
+        --bay-template-internal-base02: var(
+          --oscd-theme-base02,
+          light-dark(#073642, #eee8d5)
+        );
+        --bay-template-internal-base01: var(
+          --oscd-theme-base01,
+          light-dark(#586e75, #93a1a1)
+        );
+        --bay-template-internal-base00: var(
+          --oscd-theme-base00,
+          light-dark(#657b83, #839496)
+        );
+        --bay-template-internal-base0: var(
+          --oscd-theme-base0,
+          light-dark(#839496, #657b83)
+        );
+        --bay-template-internal-base1: var(
           --oscd-theme-base1,
-          #e0e0e0
+          light-dark(#93a1a1, #586e75)
         );
-        --md-filled-icon-button-icon-color: var(
-          --oscd-theme-on-surface,
-          #000000
+        --bay-template-internal-base2: var(
+          --oscd-theme-base2,
+          light-dark(#eee8d5, #073642)
         );
+        --bay-template-internal-base3: var(
+          --oscd-theme-base3,
+          light-dark(#fdf6e3, #002b36)
+        );
+        --bay-template-internal-yellow: var(--oscd-theme-yellow, #f5e214);
+        --bay-template-internal-red: var(--oscd-theme-red, #bb1326);
+        --bay-template-internal-blue: var(--oscd-theme-blue, #12579b);
+        --bay-template-internal-violet: var(--oscd-theme-violet, #7821c9);
+        --bay-template-internal-text-font: var(
+          --oscd-theme-text-font,
+          'Roboto'
+        );
+        --bay-template-internal-text-font-mono: var(
+          --oscd-theme-text-font-mono,
+          'Roboto Mono'
+        );
+        --bay-template-internal-icon-font: var(
+          --oscd-theme-icon-font,
+          'Material Symbols Outlined'
+        );
+        --bay-template-internal-shape: var(--oscd-theme-shape, 8px);
+        --bay-template-internal-shape-none: 0;
+        --bay-template-internal-shape-extra-small: calc(
+          0.5 * var(--bay-template-internal-shape)
+        );
+        --bay-template-internal-shape-small: var(--bay-template-internal-shape);
+        --bay-template-internal-shape-medium: calc(
+          1.5 * var(--bay-template-internal-shape)
+        );
+        --bay-template-internal-shape-large: calc(
+          2 * var(--bay-template-internal-shape)
+        );
+
+        --md-sys-color-primary: var(--bay-template-internal-primary);
+        --md-sys-color-on-primary: var(--bay-template-internal-base3);
+        --md-sys-color-secondary: var(--bay-template-internal-secondary);
+        --md-sys-color-on-secondary: var(--bay-template-internal-base3);
+        --md-sys-color-tertiary: var(--bay-template-internal-violet);
+        --md-sys-color-on-tertiary: var(--bay-template-internal-base3);
+        --md-sys-color-error: var(--bay-template-internal-error);
+        --md-sys-color-on-error: var(--bay-template-internal-base3);
+        --md-sys-color-surface: var(--bay-template-internal-base3);
+        --md-sys-color-on-surface: var(--bay-template-internal-base00);
+        --md-sys-color-on-surface-variant: var(--bay-template-internal-base00);
+        --md-sys-color-surface-variant: var(--bay-template-internal-base2);
+        --md-sys-color-surface-container-high: var(
+          --bay-template-internal-base2
+        );
+        --md-sys-color-surface-container-low: var(
+          --bay-template-internal-base2
+        );
+        --md-sys-color-secondary-container: var(--bay-template-internal-base2);
+        --md-sys-color-outline-variant: var(--bay-template-internal-base1);
+        --md-sys-color-shadow: var(--bay-template-internal-base03);
+        --md-sys-color-warning-container: color-mix(
+          in oklab,
+          var(--bay-template-internal-warning) 20%,
+          var(--bay-template-internal-base3)
+        );
+        --md-sys-color-on-warning-container: var(
+          --bay-template-internal-base00
+        );
+        --md-sys-shape-corner-none: var(--bay-template-internal-shape-none);
+        --md-sys-shape-corner-extra-small: var(
+          --bay-template-internal-shape-extra-small
+        );
+        --md-sys-shape-corner-small: var(--bay-template-internal-shape-small);
+        --md-sys-shape-corner-medium: var(--bay-template-internal-shape-medium);
+        --md-sys-shape-corner-large: var(--bay-template-internal-shape-large);
+
+        --oscd-primary: var(--bay-template-internal-primary);
+        --oscd-secondary: var(--bay-template-internal-secondary);
+        --oscd-error: var(--bay-template-internal-error);
+        --oscd-warning: var(--bay-template-internal-warning);
+        --oscd-base03: var(--bay-template-internal-base03);
+        --oscd-base02: var(--bay-template-internal-base02);
+        --oscd-base01: var(--bay-template-internal-base01);
+        --oscd-base00: var(--bay-template-internal-base00);
+        --oscd-base0: var(--bay-template-internal-base0);
+        --oscd-base1: var(--bay-template-internal-base1);
+        --oscd-base2: var(--bay-template-internal-base2);
+        --oscd-base3: var(--bay-template-internal-base3);
+        --oscd-yellow: var(--bay-template-internal-yellow);
+        --oscd-red: var(--bay-template-internal-red);
+        --oscd-blue: var(--bay-template-internal-blue);
+        --oscd-violet: var(--bay-template-internal-violet);
+        --oscd-text-font: var(--bay-template-internal-text-font);
+        --oscd-text-font-mono: var(--bay-template-internal-text-font-mono);
+        --oscd-icon-font: var(--bay-template-internal-icon-font);
+        --oscd-shape: var(--bay-template-internal-shape);
+
+        font-family: var(--bay-template-internal-text-font), sans-serif;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-base2
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base00);
       }
       nav {
         user-select: none;
         position: sticky;
-        top: 68px;
-        left: 16px;
         width: fit-content;
         max-width: calc(100vw - 32px);
-        background: #fffd;
-        border-radius: 24px;
+        background: var(--bay-template-internal-base3);
+        border-radius: var(--bay-template-internal-shape-large);
         margin-bottom: 16px;
         padding: 4px;
         display: flex;
@@ -1100,36 +1220,48 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         z-index: 3;
       }
       #bay-button {
-        --md-filled-icon-button-container-color: #12579b;
-        --md-filled-icon-button-icon-color: white;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-blue
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base3);
       }
       #substation-button {
-        --md-filled-icon-button-container-color: #bb1326;
-        --md-filled-icon-button-icon-color: white;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-red
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base3);
       }
       #voltage-button {
-        --md-filled-icon-button-container-color: #f5e214;
-        --md-filled-icon-button-icon-color: black;
-        --md-filled-icon-button-hover-icon-color: black;
-        --md-filled-icon-button-pressed-icon-color: black;
-        --md-filled-icon-button-focus-icon-color: black;
+        --md-filled-icon-button-container-color: var(
+          --bay-template-internal-yellow
+        );
+        --md-filled-icon-button-icon-color: var(--bay-template-internal-base03);
+        --md-filled-icon-button-hover-icon-color: var(
+          --bay-template-internal-base03
+        );
+        --md-filled-icon-button-pressed-icon-color: var(
+          --bay-template-internal-base03
+        );
+        --md-filled-icon-button-focus-icon-color: var(
+          --bay-template-internal-base03
+        );
       }
       .editor-container {
         position: relative;
         display: block;
         width: 100%;
         height: 600px;
-        margin-top: 24px;
       }
       sld-editor {
         position: relative;
         display: block;
-        max-width: 100%;
+        width: max-content;
+        min-width: 100%;
         height: 100%;
       }
       .substation-highlight {
         position: absolute;
-        border: 3px solid #7821c9;
+        border: 3px solid var(--bay-template-internal-violet);
         border-radius: 2px;
         box-sizing: border-box;
         pointer-events: none;
@@ -1143,16 +1275,20 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         font-size: 12px;
         font-weight: 600;
         font-family: inherit;
-        color: #7821c9;
-        background: rgba(210, 185, 236, 0.9);
-        border: 2px solid #7821c9;
-        border-radius: 12px;
+        color: var(--bay-template-internal-violet);
+        background: var(--bay-template-internal-base3);
+        border: 2px solid var(--bay-template-internal-violet);
+        border-radius: var(--bay-template-internal-shape-medium);
         padding: 2px 10px;
         user-select: none;
         line-height: 20px;
       }
       .substation-chip:hover {
-        background: rgba(120, 33, 201, 0.15);
+        background: color-mix(
+          in oklab,
+          var(--bay-template-internal-violet) 15%,
+          transparent
+        );
       }
     `,
   ];

@@ -335,7 +335,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       width: 800px;
       max-width: 100%;
       pointer-events: auto;
-      background: #fff;
+      background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -349,7 +349,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       width: 260px;
       max-height: 280px;
       pointer-events: auto;
-      background: #fff;
+      background: var(--md-sys-color-surface);
       border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
@@ -386,7 +386,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       gap: 8px;
       padding: 8px 14px 12px;
       border-top: 1px solid var(--md-sys-color-outline-variant, #e5dfe8);
-      background: #fff;
+      background: var(--md-sys-color-surface);
     }
     .link-overview-row-action {
       --md-icon-button-state-layer-height: 28px;
@@ -403,7 +403,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       justify-content: flex-end;
       gap: 8px;
       padding: 8px 14px 12px;
-      background: #fff;
+      background: var(--md-sys-color-surface);
     }
     .link-overview-columns,
     .link-overview-item-main,
@@ -418,7 +418,7 @@ export class FunctionLinkOverview extends ScopedElementsMixin(LitElement) {
       font-size: 12px;
       font-weight: 600;
       color: var(--md-sys-color-on-surface-variant, #6a656f);
-      background: #fff;
+      background: var(--md-sys-color-surface);
       padding: 8px 14px;
       position: sticky;
       top: 0;
