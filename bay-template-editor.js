@@ -6992,7 +6992,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
           fill="currentColor"
         >${e.name}</text>
         <title>${e.name}</title>
-      </g>`}render(){const e=this.showLinks?this.getFunctionLinks():[],t=this.getSelectedLink(e),n=this.functions.find((e=>e.element===this.placing)),{width:r,height:i}=this.getSvgDimensions();let s=z``,o=!0;if(this.placing&&n){o=!1;const e=this.mouseX-this.placingOffset[0],t=this.mouseY-this.placingOffset[1];s=z`${e},${t}`}const a=z`<div
+      </g>`}render(){const e=this.getFunctionLinks().filter((e=>this.showLinks||e.sourceFunction===this.hoveredFunction||e.sinkFunction===this.hoveredFunction)),t=this.getSelectedLink(e),n=this.functions.find((e=>e.element===this.placing)),{width:r,height:i}=this.getSvgDimensions();let s=z``,o=!0;if(this.placing&&n){o=!1;const e=this.mouseX-this.placingOffset[0],t=this.mouseY-this.placingOffset[1];s=z`${e},${t}`}const a=z`<div
       ${ib(this.coordinatesRef)}
       class="${hn({coordinates:!0,hidden:o})}"
     >
