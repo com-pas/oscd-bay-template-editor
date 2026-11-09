@@ -6622,6 +6622,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
             >${e.sourceFunction.getAttribute("name")}</span
           >
         </button>
+        <span></span>
         <span class="link-overview-service">${e.service}</span>
         <span class="link-overview-description"
           >${e.sourceFunction.getAttribute("desc")??""}</span
@@ -6645,6 +6646,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
                 <span class="link-overview-detail-ref"
                   >${function(e){const t=e.getAttribute("source")??"";return t?t.split("/").pop()??t:"Unknown reference"}(t)}</span
                 >
+                <span>${function(e){const t=e.closest("LNode");if(!t)return"Unknown sink";const n=[`${t.getAttribute("lnClass")??""}${t.getAttribute("lnInst")??""}`];let r=t.parentElement;for(;null!==r&&(n.unshift(r.getAttribute("name")??""),!r.matches("Function, EqFunction"));)r=r.parentElement;return n.join("/")}(t)}</span>
                 <span class="link-overview-detail-service"
                   >${e.service}</span
                 >
@@ -6684,6 +6686,7 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
               data-testid="link-overview-columns"
             >
               <span>Source</span>
+              <span>Sink</span>
               <span>Service</span>
               <span>Description</span>
               <span class="link-overview-actions-cell"> </span>
@@ -6721,9 +6724,10 @@ class yb extends(Oe(Yn)){getRenderClasses(){return{...super.getRenderClasses(),s
       gap: 8px;
     }
     .link-overview {
-      --link-overview-cols: minmax(0, 1fr) 150px minmax(0, 1fr) auto;
+      --link-overview-cols: minmax(0, 1fr) minmax(0, 1fr) 150px minmax(0, 1fr)
+        auto;
       flex: 0 0 auto;
-      width: 800px;
+      width: 1000px;
       max-width: 100%;
       pointer-events: auto;
       background: var(--md-sys-color-surface);
