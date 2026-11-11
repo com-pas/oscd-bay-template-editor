@@ -127,6 +127,9 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
   onCreateFunctionLink?: (context: LNodeSelectionContext) => void;
 
   @property({ attribute: false })
+  onAddInput?: (context: LNodeSelectionContext) => void;
+
+  @property({ attribute: false })
   onCancelCreateFunctionLink?: () => void;
 
   @property({ attribute: false })
@@ -856,6 +859,8 @@ export class FunctionsLayer extends ScopedElementsMixin(LitElement) {
                 .functionElement=${this.selectedFunctionElement}
                 .editCount=${this.editCount}
                 .selectingLinkSource=${this.selectingLinkSource}
+                @start-add-input=${(e: CustomEvent<LNodeSelectionContext>) =>
+                  this.onAddInput?.(e.detail)}
                 @start-create-function-link=${(
                   e: CustomEvent<LNodeSelectionContext>
                 ) => this.onCreateFunctionLink?.(e.detail)}
