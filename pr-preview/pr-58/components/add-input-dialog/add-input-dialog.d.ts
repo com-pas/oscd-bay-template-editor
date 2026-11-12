@@ -1,0 +1,60 @@
+import { LitElement } from 'lit';
+import { OscdDialog } from '@omicronenergy/oscd-ui/dialog/OscdDialog.js';
+import { OscdFilledButton } from '@omicronenergy/oscd-ui/button/OscdFilledButton.js';
+import { OscdOutlinedButton } from '@omicronenergy/oscd-ui/button/OscdOutlinedButton.js';
+import { OscdOutlinedTextField } from '@omicronenergy/oscd-ui/textfield/OscdOutlinedTextField.js';
+import { OscdIcon } from '@omicronenergy/oscd-ui/icon/OscdIcon.js';
+import { OscdOutlinedSelect } from '@omicronenergy/oscd-ui/select/OscdOutlinedSelect.js';
+import { OscdSelectOption } from '@omicronenergy/oscd-ui/select/OscdSelectOption.js';
+import type { LNodeSelectionContext } from '../functions-layer/function-content-panel.js';
+export interface SaveInputDetail {
+    context: LNodeSelectionContext;
+    resourceName: string;
+    description: string;
+    sourceClass: string;
+    dataObject: string;
+    dataAttribute: string;
+    inputName: string;
+}
+declare const AddInputDialog_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types.js").ScopedElementsHost> & import("@open-wc/scoped-elements/types.js").ScopedElementsHostConstructor;
+export declare class AddInputDialog extends AddInputDialog_base {
+    static get scopedElements(): {
+        'oscd-dialog': typeof OscdDialog;
+        'oscd-filled-button': typeof OscdFilledButton;
+        'oscd-outlined-button': typeof OscdOutlinedButton;
+        'oscd-outlined-text-field': typeof OscdOutlinedTextField;
+        'oscd-icon': typeof OscdIcon;
+        'oscd-outlined-select': typeof OscdOutlinedSelect;
+        'oscd-select-option': typeof OscdSelectOption;
+    };
+    private readonly dialog;
+    private readonly resourceNameField;
+    private readonly descriptionField;
+    private readonly sourceClassField;
+    private readonly dataObjectField;
+    private readonly dataAttributeField;
+    private readonly inputNameField;
+    context: LNodeSelectionContext | null;
+    editCount: number;
+    private resourceName;
+    private description;
+    private sourceChoice;
+    private dataObject;
+    private dataAttribute;
+    private inputName;
+    private saveError;
+    private formGroup;
+    get open(): boolean;
+    showForLNode(context: LNodeSelectionContext): void;
+    close(): void;
+    reportSaveError(message: string): void;
+    private readonly resourceNameTakenValidator;
+    private validateForm;
+    private get validationErrors();
+    private handleSourceClassChange;
+    private chooseDataObject;
+    private handleSave;
+    render(): import("lit-html").TemplateResult<1>;
+    static styles: import("lit").CSSResult;
+}
+export {};
