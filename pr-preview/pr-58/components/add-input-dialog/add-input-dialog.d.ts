@@ -49,8 +49,11 @@ export declare class AddInputDialog extends AddInputDialog_base {
     close(): void;
     reportSaveError(message: string): void;
     private readonly resourceNameTakenValidator;
+    private resourceNameExists;
     private validateForm;
+    private refreshValidation;
     private get validationErrors();
+    private get saveDisabled();
     private handleSourceClassChange;
     private chooseDataObject;
     private handleSave;
