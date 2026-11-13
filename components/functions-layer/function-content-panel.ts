@@ -140,6 +140,28 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     this.dispatchStartCreateFunctionLink();
   }
 
+  private handleAddInputClick(e: Event): void {
+    e.stopPropagation();
+    if (!this.functionElement || !this.selectedLNode) return;
+
+    if (this.selectingLinkSource) {
+      this.resetLinkSelectionUi = true;
+      this.dispatchCancelCreateFunctionLink();
+    }
+
+    this.dispatchEvent(
+      new CustomEvent<LNodeSelectionContext>('start-add-input', {
+        detail: {
+          functionElement: this.functionElement,
+          subFunctionElement: this.selectedSubFunction,
+          lNodeElement: this.selectedLNode,
+        },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
   private handleCancelFunctionLinkClick(e: Event): void {
     e.stopPropagation();
     this.resetLinkSelectionUi = true;
@@ -166,8 +188,8 @@ export class FunctionContentPanel extends ScopedElementsMixin(LitElement) {
     return html`
       <div class="lnode-actions">
         <oscd-filled-button
-          disabled
-          title="Incoming signals from outside Bay"
+          @click=${this.handleAddInputClick}
+          title="Add Input from outside Bay"
           data-testid="incoming-signal-btn"
           ><oscd-icon slot="icon">input</oscd-icon> In</oscd-filled-button
         >

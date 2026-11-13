@@ -43,6 +43,11 @@ import {
   type SaveFunctionDetail,
 } from './components/create-function-dialog/create-function-dialog.js';
 import { FunctionLinkDialog } from './components/function-link-dialog/function-link-dialog.js';
+import {
+  AddInputDialog,
+  type SaveInputDetail,
+} from './components/add-input-dialog/add-input-dialog.js';
+import { buildInputEdits } from './components/add-input-dialog/input-edits.js';
 import { buildFunctionLinkEdits } from './components/function-link-dialog/link-edits.js';
 import {
   buildUpdateFunctionEdits,
@@ -72,6 +77,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
       'sld-editor': SldEditor,
       'create-function-dialog': CreateFunctionDialog,
       'function-link-dialog': FunctionLinkDialog,
+      'add-input-dialog': AddInputDialog,
     };
   }
 
@@ -101,6 +107,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
   @query('create-function-dialog') createFunctionDialog?: CreateFunctionDialog;
 
   @query('function-link-dialog') functionLinkDialog!: FunctionLinkDialog;
+
+  @query('add-input-dialog') addInputDialog!: AddInputDialog;
 
   @state()
   sldEditorInAction: boolean = false;
@@ -380,6 +388,23 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
 
     this.dispatchEvent(newEditEventV2(edits));
     this.pendingLinkContext = null;
+  };
+
+  private handleSaveInput = (e: CustomEvent<SaveInputDetail>) => {
+    try {
+      const { context, ...data } = e.detail;
+      const edits = buildInputEdits({
+        doc: this.doc!,
+        sinkLNode: context.lNodeElement,
+        ...data,
+      });
+      this.dispatchEvent(newEditEventV2(edits, { title: 'Add Input' }));
+      this.addInputDialog.close();
+    } catch (error) {
+      this.addInputDialog.reportSaveError(
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   };
 
   private getElementFromProcessPath(path: string): Element | null {
@@ -1045,6 +1070,8 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
                     .onDonePlaceFunction=${this.handleDonePlaceFunction}
                     .onHoverFunction=${this.handleFunctionHover}
                     .onCreateFunctionLink=${this.handleCreateFunctionLink}
+                    .onAddInput=${(context: LNodeSelectionContext) =>
+                      this.addInputDialog.showForLNode(context)}
                     .onCancelCreateFunctionLink=${this.resetLinkingState}
                     .onSelectSourceFunction=${this.handleSelectSourceFunction}
                     .onEditFunction=${this.handleEditFunction}
@@ -1064,6 +1091,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
             @create-function-link=${this.handleConnectFunctionLink}
             @close-function-link-dialog=${this.resetLinkingState}
           ></function-link-dialog>
+          <add-input-dialog
+            .editCount=${this.editCount}
+            @save-input=${this.handleSaveInput}
+          ></add-input-dialog>
         `
       : html`<p>Please open an SCL document</p>`;
   }
@@ -1153,6 +1184,10 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         --md-sys-color-on-surface: var(--bay-template-internal-base00);
         --md-sys-color-on-surface-variant: var(--bay-template-internal-base00);
         --md-sys-color-surface-variant: var(--bay-template-internal-base2);
+        --md-sys-color-surface-container: var(--bay-template-internal-base2);
+        --md-sys-color-surface-container-lowest: var(
+          --bay-template-internal-base3
+        );
         --md-sys-color-surface-container-high: var(
           --bay-template-internal-base2
         );
@@ -1161,6 +1196,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         );
         --md-sys-color-secondary-container: var(--bay-template-internal-base2);
         --md-sys-color-outline-variant: var(--bay-template-internal-base1);
+        --md-sys-color-outline: var(--bay-template-internal-base01);
         --md-sys-color-shadow: var(--bay-template-internal-base03);
         --md-sys-color-warning-container: color-mix(
           in oklab,
@@ -1198,6 +1234,9 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
         --oscd-text-font-mono: var(--bay-template-internal-text-font-mono);
         --oscd-icon-font: var(--bay-template-internal-icon-font);
         --oscd-shape: var(--bay-template-internal-shape);
+        --md-ref-typeface-plain: var(--oscd-text-font);
+        --md-ref-typeface-brand: var(--oscd-text-font);
+        --md-icon-font: var(--oscd-icon-font);
 
         font-family: var(--bay-template-internal-text-font), sans-serif;
         --md-filled-icon-button-container-color: var(
