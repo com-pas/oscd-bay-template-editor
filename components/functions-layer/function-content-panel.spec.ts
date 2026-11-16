@@ -133,7 +133,7 @@ describe('FunctionContentPanel', () => {
     );
 
     expect(createBtn).to.exist;
-    expect(incomingBtn?.hasAttribute('disabled')).to.be.true;
+    expect(incomingBtn?.hasAttribute('disabled')).to.be.false;
     expect(outgoingBtn?.hasAttribute('disabled')).to.be.true;
   });
 
@@ -162,6 +162,73 @@ describe('FunctionContentPanel', () => {
     expect(detail.functionElement).to.equal(functionElement);
     expect(detail.subFunctionElement).to.equal(null);
     expect(detail.lNodeElement.getAttribute('lnClass')).to.equal('LLN0');
+  });
+
+  it('dispatches the selected LNode context for Add Input and cancels link selection', async () => {
+    const functionElement = getFunctionElementFromDoc(docWithNestedFunctions);
+    element.functionElement = functionElement;
+    await element.updateComplete;
+
+    const lNode = functionElement.querySelector(':scope > LNode')!;
+    const lNodeListItem = element.shadowRoot!.querySelector<HTMLElement>(
+      'oscd-list:nth-of-type(2) oscd-list-item'
+    )!;
+    lNodeListItem.click();
+    element.selectingLinkSource = true;
+    await element.updateComplete;
+
+    const addInputSpy = spy();
+    const cancelSpy = spy();
+    element.addEventListener('start-add-input', addInputSpy);
+    element.addEventListener('cancel-create-function-link', cancelSpy);
+    element
+      .shadowRoot!.querySelector<HTMLElement>(
+        '[data-testid="incoming-signal-btn"]'
+      )!
+      .click();
+
+    expect(cancelSpy.calledOnce).to.be.true;
+    expect(addInputSpy.calledOnce).to.be.true;
+    const event = addInputSpy.firstCall.args[0];
+    expect(event.detail).to.deep.equal({
+      functionElement,
+      subFunctionElement: null,
+      lNodeElement: lNode,
+    });
+    expect(event.bubbles).to.be.true;
+    expect(event.composed).to.be.true;
+    await element.updateComplete;
+    expect(element.shadowRoot!.querySelector('.selected-lnode-item')).to.equal(
+      lNodeListItem
+    );
+  });
+
+  it('dispatches the SubFunction and LNode context for Add Input', async () => {
+    const functionElement = getFunctionElementFromDoc(docWithSubFunctionLNode);
+    element.functionElement = functionElement;
+    await element.updateComplete;
+    element
+      .shadowRoot!.querySelector<HTMLElement>(
+        'oscd-list:nth-of-type(1) oscd-list-item[type="button"]'
+      )!
+      .click();
+    await element.updateComplete;
+
+    const addInputSpy = spy();
+    element.addEventListener('start-add-input', addInputSpy);
+    element
+      .shadowRoot!.querySelector<HTMLElement>(
+        '[data-testid="incoming-signal-btn"]'
+      )!
+      .click();
+
+    expect(addInputSpy.calledOnce).to.be.true;
+    const subFunctionElement = functionElement.querySelector('SubFunction')!;
+    expect(addInputSpy.firstCall.args[0].detail).to.deep.equal({
+      functionElement,
+      subFunctionElement,
+      lNodeElement: subFunctionElement.querySelector('LNode'),
+    });
   });
 
   it('shows link selection prompt and cancel button when selecting source', async () => {

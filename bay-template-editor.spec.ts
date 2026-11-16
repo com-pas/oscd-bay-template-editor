@@ -1,7 +1,10 @@
 /* eslint-disable no-unused-expressions */
 import { html } from 'lit';
 import sinon, { spy } from 'sinon';
-import { fixture, expect } from '@open-wc/testing';
+import { fixture, expect, waitUntil } from '@open-wc/testing';
+import type { EditEventV2 } from '@openscd/oscd-api';
+import type { OscdOutlinedTextField } from '@omicronenergy/oscd-ui/textfield/OscdOutlinedTextField.js';
+import type { OscdOutlinedSelect } from '@omicronenergy/oscd-ui/select/OscdOutlinedSelect.js';
 import BayTemplatePlugin from './bay-template-editor.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import {
@@ -21,8 +24,9 @@ import {
   docWithLinkedFunctionLNode,
   docWithSubFunctionSourceLink,
 } from './testfiles.js';
-import { eqTypes } from './util.js';
+import { eqTypes, eTr6100Ns } from './util.js';
 import type { SubFunctionData } from './util.js';
+import type { FunctionContentPanel } from './components/functions-layer/function-content-panel.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
   customElements.define('oscd-editor-bay-template', BayTemplatePlugin);
@@ -36,6 +40,219 @@ describe('Bay Template Editor Plugin', () => {
       html`<oscd-editor-bay-template></oscd-editor-bay-template>`
     );
     await element.updateComplete;
+  });
+
+  it('opens Add Input from the selected LNode and keeps the card selected after closing', async () => {
+    element.doc = new DOMParser().parseFromString(
+      docForFunctionLinkFlow,
+      'application/xml'
+    );
+    element.showFunctions = true;
+    await element.updateComplete;
+    const layer =
+      element.shadowRoot!.querySelector<FunctionsLayer>('functions-layer')!;
+    const functionElement = element.doc.querySelector('Function')!;
+    layer.selectedFunctionElement = functionElement;
+    await layer.updateComplete;
+    const panel = layer.shadowRoot!.querySelector<FunctionContentPanel>(
+      'function-content-panel'
+    )!;
+    await panel.updateComplete;
+    panel
+      .shadowRoot!.querySelector<HTMLElement>('oscd-list-item[type="button"]')!
+      .click();
+    await panel.updateComplete;
+    const selectedCard = panel.shadowRoot!.querySelector(
+      '.selected-lnode-item'
+    );
+    const incomingButton = panel.shadowRoot!.querySelector<HTMLElement>(
+      '[data-testid="incoming-signal-btn"]'
+    )!;
+    const editSpy = spy();
+    element.addEventListener('oscd-edit-v2', editSpy);
+    incomingButton.click();
+    await element.addInputDialog.updateComplete;
+    await waitUntil(() => element.addInputDialog.open);
+
+    expect(element.addInputDialog.open).to.be.true;
+    expect(element.addInputDialog.context?.lNodeElement).to.equal(
+      functionElement.querySelector('LNode')
+    );
+    element.addInputDialog.close();
+    await waitUntil(() => !element.addInputDialog.open);
+    expect(element.addInputDialog.open).to.be.false;
+    expect(layer.selectedFunctionElement).to.equal(functionElement);
+    expect(panel.shadowRoot!.querySelector('.selected-lnode-item')).to.equal(
+      selectedCard
+    );
+    incomingButton.click();
+    await waitUntil(() => element.addInputDialog.open);
+    expect(element.addInputDialog.open).to.be.true;
+    expect(editSpy.called).to.be.false;
+    element.addInputDialog.close();
+    await waitUntil(() => !element.addInputDialog.open);
+  });
+
+  describe('saving inter-bay inputs', () => {
+    let sinkLNode: Element;
+    let edits: EditEventV2[];
+    let panel: FunctionContentPanel;
+    let layer: FunctionsLayer;
+
+    beforeEach(async () => {
+      element.doc = new DOMParser().parseFromString(
+        docForFunctionLinkFlow,
+        'application/xml'
+      );
+      element.showFunctions = true;
+      await element.updateComplete;
+      sinkLNode = element.doc.querySelector('LNode')!;
+      edits = [];
+      element.addEventListener('oscd-edit-v2', event => {
+        edits.push(event);
+        const batch = event.detail.edit;
+        if (!Array.isArray(batch)) throw new Error('Expected an edit batch.');
+        batch.forEach(edit => {
+          if ('parent' in edit) {
+            edit.parent.insertBefore(edit.node, edit.reference);
+          } else if ('element' in edit && 'attributesNS' in edit) {
+            Object.entries(edit.attributesNS ?? {}).forEach(([ns, attrs]) =>
+              Object.entries(attrs ?? {}).forEach(([name, value]) => {
+                if (value !== null && value !== undefined)
+                  edit.element.setAttributeNS(ns, name, value);
+              })
+            );
+          } else {
+            throw new Error('Unexpected Add Input edit.');
+          }
+        });
+        element.editCount += 1;
+      });
+      layer =
+        element.shadowRoot!.querySelector<FunctionsLayer>('functions-layer')!;
+      layer.selectedFunctionElement = sinkLNode.closest('Function')!;
+      await layer.updateComplete;
+      panel = layer.shadowRoot!.querySelector<FunctionContentPanel>(
+        'function-content-panel'
+      )!;
+      await panel.updateComplete;
+      panel
+        .shadowRoot!.querySelector<HTMLElement>(
+          'oscd-list-item[type="button"]'
+        )!
+        .click();
+      await panel.updateComplete;
+      panel
+        .shadowRoot!.querySelector<HTMLElement>(
+          '[data-testid="incoming-signal-btn"]'
+        )!
+        .click();
+      await element.addInputDialog.updateComplete;
+      await waitUntil(() => element.addInputDialog.open);
+    });
+
+    afterEach(async () => {
+      element.addInputDialog.close();
+      await waitUntil(() => !element.addInputDialog.open);
+    });
+
+    async function enter(name: string, value: string) {
+      const field =
+        element.addInputDialog.shadowRoot!.querySelector<OscdOutlinedTextField>(
+          `[name="${name}"]`
+        )!;
+      field.value = value;
+      field.dispatchEvent(new Event('input'));
+      await element.addInputDialog.updateComplete;
+    }
+
+    async function click(testId: string) {
+      element.addInputDialog
+        .shadowRoot!.querySelector<HTMLElement>(`[data-testid="${testId}"]`)!
+        .click();
+      await element.addInputDialog.updateComplete;
+    }
+
+    async function selectValue(name: string, value: string) {
+      const select =
+        element.addInputDialog.shadowRoot!.querySelector<OscdOutlinedSelect>(
+          `[name="${name}"]`
+        )!;
+      select.value = value;
+      await select.updateComplete;
+      select.dispatchEvent(new Event('change'));
+      await element.addInputDialog.updateComplete;
+    }
+
+    async function fillExample() {
+      await enter('resourceName', 'OvercurrentPhaseCT');
+      await enter('description', 'Phase CT feeding the overcurrent protection');
+      const select =
+        element.addInputDialog.shadowRoot!.querySelector<OscdOutlinedSelect>(
+          '[data-testid="source-class"]'
+        )!;
+      select.value = 'TCTR';
+      await select.updateComplete;
+      select.dispatchEvent(new Event('change'));
+      await element.addInputDialog.updateComplete;
+      await selectValue('dataObject', 'AmpSv');
+      await selectValue('dataAttribute', 'instMag');
+    }
+
+    it('saves the example in one undoable edit batch and reuses the bay container on the next Save', async () => {
+      await fillExample();
+      await click('save-button');
+      await waitUntil(() => !element.addInputDialog.open);
+      expect(edits.length).to.equal(1);
+      expect(edits[0].detail.title).to.equal('Add Input');
+      const doc = element.doc!;
+      const resources = doc.getElementsByTagNameNS(
+        eTr6100Ns,
+        'ProcessResource'
+      );
+      expect(resources.length).to.equal(1);
+      expect(resources[0].getAttribute('selector')).to.equal(
+        "ancestor::VoltageLevel//LNode[@lnClass='TCTR']"
+      );
+      expect(resources[0].getAttribute('cardinality')).to.equal('1..1');
+      expect(resources[0].children.length).to.equal(0);
+      const refs = sinkLNode.getElementsByTagNameNS(eTr6100Ns, 'SourceRef');
+      expect(refs.length).to.equal(1);
+      expect(refs[0].getAttribute('resourceName')).to.equal(
+        'OvercurrentPhaseCT'
+      );
+      expect(refs[0].getAttribute('pDA')).to.equal('instMag');
+      expect(refs[0].hasAttribute('source')).to.be.false;
+      expect(refs[0].hasAttribute('service')).to.be.false;
+
+      expect(layer.selectedFunctionElement).to.equal(
+        sinkLNode.closest('Function')
+      );
+      expect(panel.shadowRoot!.querySelector('.selected-lnode-item')).to.exist;
+      panel
+        .shadowRoot!.querySelector<HTMLElement>(
+          '[data-testid="incoming-signal-btn"]'
+        )!
+        .click();
+      await element.addInputDialog.updateComplete;
+      await waitUntil(() => element.addInputDialog.open);
+      await enter('resourceName', 'BreakerPosition');
+      await selectValue('dataObject', 'Pos');
+      await click('save-button');
+      await waitUntil(() => !element.addInputDialog.open);
+      expect(edits.length).to.equal(2);
+      expect(
+        doc.getElementsByTagNameNS(eTr6100Ns, 'ProcessResources').length
+      ).to.equal(1);
+      expect(resources.length).to.equal(2);
+      expect(refs.length).to.equal(2);
+      expect(resources[1].getAttribute('selector')).to.equal(
+        "ancestor::VoltageLevel//LNode[@lnClass='XCBR']"
+      );
+      expect(refs[1].getAttribute('pLN')).to.equal('XCBR');
+      expect(refs[1].hasAttribute('pDA')).to.be.false;
+      expect(resources[1].hasAttribute('desc')).to.be.false;
+    });
   });
 
   describe('createFunction', () => {
