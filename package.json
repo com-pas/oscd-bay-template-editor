@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/com-pas/oscd-bay-template-editor#readme",
   "scripts": {
+    "postinstall": "cd node_modules/@omicronenergy/oscd-editor-sld && npm install --ignore-scripts && npm install @open-wc/scoped-elements@3.0.6 @types/node@16.18.126 --no-save --ignore-scripts && npm run build",
     "prepare": "npm run build",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
@@ -44,7 +45,7 @@
     "@compas-oscd/xml": "^0.0.1",
     "@omicronenergy/oscd-background-editv1": "^0.0.6",
     "@omicronenergy/oscd-background-wizard-events": "^0.0.1",
-    "@omicronenergy/oscd-editor-sld": "1.0.0",
+    "@omicronenergy/oscd-editor-sld": "https://github.com/OMICRONEnergyOSS/oscd-editor-sld/archive/3f403a8a432a866287f3bffa3d4044e9192e5fc2.tar.gz",
     "@omicronenergy/oscd-editor-source": "0.0.5",
     "@omicronenergy/oscd-menu-open": "^0.0.6",
     "@omicronenergy/oscd-menu-save": "^0.0.2",
