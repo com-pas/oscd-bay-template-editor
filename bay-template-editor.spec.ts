@@ -2,6 +2,7 @@
 import { html } from 'lit';
 import sinon, { spy } from 'sinon';
 import { fixture, expect } from '@open-wc/testing';
+import type { OscdOutlinedTextField } from '@omicronenergy/oscd-ui/textfield/OscdOutlinedTextField.js';
 import BayTemplatePlugin from './bay-template-editor.js';
 import { FunctionsLayer } from './components/functions-layer/functions-layer.js';
 import {
@@ -20,8 +21,9 @@ import {
   docForUpdateFunction,
   docWithLinkedFunctionLNode,
   docWithSubFunctionSourceLink,
+  docForSubstationResize,
 } from './testfiles.js';
-import { eqTypes } from './util.js';
+import { eqTypes, setSLDAttributes } from './util.js';
 import type { SubFunctionData } from './util.js';
 
 if (!customElements.get('oscd-editor-bay-template')) {
@@ -1719,6 +1721,125 @@ describe('Bay Template Editor Plugin', () => {
       expect((element as any).linkSourceCandidates).to.deep.equal([]);
 
       dispatchSpy.restore();
+    });
+  });
+
+  describe('substation resize validation', () => {
+    let substation: Element;
+    let otherSubstation: Element;
+
+    beforeEach(async () => {
+      const doc = new DOMParser().parseFromString(
+        docForSubstationResize,
+        'application/xml'
+      );
+      [substation, otherSubstation] = Array.from(
+        doc.querySelectorAll('Substation')
+      );
+      element.doc = doc;
+      await element.updateComplete;
+      await element.sldEditor!.updateComplete;
+    });
+
+    it('checks coordinates independently, including nested equipment functions', () => {
+      const validate = element.sldEditor!.validateSubstationResize!;
+      expect(validate(substation, 17, 20, 'width')).to.contain('functions');
+      expect(validate(substation, 18, 9, 'height')).to.contain('functions');
+      expect(validate(substation, 18, 10, 'width')).to.be.undefined;
+      expect(validate(substation, 18, 10, 'height')).to.be.undefined;
+      expect(validate(otherSubstation, 18, 10, 'width')).to.contain(
+        'functions'
+      );
+
+      substation.querySelector('EqFunction')!.remove();
+      expect(validate(substation, 10, 6, 'width')).to.contain('functions');
+      expect(validate(substation, 11, 6, 'width')).to.be.undefined;
+      expect(validate(substation, 11, 5, 'height')).to.contain('functions');
+      expect(validate(substation, 11, 6, 'height')).to.be.undefined;
+    });
+
+    it('shows field errors, prevents resize, and accepts corrected dimensions', async () => {
+      const editor = element.sldEditor!;
+      const dialog = editor.resizeDialog;
+      await dialog.show(substation);
+      const width =
+        dialog.shadowRoot!.querySelector<OscdOutlinedTextField>(
+          '#substationWidth'
+        )!;
+      const height =
+        dialog.shadowRoot!.querySelector<OscdOutlinedTextField>(
+          '#substationHeight'
+        )!;
+      const resize = dialog.shadowRoot!.querySelector<HTMLElement>(
+        'div[slot="actions"] > oscd-filled-button'
+      )!;
+      const onResize = spy();
+      dialog.addEventListener('oscd-sld-resize', onResize);
+      const handleResize = spy(editor, 'handleResize');
+
+      await width.updateComplete;
+      await height.updateComplete;
+      expect(width.value).to.equal('30');
+      expect(height.value).to.equal('20');
+      width.value = '17';
+      height.value = '9';
+      width.dispatchEvent(new Event('input'));
+      expect(width.validationMessage).to.contain('functions');
+      expect(height.validationMessage).to.contain('functions');
+      resize.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(onResize.called).to.be.false;
+      expect(dialog.shadowRoot!.querySelector('oscd-dialog')!.open).to.be.true;
+
+      await width.updateComplete;
+      await height.updateComplete;
+      width.value = '18';
+      height.value = '10';
+      height.dispatchEvent(new Event('input'));
+      expect(width.validationMessage).to.equal('');
+      expect(height.validationMessage).to.equal('');
+      expect(width.validity.valid).to.be.true;
+      expect(height.validity.valid).to.be.true;
+      await width.updateComplete;
+      await height.updateComplete;
+      resize.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(handleResize.callCount).to.equal(1);
+      expect(onResize.callCount).to.equal(1);
+      expect(onResize.firstCall.args[0].detail).to.deep.equal({
+        element: substation,
+        w: 18,
+        h: 10,
+      });
+    });
+
+    it('retains the built-in checks when no positioned function is in the way', async () => {
+      substation
+        .querySelectorAll('Function, EqFunction')
+        .forEach(fn => fn.remove());
+      const voltageLevel = substation.ownerDocument.createElementNS(
+        substation.namespaceURI,
+        'VoltageLevel'
+      );
+      voltageLevel.setAttribute('name', 'V1');
+      setSLDAttributes(voltageLevel, 'eosld', {
+        x: '1',
+        y: '1',
+        w: '8',
+        h: '8',
+      });
+      substation.append(voltageLevel);
+      const dialog = element.sldEditor!.resizeDialog;
+      await dialog.show(substation);
+      const width =
+        dialog.shadowRoot!.querySelector<OscdOutlinedTextField>(
+          '#substationWidth'
+        )!;
+      width.value = '2';
+      width.dispatchEvent(new Event('input'));
+      expect(width.validationMessage).to.contain('voltage levels');
+
+      width.value = '0';
+      width.dispatchEvent(new Event('input'));
+      expect(width.validationMessage).to.contain('whole number');
     });
   });
 });
