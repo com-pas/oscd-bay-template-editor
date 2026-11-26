@@ -54,6 +54,7 @@ export declare function getFunctionCoordinates(doc: XMLDocument, parent: Element
     x: number;
     y: number;
 };
+export declare function validateSubstationResize(substation: Element, width: number, height: number, dimension: 'width' | 'height'): string | undefined;
 export declare function getProcessPath(element: Element): string;
 export declare function getLNodeName(lnode: Element): string;
 export declare function getLNodeSourcePath(lnode: Element): string | null;
