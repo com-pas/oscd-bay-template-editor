@@ -361,6 +361,29 @@ export function getFunctionCoordinates(
   return { x, y };
 }
 
+export function validateSubstationResize(
+  substation: Element,
+  width: number,
+  height: number,
+  dimension: 'width' | 'height'
+): string | undefined {
+  const outside = Array.from(
+    substation.querySelectorAll('Function, EqFunction')
+  ).some(element => {
+    const xAttr = getSLDAttributes(element, 'x');
+    const yAttr = getSLDAttributes(element, 'y');
+    if (!xAttr || !yAttr) return false;
+    const x = Number.parseFloat(xAttr);
+    const y = Number.parseFloat(yAttr);
+    if (Number.isNaN(x) || Number.isNaN(y)) return false;
+    return dimension === 'width' ? x > width : y > height;
+  });
+
+  return outside
+    ? 'Too small to contain the substation’s functions'
+    : undefined;
+}
+
 export function getProcessPath(element: Element): string {
   const startingElementName = element.getAttribute('name') ?? '';
   const pathParts: string[] = [startingElementName];
