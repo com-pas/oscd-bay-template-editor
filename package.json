@@ -44,7 +44,7 @@
     "@compas-oscd/xml": "^0.0.1",
     "@omicronenergy/oscd-background-editv1": "^0.0.6",
     "@omicronenergy/oscd-background-wizard-events": "^0.0.1",
-    "@omicronenergy/oscd-editor-sld": "1.0.0",
+    "@omicronenergy/oscd-editor-sld": "1.1.0",
     "@omicronenergy/oscd-editor-source": "0.0.5",
     "@omicronenergy/oscd-menu-open": "^0.0.6",
     "@omicronenergy/oscd-menu-save": "^0.0.2",
