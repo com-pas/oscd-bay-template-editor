@@ -25,6 +25,7 @@ import {
   isBusBar,
   makeBusBar,
   setSLDAttributes,
+  validateSubstationResize,
   sldNs,
   xmlnsNs,
   getFunctionCoordinates,
@@ -1020,6 +1021,7 @@ export default class BayTemplatePlugin extends ScopedElementsMixin(LitElement) {
               .docVersion=${this.editCount}
               .gridSize=${this.gridSize}
               .showLabels=${this.showLabels}
+              .validateSubstationResize=${validateSubstationResize}
               .disabled=${this.addingFunction || this.showFunctions}
               .highlight=${[...this.highlight, ...this.functionHoverHighlight]}
               .selectable=${this.addingFunction

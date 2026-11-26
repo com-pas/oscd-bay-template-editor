@@ -587,6 +587,45 @@ export const docWithSubFunctionSourceLink = `<?xml version="1.0" encoding="UTF-8
         </DataTypeTemplates>
       </SCL>`;
 
+export const docForSubstationResize = `<SCL xmlns="http://www.iec.ch/61850/2003/SCL"
+  xmlns:eosld="https://openscd.org/SCL/SSD/SLD/v0">
+  <Substation name="S1">
+    <Private type="OpenSCD-SLD-Layout">
+      <eosld:SLDAttributes eosld:w="30" eosld:h="20" />
+    </Private>
+    <Function name="ABCDEFGHIJKLMNO">
+      <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="10.5" eosld:y="5.5" />
+      </Private>
+    </Function>
+    <PowerTransformer name="T1">
+      <EqFunction name="E">
+        <Private type="OpenSCD-SLD-Layout">
+          <eosld:SLDAttributes eosld:x="18" eosld:y="10" />
+        </Private>
+      </EqFunction>
+    </PowerTransformer>
+    <Function name="Unplaced" />
+    <Function name="Incomplete">
+      <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="200" />
+      </Private>
+    </Function>
+    <Function name="Invalid">
+      <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="invalid" eosld:y="200" />
+      </Private>
+    </Function>
+  </Substation>
+  <Substation name="S2">
+    <Function name="Other">
+      <Private type="OpenSCD-SLD-Layout">
+        <eosld:SLDAttributes eosld:x="100" eosld:y="100" />
+      </Private>
+    </Function>
+  </Substation>
+</SCL>`;
+
 export const lnodeTypeLibrary = `<SCL xmlns="http://www.iec.ch/61850/2003/SCL" xmlns:compas="https://www.lfenergy.org/compas/extension/v1" version="2007" revision="B" release="4">
 	<Private type="compas_scl">
 		<compas:SclName>LNode-Type-Library</compas:SclName>
