@@ -16,7 +16,7 @@ interface BuildFunctionLinkEditsParams {
   namespacePrefix: string;
 }
 
-function getPrivateContainer(doc: XMLDocument, sinkLNode: Element) {
+export function getPrivateContainer(doc: XMLDocument, sinkLNode: Element) {
   const existingPrivate = Array.from(
     sinkLNode.querySelectorAll(':scope > Private')
   ).find(priv => priv.getAttribute('type') === eTr6100PrivType);
@@ -33,7 +33,7 @@ function getPrivateContainer(doc: XMLDocument, sinkLNode: Element) {
   return { privateElement, created: true };
 }
 
-function getLNodeInputsContainer(
+export function getLNodeInputsContainer(
   doc: XMLDocument,
   privateElement: Element,
   namespacePrefix: string
